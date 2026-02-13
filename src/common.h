@@ -22,10 +22,10 @@ typedef signed long long int s64;
 
 #define OUTPUT_WIDTH (1920)
 #define OUTPUT_HEIGHT (1080)
-#define FP_SCREEN_WIDTH (1920/2)
-#define FP_SCREEN_HEIGHT (1080/2)
+#define FP_SCREEN_WIDTH (OUTPUT_WIDTH)
+#define FP_SCREEN_HEIGHT (OUTPUT_HEIGHT)
 
-#define NUM_THREADS 1
+#define NUM_THREADS 4
 
 typedef struct {
     int start_x, start_y, start_z;

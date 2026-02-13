@@ -543,7 +543,7 @@ int main(void) {
             if(cntr++ == cnt_limit) {
                 for(int y = 5; y < 7; y++) {
                     for(int x = 5; x < 7; x++) {
-                        levels[cur_level_idx].floor[y*MAP_SIZE+x] += incs[inc_idx];
+                        //levels[cur_level_idx].floor[y*MAP_SIZE+x] += incs[inc_idx];
                     }
                 }
                 inc_idx += 1;

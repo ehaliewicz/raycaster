@@ -127,10 +127,9 @@ void draw_lit_fogged_tex_flat(u8* output, u8* texture, u8* decal, int x, int y0,
     }
 
     float cur_z = 1.0f / (inv_z0 + d_one_over_z*(clipped_y0-y0));
-    float cur_u = CLAMP((u_over_z+d_u_over_z*(clipped_y0)) * cur_z * 32.0f, 0.0f, 31.0f);
-    float cur_v = CLAMP((v_over_z+d_v_over_z*(clipped_y0)) * cur_z * 32.0f, 0.0f, 31.0f);
+    float cur_u = CLAMP((u_over_z+d_u_over_z*(clipped_y0-y0)) * cur_z * 32.0f, 0.0f, 31.0f);
+    float cur_v = CLAMP((v_over_z+d_v_over_z*(clipped_y0-y0)) * cur_z * 32.0f, 0.0f, 31.0f);
     for(int y = clipped_y0; y < clipped_y1; y++) {
-        
         float next_z = 1.0f / (inv_z0 + d_one_over_z*(y+1-y0));
         float next_u = CLAMP((u_over_z+d_u_over_z*(y+1-y0)) * next_z * 32.0f, 0.0f, 31.0f);
         float next_v = CLAMP((v_over_z+d_v_over_z*(y+1-y0)) * next_z * 32.0f, 0.0f, 31.0f);
@@ -221,17 +220,12 @@ void draw_lit_fogged_clipped_textured_wall(
             u32 decal_r = (decal_texel >> 16)&0xFF;
             u32 decal_g = (decal_texel >> 8)&0xFF;
             u32 decal_b = (decal_texel >> 0)&0xFF;
-            float r = texel_r; //((decal_r * decal_a) + ((1.0f - decal_a) * texel_r));
-            float g = texel_g; //((decal_g * decal_a) + ((1.0f - decal_a) * texel_g));
-            float b = texel_b; //((decal_b * decal_a) + ((1.0f - decal_a) * texel_b));
+            float r = ((decal_r * decal_a) + ((1.0f - decal_a) * texel_r));
+            float g = ((decal_g * decal_a) + ((1.0f - decal_a) * texel_g));
+            float b = ((decal_b * decal_a) + ((1.0f - decal_a) * texel_b));
             u32 intr = CLAMP((int)(r*mult), 0, 0xFF);
             u32 intg = CLAMP((int)(g*mult), 0, 0xFF);
             u32 intb = CLAMP((int)(b*mult), 0, 0xFF);
-
-            //u32 texel = *(u32*)(&tex_column[idx*4]);
-            //u32 r = ((texel >> 16) & 0xFF) * mult;
-            //u32 g = ((texel >> 8) & 0xFF) * mult;
-            //u32 b = ((texel >> 0) & 0xFF) * mult;
 
 
             *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]) = 0xFF000000|(intr<<16)|(intg<<8)|intb;
