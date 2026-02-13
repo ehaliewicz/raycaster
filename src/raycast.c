@@ -729,14 +729,14 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
 
 
             int first_floor_height = floor_height;
-            int second_floor_height = floor_height;
+            int second_floor_height = upper_floor_height;
             int first_ceil_height = ceil_height;
-            int second_ceil_height = ceil_height;
+            int second_ceil_height = upper_ceil_height;
 
             u8 first_floor_texture = floor_texture;
-            u8 second_floor_texture = floor_texture;
+            u8 second_floor_texture = upper_floor_texture;
             u8 first_ceil_texture = ceil_texture;
-            u8 second_ceil_texture = ceil_texture;
+            u8 second_ceil_texture = upper_ceil_texture;
             wall_side first_floor_side;
             wall_side second_floor_side;
             wall_side first_ceil_side;
@@ -749,14 +749,7 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
                 second_ceil_height = ceil_height;
                 second_ceil_texture = ceil_texture;
                 second_ceil_side = WALL_SIDE_BOTTOM;
-            } else {
-                first_ceil_height = ceil_height;
-                first_ceil_texture = ceil_texture;
-                first_ceil_side = WALL_SIDE_BOTTOM;
-                second_ceil_height = upper_ceil_height;
-                second_ceil_texture = upper_ceil_texture;
-                second_ceil_side = WALL_SIDE_UPPER_BOTTOM;
-            }        
+            }   
 
              if((lower_cell_type == NE_TO_SW_DIAG && (enters_top_side || enters_left_side)) ||
                 (lower_cell_type == NW_TO_SE_DIAG && (enters_top_side || enters_right_side))) {
@@ -766,22 +759,11 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
                 second_floor_height = floor_height;
                 second_floor_texture = floor_texture;
                 second_floor_side = WALL_SIDE_TOP;
-            } else {
-                first_floor_height = floor_height;
-                first_floor_texture = floor_texture;
-                second_floor_height = upper_floor_height;
-                second_floor_texture = upper_floor_texture;
-                first_floor_side = WALL_SIDE_TOP;
-                second_floor_side = WALL_SIDE_UPPER_TOP;
             }
-
-
 
             int proj_prev_floor_height = project_to_screen(prev_floor_height, perp_dist);
             int proj_prev_ceil_height = project_to_screen(prev_ceil_height, perp_dist);
             
-
-
             // draw previous step's steps and flats flats 
 
             if(proj_prev_ceil_height > prev_drawn_top) {
@@ -836,8 +818,6 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
                 }
                 prev_drawn_bot = proj_prev_floor_height;
             }
-
-
             
             // draw upper step
 
