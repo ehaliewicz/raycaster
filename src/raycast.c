@@ -156,20 +156,6 @@ level levels[1] = {
         .start_x = 2,
         .start_y = 2,
         .start_z = 2,
-        //.map_width = 32,
-        //.map_height = 32,
-        //.floor = level_0_floor, // these two could be merged
-        //.upper_floor = level_0_upper_floor,
-        //.ceil = level_0_ceil,
-        //.upper_ceil = level_0_upper_ceil,
-        //.upper_cell_types = level_0_upper_cell_types,
-        //.lower_cell_types = level_0_lower_cell_types,
-        //.lntex = level_0_lntex, .letex = level_0_letex, .lstex = level_0_lstex, .lwtex = level_0_lwtex,
-        //.untex = level_0_untex, .uetex = level_0_uetex, .ustex = level_0_ustex, .uwtex = level_0_uwtex,
-        //.ctex = level_0_ctex, .uctex = level_0_uctex, .ftex = level_0_ftex, .uftex = level_0_uftex,
-        //.udtex = level_0_udtex, .ldtex = level_0_ldtex,
-        //.light = level_0_light,
-        //.step_action = level_0_actions,
     }
 };
 
@@ -539,6 +525,8 @@ int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
                 
 }
 
+#define NEAR_PLANE_DIST (0.001f)
+
 void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
     int flash_frame = (frame&0b1000000) == 0b1000000;
 
@@ -556,7 +544,8 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
     float cam_dir_x = cosf(player_ang);
     float cam_dir_y = sinf(player_ang);
 
-    
+    const int start_map_x = floorf(player_x);
+    const int start_map_y = floorf(player_y);
     
     for(int screen_x = start_x; screen_x < end_x; screen_x++) {
 
@@ -571,8 +560,9 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
         float delta_dist_x = fabsf(1.0f / ray_dir_x);
         float delta_dist_y = fabsf(1.0f / ray_dir_y);
 
-        int map_x = floorf(player_x);
-        int map_y = floorf(player_y);
+        int map_x = start_map_x;
+        int map_y = start_map_y;
+        
 
         float def_exit_u = (ray_dir_x >= 0) ? 1.0f : 0.0f;
         float def_exit_v = (ray_dir_y >= 0) ? 1.0f : 0.0f;
@@ -590,7 +580,7 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
         wall_side prev_ceil_side = WALL_SIDE_BOTTOM;
         wall_side prev_floor_side = WALL_SIDE_TOP;
 
-        float prev_perp_dist = 0.001f;
+        float prev_perp_dist = NEAR_PLANE_DIST;
         float prev_flat_u = player_x - map_x;
         float prev_flat_v = player_y - map_y;
         int proj_prev_floor_height_at_prev_dist = project_to_screen(prev_floor_height, prev_perp_dist);
@@ -622,6 +612,9 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
 
             int side;
             float light_factor;
+
+            int prev_map_x = map_x;
+            int prev_map_y = map_y;
             if(side_dist_x < side_dist_y) {
                 side_dist_x += delta_dist_x;
                 map_x += step_x;
@@ -660,8 +653,12 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
             }
 
 
+            int proj_prev_floor_height = project_to_screen(prev_floor_height, perp_dist);
+            int proj_prev_ceil_height = project_to_screen(prev_ceil_height, perp_dist);
+
             hit_x = player_x + perp_dist * ray_dir_x;
             hit_y = player_y + perp_dist * ray_dir_y;
+
             
 
             // lower floor height and higher ceil height are used for diagonals and other special cell types
@@ -751,7 +748,8 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
                 second_ceil_side = WALL_SIDE_BOTTOM;
             }   
 
-             if((lower_cell_type == NE_TO_SW_DIAG && (enters_top_side || enters_left_side)) ||
+
+            if((lower_cell_type == NE_TO_SW_DIAG && (enters_top_side || enters_left_side)) ||
                 (lower_cell_type == NW_TO_SE_DIAG && (enters_top_side || enters_right_side))) {
                 first_floor_height = upper_floor_height;
                 first_floor_texture = upper_floor_texture;
@@ -761,8 +759,48 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
                 second_floor_side = WALL_SIDE_TOP;
             }
 
-            int proj_prev_floor_height = project_to_screen(prev_floor_height, perp_dist);
-            int proj_prev_ceil_height = project_to_screen(prev_ceil_height, perp_dist);
+            int proj_first_floor_height_at_boundary = project_to_screen(first_floor_height, perp_dist);
+            int proj_second_floor_height_at_boundary = project_to_screen(second_floor_height,perp_dist);
+            int proj_first_floor_height_at_diag = project_to_screen(first_floor_height, lower_diag_intersect.diag_perp_dist);
+            int proj_second_floor_height_at_diag = project_to_screen(second_floor_height,lower_diag_intersect.diag_perp_dist);
+
+
+            int proj_first_ceil_height_at_boundary = project_to_screen(first_ceil_height, perp_dist);
+            int proj_second_ceil_height_at_boundary = project_to_screen(second_ceil_height,perp_dist);
+            int proj_first_ceil_height_at_diag = project_to_screen(first_ceil_height, upper_diag_intersect.diag_perp_dist);
+            int proj_second_ceil_height_at_diag = project_to_screen(second_ceil_height,upper_diag_intersect.diag_perp_dist);
+
+            /*
+            if(prev_map_x == start_map_x && prev_map_y == start_map_y) {
+                // handle diagonals in the start cell
+                int prev_map_idx = map_y*MAP_SIZE+map_x;
+                cell_types lower_prev_cell_type = this_level.lower_cell_types[prev_map_idx];
+                cell_types upper_prev_cell_type = this_level.upper_cell_types[prev_map_idx];
+                int in_top_half = (player_y - prev_map_y) < 0.5f;
+                int in_right_half = (player_x - prev_map_x) >= 0.5f;
+                int in_left_half = !in_right_half;
+                if (lower_prev_cell_type == NE_TO_SW_DIAG || lower_prev_cell_type == NW_TO_SE_DIAG) {
+                    diag_intersect lower_diag_intersect;
+
+                    int lower_diag_hit = calc_diag_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, prev_map_x, prev_map_y, prev_perp_dist, lower_prev_cell_type);
+                    if(lower_diag_hit) {
+                        int first_prev_floor_height = this_level.floor[prev_map_idx];
+                        int second_prev_floor_height = this_level.upper_floor[prev_map_idx];
+                        if((lower_prev_cell_type == NE_TO_SW_DIAG && (in_top_half || in_right_half)) || 
+                           (lower_prev_cell_type == NW_TO_SE_DIAG && (in_top_half || in_left_half))) {
+                            // UPPER, LOWER
+                            int tmp = second_prev_floor_height;
+                            second_prev_floor_height = first_prev_floor_height;
+                            first_prev_floor_height = tmp;
+                        }
+                    }
+                }
+                if(upper_prev_cell_type == NE_TO_SW_DIAG || upper_prev_cell_type == NW_TO_SE_DIAG) {
+
+                }
+            }
+            */
+            
             
             // draw previous step's steps and flats flats 
 
@@ -821,16 +859,6 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
             
             // draw upper step
 
-            int proj_first_floor_height_at_boundary = project_to_screen(first_floor_height, perp_dist);
-            int proj_second_floor_height_at_boundary = project_to_screen(second_floor_height,perp_dist);
-            int proj_first_floor_height_at_diag = project_to_screen(first_floor_height, lower_diag_intersect.diag_perp_dist);
-            int proj_second_floor_height_at_diag = project_to_screen(second_floor_height,lower_diag_intersect.diag_perp_dist);
-
-
-            int proj_first_ceil_height_at_boundary = project_to_screen(first_ceil_height, perp_dist);
-            int proj_second_ceil_height_at_boundary = project_to_screen(second_ceil_height,perp_dist);
-            int proj_first_ceil_height_at_diag = project_to_screen(first_ceil_height, upper_diag_intersect.diag_perp_dist);
-            int proj_second_ceil_height_at_diag = project_to_screen(second_ceil_height,upper_diag_intersect.diag_perp_dist);
 
             // draw ceil first step
             
