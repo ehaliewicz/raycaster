@@ -492,6 +492,53 @@ const float diag_dy[3] = {
 #define FLOOR_LIGHT_FACTOR (0.65f)
 #define DIAG_LIGHT_FACTOR (0.87)
 
+int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, float cam_dir_x, float cam_dir_y, int map_x, int map_y, float perp_dist, cell_types cell_type) {
+    int upper_hits_diag = 0;
+    result->mid_flat_u = 0.0f;
+    result->mid_flat_v = 0.0f;
+    result->diag_perp_dist = perp_dist;
+
+    float diag_ix = 0.0f;
+    float diag_iy = 0.0f;
+    float p1x = player_x;
+    float p1y = player_y;
+    float q1x = player_x + ray_dir_x;
+    float q1y = player_y + ray_dir_y;
+    float p2x = map_x+0.5f;
+    float p2y = map_y+0.5f;
+    float q2x = p2x + 1.0f;
+    float q2y = p2y + diag_dy[cell_type];
+    float a1 = q1y - p1y;
+    float b1 = p1x - q1x;
+    float c1 = a1 * p1x + b1 * p1y;
+
+    float a2 = q2y - p2y;//-1;
+    float b2 = p2x - q2x;//-1;
+    float c2 = a2 * p2x + b2 * p2y;
+
+    float determinant = a1 * b2 - a2 * b1;
+
+    diag_ix = (c1 * b2 - c2 * b1) / determinant;
+    diag_iy = (a1 * c2 - a2 * c1) / determinant;
+    
+    float lx = fabsf(diag_ix - map_x);
+    result->diag_wall_u = lx;
+
+
+    result->mid_flat_u = diag_ix - floorf(diag_ix);
+    result->mid_flat_v = diag_iy - floorf(diag_iy);
+
+
+    if(floorf(diag_ix) == map_x && floorf(diag_iy) == map_y) {
+        upper_hits_diag = 1;
+        float dx = diag_ix-player_x;
+        float dy = diag_iy-player_y;
+        result->diag_perp_dist = dx*cam_dir_x + dy*cam_dir_y;
+    }
+    return upper_hits_diag;
+                
+}
+
 void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
     int flash_frame = (frame&0b1000000) == 0b1000000;
 
@@ -599,122 +646,17 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
             cell_types lower_cell_type = this_level.lower_cell_types[map_idx];
 
             perp_dist = MAX(prev_perp_dist, perp_dist);
-            //int upper_hits_diag = 0;
-            //int lower_hits_diag = 0;
 
-            //float upper_diag_wall_u = 0.0f;
-            //float lower_diag_wall_u = 0.0f;
-            //float upper_diag_perp_dist = perp_dist;
-            //float lower_diag_perp_dist = perp_dist;
-            
-            //float upper_mid_flat_u = 0.0f;
-            //float upper_mid_flat_v = 0.0f;
-            //float lower_mid_flat_v = 0.0f;
-            //float lower_mid_flat_u = 0.0f;
-
-
-            perp_dist = MAX(prev_perp_dist, perp_dist);
 
             int upper_hits_diag = 0;
-            float upper_mid_flat_u = 0.0f;
-            float upper_mid_flat_v = 0.0f;
-            float upper_diag_wall_u = 0.0f;
-            float upper_diag_perp_dist = perp_dist;
             int lower_hits_diag = 0;
-            float lower_mid_flat_u = 0.0f;
-            float lower_mid_flat_v = 0.0f;
-            float lower_diag_wall_u = 0.0f;
-            float lower_diag_perp_dist = perp_dist;
 
+            diag_intersect upper_diag_intersect, lower_diag_intersect;
             if(upper_cell_type == NE_TO_SW_DIAG || upper_cell_type == NW_TO_SE_DIAG) {
-                
-                upper_hits_diag = 0;
-                upper_mid_flat_u = 0.0f;
-                upper_mid_flat_v = 0.0f;
-                upper_diag_perp_dist = perp_dist;
-
-                float diag_ix = 0.0f;
-                float diag_iy = 0.0f;
-                float p1x = player_x;
-                float p1y = player_y;
-                float q1x = player_x + ray_dir_x;
-                float q1y = player_y + ray_dir_y;
-                float p2x = map_x+0.5f;
-                float p2y = map_y+0.5f;
-                float q2x = p2x + 1.0f;
-                float q2y = p2y + diag_dy[upper_cell_type];
-                float a1 = q1y - p1y;
-                float b1 = p1x - q1x;
-                float c1 = a1 * p1x + b1 * p1y;
-
-                float a2 = q2y - p2y;//-1;
-                float b2 = p2x - q2x;//-1;
-                float c2 = a2 * p2x + b2 * p2y;
-
-                float determinant = a1 * b2 - a2 * b1;
-
-                diag_ix = (c1 * b2 - c2 * b1) / determinant;
-                diag_iy = (a1 * c2 - a2 * c1) / determinant;
-                
-                float lx = fabsf(diag_ix - map_x);
-                upper_diag_wall_u = lx;
-
-
-                upper_mid_flat_u = diag_ix - floorf(diag_ix);
-                upper_mid_flat_v = diag_iy - floorf(diag_iy);
-
-
-                if(floorf(diag_ix) == map_x && floorf(diag_iy) == map_y) {
-                    upper_hits_diag = 1;
-                    float dx = diag_ix-player_x;
-                    float dy = diag_iy-player_y;
-                    upper_diag_perp_dist = dx*cam_dir_x + dy*cam_dir_y;
-                }
-                
+                upper_hits_diag = calc_diag_hit(&upper_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, map_x, map_y, perp_dist, upper_cell_type);
             }
-            if(lower_cell_type == NE_TO_SW_DIAG || lower_cell_type == NW_TO_SE_DIAG) {                
-                lower_hits_diag = 0;
-                lower_mid_flat_u = 0.0f;
-                lower_mid_flat_v = 0.0f;
-                lower_diag_perp_dist = perp_dist;
-
-                float diag_ix = 0.0f;
-                float diag_iy = 0.0f;
-                float p1x = player_x;
-                float p1y = player_y;
-                float q1x = player_x + ray_dir_x;
-                float q1y = player_y + ray_dir_y;
-                float p2x = map_x+0.5f;
-                float p2y = map_y+0.5f;
-                float q2x = p2x + 1.0f;
-                float q2y = p2y + diag_dy[lower_cell_type];
-                float a1 = q1y - p1y;
-                float b1 = p1x - q1x;
-                float c1 = a1 * p1x + b1 * p1y;
-
-                float a2 = q2y - p2y;//-1;
-                float b2 = p2x - q2x;//-1;
-                float c2 = a2 * p2x + b2 * p2y;
-
-                float determinant = a1 * b2 - a2 * b1;
-
-                diag_ix = (c1 * b2 - c2 * b1) / determinant;
-                diag_iy = (a1 * c2 - a2 * c1) / determinant;
-                
-                float lx = fabsf(diag_ix - map_x);
-                lower_diag_wall_u = lx;
-
-
-                lower_mid_flat_u = diag_ix - floorf(diag_ix);
-                lower_mid_flat_v = diag_iy - floorf(diag_iy);
-
-
-                if(floorf(diag_ix) == map_x && floorf(diag_iy) == map_y) {
-                    lower_hits_diag = 1;
-                    float dx = diag_ix-player_x;
-                    float dy = diag_iy-player_y;
-                    lower_diag_perp_dist = dx*cam_dir_x + dy*cam_dir_y;
-                }
+            if(lower_cell_type == NE_TO_SW_DIAG || lower_cell_type == NW_TO_SE_DIAG) {            
+                lower_hits_diag = calc_diag_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, map_x, map_y, perp_dist, lower_cell_type);    
             }
 
 
@@ -901,14 +843,14 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
 
             int proj_first_floor_height_at_boundary = project_to_screen(first_floor_height, perp_dist);
             int proj_second_floor_height_at_boundary = project_to_screen(second_floor_height,perp_dist);
-            int proj_first_floor_height_at_diag = project_to_screen(first_floor_height, lower_diag_perp_dist);
-            int proj_second_floor_height_at_diag = project_to_screen(second_floor_height,lower_diag_perp_dist);
+            int proj_first_floor_height_at_diag = project_to_screen(first_floor_height, lower_diag_intersect.diag_perp_dist);
+            int proj_second_floor_height_at_diag = project_to_screen(second_floor_height,lower_diag_intersect.diag_perp_dist);
 
 
             int proj_first_ceil_height_at_boundary = project_to_screen(first_ceil_height, perp_dist);
             int proj_second_ceil_height_at_boundary = project_to_screen(second_ceil_height,perp_dist);
-            int proj_first_ceil_height_at_diag = project_to_screen(first_ceil_height, upper_diag_perp_dist);
-            int proj_second_ceil_height_at_diag = project_to_screen(second_ceil_height,upper_diag_perp_dist);
+            int proj_first_ceil_height_at_diag = project_to_screen(first_ceil_height, upper_diag_intersect.diag_perp_dist);
+            int proj_second_ceil_height_at_diag = project_to_screen(second_ceil_height,upper_diag_intersect.diag_perp_dist);
 
             // draw ceil first step
             
@@ -981,8 +923,8 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
                         textures[first_ceil_texture&0xF],  decals[first_ceil_texture>>4],
                         screen_x, 
                         proj_first_ceil_height_at_boundary, proj_first_ceil_height_at_diag, 
-                        perp_dist, upper_diag_perp_dist, 
-                        flat_u, flat_v, upper_mid_flat_u, upper_mid_flat_v, 
+                        perp_dist, upper_diag_intersect.diag_perp_dist, 
+                        flat_u, flat_v, upper_diag_intersect.mid_flat_u, upper_diag_intersect.mid_flat_v, 
                         prev_drawn_top, prev_drawn_bot, cell_light_level*CEIL_LIGHT_FACTOR);
                     if(editor_mode_enabled) {
                         draw_edit_vline(
@@ -1005,12 +947,12 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
                 // draw step from ceiling
                 if(proj_second_ceil_height_at_diag > prev_drawn_top) {
                     draw_lit_fogged_clipped_textured_wall(output, 
-                        get_texture_column(textures[upper_diag_tex&0xF], upper_diag_wall_u),
-                        get_texture_column(decals[upper_diag_tex>>4], upper_diag_wall_u),
+                        get_texture_column(textures[upper_diag_tex&0xF], upper_diag_intersect.diag_wall_u),
+                        get_texture_column(decals[upper_diag_tex>>4], upper_diag_intersect.diag_wall_u),
                         screen_x, 
                         proj_first_ceil_height_at_diag, proj_second_ceil_height_at_diag, 
                         first_ceil_height, second_ceil_height, TOP_PEGGED,
-                        prev_drawn_top, prev_drawn_bot, upper_diag_perp_dist, cell_light_level*DIAG_LIGHT_FACTOR);
+                        prev_drawn_top, prev_drawn_bot, upper_diag_intersect.diag_perp_dist, cell_light_level*DIAG_LIGHT_FACTOR);
                     if(editor_mode_enabled) {
                         draw_edit_vline(
                             screen_x,
@@ -1051,8 +993,8 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
                         textures[first_floor_texture&0xF],  decals[first_floor_texture>>4],
                         screen_x, 
                         proj_first_floor_height_at_diag, proj_first_floor_height_at_boundary, 
-                        lower_diag_perp_dist, perp_dist, 
-                        lower_mid_flat_u, lower_mid_flat_v, flat_u, flat_v, 
+                        lower_diag_intersect.diag_perp_dist, perp_dist, 
+                        lower_diag_intersect.mid_flat_u, lower_diag_intersect.mid_flat_v, flat_u, flat_v, 
                         prev_drawn_top, prev_drawn_bot, cell_light_level*FLOOR_LIGHT_FACTOR);
                     if(editor_mode_enabled) {
                         draw_edit_vline(
@@ -1076,12 +1018,12 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
 
                 if(proj_second_floor_height_at_diag < prev_drawn_bot) {
                     draw_lit_fogged_clipped_textured_wall(output, 
-                        get_texture_column(textures[lower_diag_tex&0xF], lower_diag_wall_u),
-                        get_texture_column(decals[lower_diag_tex>>4], lower_diag_wall_u),
+                        get_texture_column(textures[lower_diag_tex&0xF], lower_diag_intersect.diag_wall_u),
+                        get_texture_column(decals[lower_diag_tex>>4], lower_diag_intersect.diag_wall_u),
                         screen_x, 
                         proj_second_floor_height_at_diag, proj_first_floor_height_at_diag, 
                         first_floor_height, second_floor_height, BOTTOM_PEGGED,
-                        prev_drawn_top, prev_drawn_bot, lower_diag_perp_dist, cell_light_level*DIAG_LIGHT_FACTOR);
+                        prev_drawn_top, prev_drawn_bot, lower_diag_intersect.diag_perp_dist, cell_light_level*DIAG_LIGHT_FACTOR);
                     if(editor_mode_enabled) {
                         draw_edit_vline(
                             screen_x,
