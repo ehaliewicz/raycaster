@@ -737,10 +737,10 @@ void draw_first_person_level(u8 *output, int start_x, int end_x, int frame) {
             u8 second_floor_texture = upper_floor_texture;
             u8 first_ceil_texture = ceil_texture;
             u8 second_ceil_texture = upper_ceil_texture;
-            wall_side first_floor_side;
-            wall_side second_floor_side;
-            wall_side first_ceil_side;
-            wall_side second_ceil_side;
+            wall_side first_floor_side = WALL_SIDE_TOP;
+            wall_side second_floor_side = WALL_SIDE_UPPER_TOP;
+            wall_side first_ceil_side = WALL_SIDE_BOTTOM;
+            wall_side second_ceil_side = WALL_SIDE_UPPER_BOTTOM;
             if((upper_cell_type == NE_TO_SW_DIAG && (enters_top_side || enters_left_side)) ||
                 (upper_cell_type == NW_TO_SE_DIAG && (enters_top_side || enters_right_side))) {
                 first_ceil_height = upper_ceil_height;
