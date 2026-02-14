@@ -13,6 +13,7 @@ typedef signed long long int s64;
 
 #define NUM_CELL_TYPES 3
 #define NUM_TEXTURES 6
+#define SKYBOX_TEX_IDX 15
 #define NUM_DECALS 4
 
 #define MAP_SIZE 32
@@ -20,13 +21,33 @@ typedef signed long long int s64;
 #define MAX_WALL_HEIGHT 32
 #define FOV (90.0f*.0174f)
 
-#define OUTPUT_WIDTH (1920)
-#define OUTPUT_HEIGHT (1080)
-#define FP_SCREEN_WIDTH (OUTPUT_WIDTH)
-#define FP_SCREEN_HEIGHT (OUTPUT_HEIGHT)
+#define OUTPUT_WIDTH (1024)
+#define OUTPUT_HEIGHT (768)
+#define FP_SCREEN_WIDTH (OUTPUT_WIDTH/2)
+#define FP_SCREEN_HEIGHT (OUTPUT_HEIGHT/2)
 
-#define NUM_THREADS 4
 
+#define TEX_SIZE (32)
+#define SKYBOX_TEX_HEIGHT (256)
+#define SKYBOX_TEX_WIDTH (1024)
+#define NEAR_PLANE_DIST (0.001f)
+
+#define NUM_LIGHT_LEVELS 4
+
+#define DARK_DIST 64.0f 
+//32.0f
+#define DARK_DIST_FIXED (32<<16)
+#define RECIP_DARK_DIST ((int)(65536.0f/32.0f))
+
+#define SKYBOX_U_PER_PIX (((float)SKYBOX_TEX_WIDTH)/FP_SCREEN_WIDTH)
+#define SKYBOX_V_PER_PIX (((float)SKYBOX_TEX_HEIGHT/2)/FP_SCREEN_HEIGHT)
+
+
+#ifdef DEBUG
+    #define NUM_THREADS 1
+#else
+    #define NUM_THREADS 4
+#endif 
 typedef struct {
     int start_x, start_y, start_z;
     u8 upper_cell_types[MAP_SIZE*MAP_SIZE];
@@ -89,15 +110,11 @@ typedef enum {
     FLICKER = 3
 } light_levels;
 
-#define TEX_SIZE (32)
 
-extern u8* textures[NUM_TEXTURES];
+
+extern u8* textures[16];
 extern u8* decals[NUM_DECALS];
 
-
-#define NEAR_PLANE_DIST (0.001f)
-
-#define NUM_LIGHT_LEVELS 4
 
 typedef struct {
     u32 alpha:8;
@@ -105,9 +122,8 @@ typedef struct {
     u32 side:8;
 } edit_wall_id;
 
+extern float player_ang;
+extern int pitch;
 
-#define DARK_DIST 32.0f
-#define DARK_DIST_FIXED (32<<16)
-#define RECIP_DARK_DIST ((int)(65536.0f/32.0f))
 
 #endif

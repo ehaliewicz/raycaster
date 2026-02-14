@@ -12,6 +12,7 @@
 
 #include "common.h"
 
+#include "thread.h"
 
 int draw_editor_buffer = 0;
 int editor_mode_enabled = 0;
@@ -58,8 +59,9 @@ Color color_lut[5] = {
 
 u8* flat_textures[6];
 
-u8* textures[NUM_TEXTURES];
+u8* textures[16];
 u8* decals[NUM_DECALS];
+u8* skybox;
 
 
 
@@ -78,20 +80,29 @@ float player_ang;
 int pitch = 0;
 int cur_level_idx;
 int disable_collision = 0;
+
 int collides(float x, float y, level this_level) {
-    //return 0;
     if (disable_collision) { return 0; }
     if(editor_mode_enabled) { return 0; }
-    int min_tile_x = (int)(x-.25f);
-    int max_tile_x = (int)(x+.25f);
-    int min_tile_y = (int)(y-.25f);
-    int max_tile_y = (int)(y+.25f);
+    int min_tile_x = (x-.25f);
+    int max_tile_x = (x+.25f);
+    int min_tile_y = (y-.25f);
+    int max_tile_y = (y+.25f);
     for(int y = min_tile_y; y <= max_tile_y; y++) {
         for(int x = min_tile_x; x <= max_tile_x; x++) {
-            if(this_level.ceil[y*MAP_SIZE + x] < player_z+1) {
+            int idx = y*MAP_SIZE+x;
+            int floor = this_level.floor[idx];
+            if(this_level.lower_cell_types[idx] == NE_TO_SW_DIAG || this_level.lower_cell_types[idx] == NW_TO_SE_DIAG) {
+                floor = MAX(floor, this_level.upper_floor[idx]);
+            };
+            int ceil = this_level.ceil[idx];
+            if(this_level.lower_cell_types[idx] == NE_TO_SW_DIAG || this_level.upper_cell_types[idx] == NW_TO_SE_DIAG) {
+                ceil = MIN(ceil, this_level.upper_ceil[idx]);
+            }
+            if(ceil < player_z+2 || ceil < (floor + 3)) {
                 return 1;
             }
-            if(this_level.floor[y*MAP_SIZE + x] > player_z+2) {
+            if(floor > player_z+2) {
                 return 1;
             }
         }
@@ -150,7 +161,11 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     }
     int map_x = (int)player_x;
     int map_y = (int)player_y;
-    player_z = levels[cur_level_idx].floor[map_y*MAP_SIZE + map_x]+4.5f;
+    int floor = levels[cur_level_idx].floor[map_y*MAP_SIZE + map_x];
+    if(levels[cur_level_idx].lower_cell_types[map_y*MAP_SIZE+map_x] != NORMAL_CELL) {
+        floor = MAX(floor, levels[cur_level_idx].upper_floor[map_y*MAP_SIZE + map_x]);
+    }
+    player_z = floor + 4.5f;
 
     if(IsKeyDown(KEY_LEFT)) {
         player_ang += 0.0035f*frame_time;
@@ -214,13 +229,19 @@ void init_level(int init) {
         memset(levels, 0, sizeof(levels));
         for(int y = 0; y < MAP_SIZE; y++) {
             for(int x = 0; x < MAP_SIZE; x++) {
+                int idx = y*MAP_SIZE+x;
                 if(x == 0 || y == 0 || x == MAP_SIZE-1 || y == MAP_SIZE-1) { 
-                    levels[cur_level_idx].ceil[y*MAP_SIZE+x] = 5;
-                    levels[cur_level_idx].floor[y*MAP_SIZE+x] = 5;
+                    levels[cur_level_idx].ceil[idx] = 5;
+                    levels[cur_level_idx].floor[idx] = 5;
+                    levels[cur_level_idx].upper_ceil[idx] = 5;
+                    levels[cur_level_idx].upper_floor[idx] = 5;
                 } else {
-                    levels[cur_level_idx].ceil[y*MAP_SIZE+x] = 10;
-                    levels[cur_level_idx].floor[y*MAP_SIZE+x] = 0;
+                    levels[cur_level_idx].ceil[idx] = 32;
+                    levels[cur_level_idx].floor[idx] = 10;
+                    levels[cur_level_idx].upper_ceil[idx] = 32;
+                    levels[cur_level_idx].upper_floor[idx] = 10;
 
+                    levels[cur_level_idx].ctex[idx] = SKYBOX_TEX_IDX;
                 }
             }
         }
@@ -252,17 +273,18 @@ void load_resources() {
     Image window_tex = LoadImage(".\\resources\\glass_window.png");
     Image moss_tex = LoadImage(".\\resources\\moss.png");
     Image chandelier_tex = LoadImage(".\\resources\\chandelier.png");
+    Image skybox_tex = LoadImage(".\\resources\\skybox.png");
 
-    size_t mip_tex_size = sizeof(u8)*4*TEX_SIZE*TEX_SIZE + sizeof(u8)*4*16*16 + sizeof(u8)*4*8*8 + sizeof(u8)*4*4*4 + sizeof(u8)*4*2*2 + sizeof(u8)*4*1*1;
-    u8* tex0_data = malloc(mip_tex_size);
-    u8* tex1_data = malloc(mip_tex_size);
-    u8* tex2_data = malloc(mip_tex_size);
-    u8* tex3_data = malloc(mip_tex_size);
-    u8* tex4_data = malloc(mip_tex_size);
-    u8* tex5_data = malloc(mip_tex_size);
-    u8* window_tex_data = malloc(mip_tex_size);
-    u8* moss_tex_data = malloc(mip_tex_size);
-    u8* chandelier_tex_data = malloc(mip_tex_size);
+    size_t tex_num_bytes = sizeof(u8)*4*TEX_SIZE*TEX_SIZE;
+    u8* tex0_data = malloc(tex_num_bytes);
+    u8* tex1_data = malloc(tex_num_bytes);
+    u8* tex2_data = malloc(tex_num_bytes);
+    u8* tex3_data = malloc(tex_num_bytes);
+    u8* tex4_data = malloc(tex_num_bytes);
+    u8* tex5_data = malloc(tex_num_bytes);
+    u8* window_tex_data = malloc(tex_num_bytes);
+    u8* moss_tex_data = malloc(tex_num_bytes);
+    u8* chandelier_tex_data = malloc(tex_num_bytes);
     
     u8* copy_ptrs[][2] = {
         tex0_data, tex0.data,
@@ -277,21 +299,10 @@ void load_resources() {
     };
     for(int mip = 0; mip < 1; mip++) {
         int dim = TEX_SIZE>>mip;
-        for(int y = 0; y < dim; y++) {
-            for(int x = 0; x < dim; x++) {
-
-                int off = flat_mip_offsets[mip];
-
-                for(int i = 0; i < 8; i++) {
-                    u8* src = copy_ptrs[i][1];
-                    u8* dst = copy_ptrs[i][0];
-                    dst[(off+y*dim+x)*4+0] = ((src))[(off+y*dim+x)*4+0];
-                    dst[(off+y*dim+x)*4+1] = ((src))[(off+y*dim+x)*4+1];
-                    dst[(off+y*dim+x)*4+2] = ((src))[(off+y*dim+x)*4+2];
-                    dst[(off+y*dim+x)*4+3] = ((src))[(off+y*dim+x)*4+3];
-
-                }
-            }
+        for(int i = 0; i < 8; i++) {
+            u8* src = copy_ptrs[i][1];
+            u8* dst = copy_ptrs[i][0];
+            memcpy(dst, src, tex_num_bytes);
         }
     }
     
@@ -301,12 +312,15 @@ void load_resources() {
     textures[3] = tex1_data;
     textures[4] = tex4_data;
     textures[5] = tex1_data;
-    decals[0] = calloc(mip_tex_size, 1);
+
+    decals[0] = calloc(tex_num_bytes, 1);
     decals[1] = window_tex_data;
     decals[2] = moss_tex_data;
     decals[3] = chandelier_tex_data;
+    skybox = malloc(4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT);
+    memcpy(skybox, skybox_tex.data, 4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT);
+    textures[SKYBOX_TEX_IDX] = skybox;
 }
-#include "thread.h"
 
 #define MAP_SAVE_FILE "./map_save"
 int main(void) {
@@ -317,7 +331,7 @@ int main(void) {
     InitWindow(screenWidth, screenHeight, "raycast");
 
     SetConfigFlags(FLAG_VSYNC_HINT);
-    SetTargetFPS(1000);
+    SetTargetFPS(144);
 
     load_resources();
     int num_loaded_bytes;
@@ -397,23 +411,75 @@ int main(void) {
             }
             if(dy != 0) {
                 u8* height_ptr = NULL;
-                switch(editor_selected_side) {
+                cell_types lower_cell_type = levels[cur_level_idx].lower_cell_types[editor_selected_map_idx];
+                    switch(editor_selected_side) {
                     case WALL_SIDE_BOTTOM:
-                    case WALL_SIDE_UPPER_NORTH:
-                    case WALL_SIDE_UPPER_EAST:
-                    case WALL_SIDE_UPPER_SOUTH:
-                    case WALL_SIDE_UPPER_WEST:
                         height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
+                        break;
+
+                    case WALL_SIDE_UPPER_NORTH: do {
+                        if(levels[cur_level_idx].upper_cell_types[editor_selected_map_idx] != NORMAL_CELL) {
+                            height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_map_idx];
+                        } else {
+                            height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
+                        }
+                    } while(0);
+                        break;
+                    case WALL_SIDE_UPPER_EAST: do {
+                        if(levels[cur_level_idx].upper_cell_types[editor_selected_map_idx] == NW_TO_SE_DIAG) {
+                            height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_map_idx];
+                        } else {
+                            height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
+                        }
+                    } while(0);
+                        break;
+                    case WALL_SIDE_UPPER_SOUTH:
+                            height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
+                        break;
+                    case WALL_SIDE_UPPER_WEST: do {
+                        if(levels[cur_level_idx].upper_cell_types[editor_selected_map_idx] == NE_TO_SW_DIAG) {
+                            height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_map_idx];
+                        } else {
+                            height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
+                        }
+                    } while(0);
                         break;
                     case WALL_SIDE_UPPER_DIAG:
                     case WALL_SIDE_UPPER_BOTTOM:
                         height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_map_idx];
                         break;
-                    case WALL_SIDE_TOP:   
-                    case WALL_SIDE_LOWER_NORTH:
-                    case WALL_SIDE_LOWER_EAST:
+
+
+                    case WALL_SIDE_LOWER_NORTH: do {
+                        if(levels[cur_level_idx].lower_cell_types[editor_selected_map_idx] != NORMAL_CELL) {
+                            height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_map_idx];
+                        } else {
+                            height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
+                        }
+                    } while(0);
+                        break;
+                    case WALL_SIDE_LOWER_EAST: do {
+                        if(levels[cur_level_idx].lower_cell_types[editor_selected_map_idx] == NW_TO_SE_DIAG) {
+                            height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_map_idx];
+                        } else {
+                            height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
+                        }
+                    } while(0);
+                        break;
                     case WALL_SIDE_LOWER_SOUTH:
-                    case WALL_SIDE_LOWER_WEST:
+                        height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
+                        break;
+                    case WALL_SIDE_LOWER_WEST: do {
+                        if(levels[cur_level_idx].lower_cell_types[editor_selected_map_idx] == NE_TO_SW_DIAG) {
+                            height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_map_idx];
+                        } else {
+                            height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
+                        }
+                    } while(0);
+                        break;
+
+
+                    case WALL_SIDE_TOP:   
                         height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
                         break;
                     case WALL_SIDE_UPPER_TOP:  
@@ -509,8 +575,11 @@ int main(void) {
                 if(tex_ptr != NULL) {
                     if(IsKeyPressed(KEY_R)) {
                         u8 ntex_idx = ((*tex_ptr)&0xF)+1;
-                        if(ntex_idx >= NUM_TEXTURES) {
+                        if(ntex_idx > SKYBOX_TEX_IDX) {
                             ntex_idx = 0;
+                        }
+                        if(ntex_idx >= NUM_TEXTURES) {
+                            ntex_idx = SKYBOX_TEX_IDX;
                         }
                         *tex_ptr &= 0xF0;
                         *tex_ptr |= ntex_idx;
