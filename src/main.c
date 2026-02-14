@@ -109,10 +109,10 @@ int collides(float px, float py, level this_level) {
 void update_player(float frame_time, Vector2 mouse_delta) {
     float y = sin(player_ang);
     float x = cos(player_ang);
-    float strafe_left_x = -y;
-    float strafe_left_y = x;
-    float strafe_right_x = y;
-    float strafe_right_y = -x;
+    float strafe_right_x = -y;
+    float strafe_right_y = x;
+    float strafe_left_x = y;
+    float strafe_left_y = -x;
     float move_speed = .08f * frame_time / 16.0f;
     level cur_level = levels[cur_level_idx];
     float r = PLAYER_RADIUS;
@@ -190,17 +190,17 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     player_z = floor + PLAYER_HEIGHT;
 
     if(IsKeyDown(KEY_LEFT)) {
-        player_ang += 0.0035f*frame_time;
+        player_ang -= 0.0035f*frame_time;
     }
     if(IsKeyDown(KEY_RIGHT)) {
-        player_ang -= 0.0035f*frame_time;
+        player_ang += 0.0035f*frame_time;
     }
     if(!editor_mode_enabled) {
         if(mouse_delta.y != 0) {
             pitch -= mouse_delta.y;
         }
         if(mouse_delta.x != 0) {
-            player_ang -= mouse_delta.x*.0017f;
+            player_ang += mouse_delta.x*.0017f;
         }
     }
     if (IsKeyDown(KEY_I)) {
@@ -604,7 +604,8 @@ void main_loop() {
     } EndDrawing();
     float frame_time_ms = GetFrameTime()*1000.0f;
     update_player(frame_time_ms, mouse_delta);
-    printf("%.2ffps\n", 1000.0f/frame_time_ms);
+    //printf("%.2ffps\n", 1000.0f/frame_time_ms);
+    printf("%.2f %.2f\n", player_x, player_y);
     //printf("%.3fms\n", frame_time_ms);
     frame++;
 }
