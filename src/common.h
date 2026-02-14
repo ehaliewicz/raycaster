@@ -31,7 +31,7 @@ typedef signed long long int s64;
 #define TEX_SIZE (32)
 #define SKYBOX_TEX_HEIGHT (256)
 #define SKYBOX_TEX_WIDTH (1024)
-#define NEAR_PLANE_DIST (0.001f)
+#define NEAR_PLANE_DIST (0.01f)
 
 #define NUM_LIGHT_LEVELS 4
 

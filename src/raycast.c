@@ -312,7 +312,7 @@ const float diag_dy[3] = {
 #define DIAG_LIGHT_FACTOR (0.87)
 
 int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, float cam_dir_x, float cam_dir_y, float player_x, float player_y, int map_x, int map_y, float perp_dist, cell_types cell_type) {
-    int upper_hits_diag = 0;
+    int hits_diag = 0;
     result->mid_flat_u = 0.0f;
     result->mid_flat_v = 0.0f;
     result->diag_perp_dist = perp_dist;
@@ -349,12 +349,12 @@ int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
 
 
     if(floorf(diag_ix) == map_x && floorf(diag_iy) == map_y) {
-        upper_hits_diag = 1;
+        hits_diag = 1;
         float dx = diag_ix-player_x;
         float dy = diag_iy-player_y;
         result->diag_perp_dist = dx*cam_dir_x + dy*cam_dir_y;
     }
-    return upper_hits_diag;
+    return hits_diag;
                 
 }
 
@@ -433,23 +433,17 @@ void draw_first_person_level_inner(
         float def_exit_v = (ray_dir_y >= 0) ? 1.0f : 0.0f;
         float def_start_u = (ray_dir_x >= 0) ? 0.0f : 1.0f;
         float def_start_v = (ray_dir_y >= 0) ? 0.0f : 1.0f;
+        
+        float flat_u = player_x - floorf(player_x);
+        float flat_v = player_y - floorf(player_y);           // the u,v position of where we enter the next cell (which we use on the next iteration)
         int cell_idx = map_y * MAP_SIZE + map_x;
-        int prev_floor_height = cur_level_floor[cell_idx];
-        int prev_ceil_height = cur_level_ceil[cell_idx];
+        int floor_height = cur_level_floor[cell_idx];
+        int ceil_height = cur_level_ceil[cell_idx];
+        int upper_floor_height = cur_level_upper_floor[cell_idx];
+        int upper_ceil_height = cur_level_upper_ceil[cell_idx];
 
-        // TODO: not always correct if the current cell has a step!!
-        u8 prev_ceil_texture = this_level->ctex[cell_idx];
-        u8 prev_floor_texture = this_level->ftex[cell_idx];
-        float prev_cell_light_level = light_level_mults[this_level->light[cell_idx]];
-        wall_side prev_ceil_side = WALL_SIDE_BOTTOM;
-        wall_side prev_floor_side = WALL_SIDE_TOP;
 
-        float prev_perp_dist = NEAR_PLANE_DIST;
-        float prev_flat_u = player_x - map_x;
-        float prev_flat_v = player_y - map_y;
-        int proj_prev_floor_height_at_prev_dist = project_to_screen(prev_floor_height, prev_perp_dist, pitch, player_z);
-        int proj_prev_ceil_height_at_prev_dist = project_to_screen(prev_ceil_height, prev_perp_dist, pitch, player_z);
-
+        float perp_dist = NEAR_PLANE_DIST;
 
         int step_x = (ray_dir_x < 0) ? -1 : 1;
         float side_dist_x = (ray_dir_x < 0) ? ((player_x - map_x) * delta_dist_x) : ((map_x + 1.0f - player_x) * delta_dist_x);
@@ -461,66 +455,59 @@ void draw_first_person_level_inner(
         int prev_drawn_top = 0;
         int prev_drawn_bot = FP_SCREEN_HEIGHT;
         const int MAX_STEPS = 64;
-
-        int prev_map_idx = cell_idx;
         
+        int next_map_x = map_x;
+        int next_map_y = map_y;
+        float next_perp_dist = perp_dist;
 
+        int next_side;
+        int side = HORIZONTAL_SIDE;
+        float light_factor = 0.75f;
+        float next_light_factor;
         for(int i = 0; i < MAX_STEPS && (prev_drawn_top < prev_drawn_bot); i++) {
-            float perp_dist;
             float wall_u;
-            float flat_u, flat_v;           // the u,v position of where we enter the next cell (which we use on the next iteration)
             float exit_flat_u, exit_flat_v; // the u,v position of where we "exit" the current cell before stepping to the new one
             float hit_x;
             float hit_y;
 
-            int side;
-            float light_factor;
+
+
 
             if(side_dist_x < side_dist_y) {
                 side_dist_x += delta_dist_x;
-                map_x += step_x;
-                side = VERTICAL_SIDE;
-                light_factor = 1.0f;
-                perp_dist = ((map_x - player_x + (1 - step_x) * 0.5f) / ray_dir_x);
+                next_map_x = map_x + step_x;
+                next_side = VERTICAL_SIDE;
+                next_light_factor = 1.0f;
+                next_perp_dist = ((next_map_x - player_x + (1 - step_x) * 0.5f) / ray_dir_x);
             } else {
                 side_dist_y += delta_dist_y;
-                map_y += step_y;
-                side = HORIZONTAL_SIDE;
-                light_factor = .75f;
-                perp_dist = ((map_y - player_y + (1 - step_y) * 0.5f) / ray_dir_y);
+                next_map_y = map_y + step_y;
+                next_side = HORIZONTAL_SIDE;
+                next_light_factor = .75f;
+                next_perp_dist = ((next_map_y - player_y + (1 - step_y) * 0.5f) / ray_dir_y);
             }
             if(map_x >= MAP_SIZE || map_x < 0 || map_y >= MAP_SIZE || map_y < 0) {
                 break;
             }
+            next_perp_dist = MAX(next_perp_dist, perp_dist);
+            int in_start_cell = (map_x == start_map_x && map_y == start_map_y);
+
 
             int map_idx = map_y * MAP_SIZE + map_x;
             int selected_cur_map_idx = editor_selected_map_idx == map_idx;
-            int selected_prev_map_idx = editor_selected_map_idx == prev_map_idx;
             cell_types upper_cell_type = this_level->upper_cell_types[map_idx];
             cell_types lower_cell_type = this_level->lower_cell_types[map_idx];
 
-            perp_dist = MAX(prev_perp_dist, perp_dist);
 
 
-            int upper_hits_diag = 0;
-            int lower_hits_diag = 0;
 
-            diag_intersect upper_diag_intersect, lower_diag_intersect;
-            if(upper_cell_type == NE_TO_SW_DIAG || upper_cell_type == NW_TO_SE_DIAG) {
-                upper_hits_diag = calc_diag_hit(&upper_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, player_x, player_y, map_x, map_y, perp_dist, upper_cell_type);
-            }
-            if(lower_cell_type == NE_TO_SW_DIAG || lower_cell_type == NW_TO_SE_DIAG) {            
-                lower_hits_diag = calc_diag_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, player_x, player_y, map_x, map_y, perp_dist, lower_cell_type);    
-            }
-
-
-            int proj_prev_floor_height = project_to_screen(prev_floor_height, perp_dist, pitch, player_z);
             int proj_zero_height = project_to_screen(0, perp_dist, pitch, player_z);
             int proj_max_height = project_to_screen(MAX_WALL_HEIGHT, perp_dist, pitch, player_z);
-            int proj_prev_ceil_height = project_to_screen(prev_ceil_height, perp_dist, pitch, player_z);
 
             hit_x = player_x + perp_dist * ray_dir_x;
             hit_y = player_y + perp_dist * ray_dir_y;
+            float next_hit_x = player_x + next_perp_dist * ray_dir_x;
+            float next_hit_y = player_y + next_perp_dist * ray_dir_y;
 
             
 
@@ -533,12 +520,11 @@ void draw_first_person_level_inner(
 
             u8 upper_wall_tex, lower_wall_tex;
             wall_side upper_intersect_wall_side, lower_intersect_wall_side;
+
             if(side == VERTICAL_SIDE) {
                 wall_u = hit_y - floorf(hit_y);
-                flat_u = def_start_u;
-                flat_v = wall_u;
-                exit_flat_u = def_exit_u;
-                exit_flat_v = wall_u;
+                flat_u = in_start_cell ? (player_x - floorf(player_x)) : def_start_u;
+                flat_v = in_start_cell ? (player_y - floorf(player_y)) : wall_u;
 
                 if(ray_dir_x > 0) {
                     upper_intersect_wall_side = WALL_SIDE_UPPER_WEST;
@@ -554,10 +540,8 @@ void draw_first_person_level_inner(
                 }
             } else {
                 wall_u = hit_x - floorf(hit_x);
-                flat_u = wall_u;
-                flat_v = def_start_v;
-                exit_flat_u = wall_u;
-                exit_flat_v = def_exit_v;
+                flat_u = in_start_cell ? (player_x - floorf(player_x)) : wall_u;
+                flat_v = in_start_cell ? (player_y - floorf(player_y)) : def_start_v;
                 if(ray_dir_y < 0) {
                     upper_intersect_wall_side = WALL_SIDE_UPPER_NORTH;
                     lower_intersect_wall_side = WALL_SIDE_LOWER_NORTH;
@@ -571,21 +555,312 @@ void draw_first_person_level_inner(
                     lower_wall_tex = this_level->lstex[map_idx];
                 }
             }
-            u8 upper_diag_tex = this_level->udtex[map_idx];
-            u8 lower_diag_tex = this_level->ldtex[map_idx];
+            if(next_side == VERTICAL_SIDE) {
+                exit_flat_u = def_exit_u;
+                exit_flat_v = next_hit_y - floorf(next_hit_y);
+
+            } else {
+                exit_flat_u = next_hit_x - floorf(next_hit_x);
+                exit_flat_v = def_exit_v;
+
+            }
 
             
-            u8 upper_floor_texture = this_level->uftex[map_idx];
+            u8 lower_diag_wall_tex = this_level->ldtex[map_idx];
             u8 floor_texture = this_level->ftex[map_idx];
-            u8 upper_ceil_texture = this_level->uctex[map_idx];
+            u8 upper_floor_texture = this_level->uftex[map_idx];
+            u8 upper_diag_wall_tex = this_level->udtex[map_idx];
             u8 ceil_texture = this_level->ctex[map_idx];
+            u8 upper_ceil_texture = this_level->uctex[map_idx];
 
             float cell_light_level = light_level_mults[this_level->light[map_idx]];
 
-            int enters_right_side = (step_x == -1) && (side == VERTICAL_SIDE);
-            int enters_left_side = (step_x == 1) && (side == VERTICAL_SIDE);
-            int enters_top_side = (step_y == 1) && (side == HORIZONTAL_SIDE);
-            //int enters_bot_side = (step_y == -1) && (side == HORIZONTAL_SIDE);
+            {
+                int first_floor_height = floor_height;
+                int second_floor_height = upper_floor_height;
+                u8 first_floor_texture = floor_texture;
+                u8 second_floor_texture = upper_floor_texture;
+
+                int first_ceil_height = ceil_height;
+                int second_ceil_height = upper_ceil_height;
+                u8 first_ceil_texture = ceil_texture;
+                u8 second_ceil_texture = upper_ceil_texture;
+                
+
+                // miscellaneous stuff for diagonal draw order sorting 
+                float subx = player_x - floorf(player_x);
+                float suby = player_y - floorf(player_y);
+                int in_bottom_left = (subx < suby);
+                int in_top_left = (subx < (1.0f - suby));
+                int in_bottom_right = !in_top_left;
+
+                int enters_right_side = (step_x == -1) && (side == VERTICAL_SIDE);
+                int enters_left_side = (step_x == 1) && (side == VERTICAL_SIDE);
+                int enters_bot_side = (step_y == -1) && (side == HORIZONTAL_SIDE);
+
+                // floor
+                if(lower_cell_type != NORMAL_CELL) {
+                    int draw_lower_first;
+                    if(lower_cell_type == NE_TO_SW_DIAG) {
+                        draw_lower_first = (in_start_cell ? in_bottom_right : (enters_right_side || enters_bot_side));
+                    } else { // NW_TO_SE_DIAG
+                        draw_lower_first = (in_start_cell ? in_bottom_left : (enters_left_side || enters_bot_side));
+                    }
+
+                    if(!draw_lower_first) {
+                        first_floor_height = upper_floor_height;
+                        second_floor_height = floor_height;
+                        first_floor_texture = upper_floor_texture;
+                        second_floor_texture = floor_texture;
+                    }
+                }
+
+                if(upper_cell_type != NORMAL_CELL) {
+                    // handle diagonal stuff
+                    int draw_lower_first;
+                    if(upper_cell_type == NE_TO_SW_DIAG) {
+                        draw_lower_first = (in_start_cell ? in_bottom_right : (enters_right_side || enters_bot_side));
+                    } else { // NW_TO_SE_DIAG
+                        draw_lower_first = (in_start_cell ? in_bottom_left : (enters_left_side || enters_bot_side));
+                    }
+
+                    if(!draw_lower_first) {
+                        first_ceil_height = upper_ceil_height;
+                        second_ceil_height = ceil_height;
+                        first_ceil_texture = upper_ceil_texture;
+                        second_ceil_texture = ceil_texture;
+                    }
+                }
+
+                // draw first steps, this happens regardless of whether we're drawing a diagonal cell or not
+                // (not done if in initial map cell, ie where the player is)
+                // draw first floor step
+                int proj_floor_first_step_height = project_to_screen(first_floor_height, perp_dist, pitch, player_z);
+                int proj_ceil_first_step_height = project_to_screen(first_ceil_height, perp_dist, pitch, player_z);
+                if(!in_start_cell && proj_floor_first_step_height < prev_drawn_bot) {
+                    draw_lit_fogged_clipped_textured_wall(
+                        output,
+                        ((lower_wall_tex&0xF) == SKYBOX_TEX_IDX),
+                        get_texture_column(textures[lower_wall_tex&0xF], wall_u),
+                        get_texture_column(decals[lower_wall_tex>>4], wall_u),
+                        screen_x, proj_floor_first_step_height, proj_zero_height,
+                        first_floor_height, 0, BOTTOM_PEGGED,
+                        prev_drawn_top, prev_drawn_bot, perp_dist, light_factor * cell_light_level, 
+                        FOG_COL
+                    );
+
+                    if(editor_mode_enabled) {
+                        draw_edit_vline(
+                            edit_id_buffer, screen_x,
+                            proj_floor_first_step_height, proj_zero_height, 
+                            prev_drawn_top, prev_drawn_bot,
+                            map_idx, lower_intersect_wall_side
+                        );
+                        if(flash_frame && selected_cur_map_idx && editor_selected_side == lower_intersect_wall_side) {
+                            draw_tint_vline(
+                                output, screen_x, 
+                                proj_floor_first_step_height, proj_zero_height, 
+                                prev_drawn_top, prev_drawn_bot
+                            );
+                        }
+                    }
+
+                    //draw_tint_vline(output, screen_x, proj_step_height, proj_zero_height, prev_drawn_top, prev_drawn_bot);
+                    // draw floor
+                    prev_drawn_bot = proj_floor_first_step_height;
+                }
+                // draw first ceil step
+                if(!in_start_cell && proj_ceil_first_step_height > prev_drawn_top) {
+                    draw_lit_fogged_clipped_textured_wall(
+                        output,
+                        ((upper_wall_tex&0xF) == SKYBOX_TEX_IDX),
+                        get_texture_column(textures[upper_wall_tex&0xF], wall_u),
+                        get_texture_column(decals[upper_wall_tex>>4], wall_u),
+                        screen_x, proj_max_height, proj_ceil_first_step_height,
+                        MAX_WALL_HEIGHT, first_ceil_height, TOP_PEGGED,
+                        prev_drawn_top, prev_drawn_bot, perp_dist, light_factor * cell_light_level, 
+                        FOG_COL
+                    );
+
+                    
+                    if(editor_mode_enabled) {
+                        draw_edit_vline(
+                            edit_id_buffer, screen_x,
+                            proj_max_height, proj_ceil_first_step_height, 
+                            prev_drawn_top, prev_drawn_bot,
+                            map_idx, upper_intersect_wall_side
+                        );
+                        if(flash_frame && selected_cur_map_idx && editor_selected_side == upper_intersect_wall_side) {
+                            draw_tint_vline(
+                                output, screen_x, 
+                                proj_max_height, proj_ceil_first_step_height, 
+                                prev_drawn_top, prev_drawn_bot
+                            );
+                        }
+                    }
+                    prev_drawn_top = proj_ceil_first_step_height;
+
+                }
+
+                if(lower_cell_type == NORMAL_CELL) {
+                    int proj_step_next_height = project_to_screen(first_floor_height, next_perp_dist, pitch, player_z);
+                    if(proj_step_next_height < prev_drawn_bot) {
+                        draw_lit_fogged_tex_flat(
+                            output, textures[first_floor_texture&0xF], decals[first_floor_texture>>4],
+                            screen_x, proj_step_next_height, proj_floor_first_step_height, next_perp_dist, perp_dist,
+                            exit_flat_u, exit_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR * cell_light_level,
+                            FOG_COL
+                        );
+                        prev_drawn_bot = proj_step_next_height;
+                    }
+                } else {
+                    diag_intersect lower_diag_intersect;
+                    int lower_hits_diag = calc_diag_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, player_x, player_y, map_x, map_y, perp_dist, lower_cell_type);    
+                    if(lower_hits_diag && lower_diag_intersect.diag_perp_dist > NEAR_PLANE_DIST) {                        
+
+                        // draw first floor
+                        int proj_first_height_diag = project_to_screen(first_floor_height, lower_diag_intersect.diag_perp_dist, pitch, player_z);
+                        if(proj_first_height_diag < prev_drawn_bot) {
+                            draw_lit_fogged_tex_flat(
+                                output, textures[first_floor_texture&0xF], decals[first_floor_texture>>4],
+                                screen_x, proj_first_height_diag, proj_floor_first_step_height, lower_diag_intersect.diag_perp_dist, perp_dist,
+                                lower_diag_intersect.mid_flat_u, lower_diag_intersect.mid_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR * cell_light_level,
+                                FOG_COL
+                            );
+                            prev_drawn_bot = proj_first_height_diag;
+                        }
+
+                        // draw step
+                        int proj_second_height_diag = project_to_screen(second_floor_height, lower_diag_intersect.diag_perp_dist, pitch, player_z);
+                        int proj_zero_height_diag = project_to_screen(0, lower_diag_intersect.diag_perp_dist, pitch, player_z);
+                        if(proj_second_height_diag < prev_drawn_bot) {
+                            draw_lit_fogged_clipped_textured_wall(
+                                output,
+                                ((lower_diag_wall_tex&0xF) == SKYBOX_TEX_IDX),
+                                get_texture_column(textures[lower_diag_wall_tex&0xF], lower_diag_intersect.diag_wall_u),
+                                get_texture_column(decals[lower_diag_wall_tex>>4], lower_diag_intersect.diag_wall_u),
+                                screen_x, proj_second_height_diag, proj_zero_height_diag,
+                                second_floor_height, 0, BOTTOM_PEGGED,
+                                prev_drawn_top, prev_drawn_bot, perp_dist, DIAG_LIGHT_FACTOR * cell_light_level, 
+                                FOG_COL
+                            );
+                            prev_drawn_bot = proj_second_height_diag;
+                        }
+                        // draw second floor
+                        int proj_second_height_next = project_to_screen(second_floor_height, next_perp_dist, pitch, player_z);
+                        if(proj_second_height_next < prev_drawn_bot) {
+                            draw_lit_fogged_tex_flat(
+                                output, textures[second_floor_texture&0xF], decals[second_floor_texture>>4],
+                                screen_x, proj_second_height_next, proj_second_height_diag, next_perp_dist, lower_diag_intersect.diag_perp_dist,
+                                exit_flat_u, exit_flat_v, lower_diag_intersect.mid_flat_u, lower_diag_intersect.mid_flat_v, prev_drawn_top, prev_drawn_bot,  
+                                FLOOR_LIGHT_FACTOR * cell_light_level,
+                                FOG_COL
+                            );
+                            prev_drawn_bot = proj_second_height_next;
+
+                        }
+
+
+                    } else {
+
+                        // just draw regular floor
+                        int proj_step_next_height = project_to_screen(first_floor_height, next_perp_dist, pitch, player_z);
+                        if(proj_step_next_height < prev_drawn_bot) {
+                            draw_lit_fogged_tex_flat(
+                                output, textures[first_floor_texture&0xF], decals[first_floor_texture>>4],
+                                screen_x, proj_step_next_height, proj_floor_first_step_height, next_perp_dist, perp_dist,
+                                exit_flat_u, exit_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR * cell_light_level,
+                                FOG_COL
+                            );
+                            prev_drawn_bot = proj_step_next_height;
+                        }
+                    }
+                }
+
+                
+                if(upper_cell_type == NORMAL_CELL) {
+                    int proj_step_next_height = project_to_screen(first_ceil_height, next_perp_dist, pitch, player_z);
+                    if(proj_step_next_height > prev_drawn_top) {
+                        draw_lit_fogged_tex_flat(
+                            output, textures[first_ceil_texture&0xF], decals[first_ceil_texture>>4],
+                            screen_x, proj_ceil_first_step_height, proj_step_next_height, perp_dist, next_perp_dist,
+                            flat_u, flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR * cell_light_level,
+                            FOG_COL
+                        );
+                        prev_drawn_top = proj_step_next_height;
+                    }
+                } else {
+                    
+                    diag_intersect upper_diag_intersect;
+                    int upper_hits_diag = calc_diag_hit(&upper_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, player_x, player_y, map_x, map_y, perp_dist, upper_cell_type);    
+                    if(upper_hits_diag && upper_diag_intersect.diag_perp_dist > NEAR_PLANE_DIST) {                        
+
+                        // draw first ceil
+                        int proj_first_height_diag = project_to_screen(first_ceil_height, upper_diag_intersect.diag_perp_dist, pitch, player_z);
+                        if(proj_first_height_diag > prev_drawn_top) {
+                            draw_lit_fogged_tex_flat(
+                                output, textures[first_ceil_texture&0xF], decals[first_ceil_texture>>4],
+                                screen_x, proj_ceil_first_step_height, proj_first_height_diag, perp_dist, upper_diag_intersect.diag_perp_dist,
+                                flat_u, flat_v,  upper_diag_intersect.mid_flat_u, upper_diag_intersect.mid_flat_v, prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR * cell_light_level,
+                                FOG_COL
+                            );
+                            prev_drawn_top = proj_first_height_diag;
+                        }
+                        
+                        // draw step
+                        int proj_second_height_diag = project_to_screen(second_ceil_height, upper_diag_intersect.diag_perp_dist, pitch, player_z);
+                        int proj_max_height_diag = project_to_screen(MAX_WALL_HEIGHT, upper_diag_intersect.diag_perp_dist, pitch, player_z);
+                        if(proj_second_height_diag < prev_drawn_bot) {
+                            draw_lit_fogged_clipped_textured_wall(
+                                output,
+                                ((upper_diag_wall_tex&0xF) == SKYBOX_TEX_IDX),
+                                get_texture_column(textures[upper_diag_wall_tex&0xF], upper_diag_intersect.diag_wall_u),
+                                get_texture_column(decals[upper_diag_wall_tex>>4], upper_diag_intersect.diag_wall_u),
+                                screen_x, proj_max_height, proj_second_height_diag,
+                                MAX_WALL_HEIGHT, second_ceil_height, TOP_PEGGED,
+                                prev_drawn_top, prev_drawn_bot, perp_dist, DIAG_LIGHT_FACTOR * cell_light_level, 
+                                FOG_COL
+                            );
+                            prev_drawn_top = proj_second_height_diag;
+                        }
+                        
+                        // draw second ceil
+                        int proj_second_height_next = project_to_screen(second_ceil_height, next_perp_dist, pitch, player_z);
+                        if(proj_second_height_next < prev_drawn_bot) {
+                            draw_lit_fogged_tex_flat(
+                                output, textures[second_ceil_texture&0xF], decals[second_ceil_texture>>4],
+                                screen_x, proj_second_height_diag, proj_second_height_next, upper_diag_intersect.diag_perp_dist, next_perp_dist, 
+                                upper_diag_intersect.mid_flat_u, upper_diag_intersect.mid_flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot,  
+                                CEIL_LIGHT_FACTOR * cell_light_level,
+                                FOG_COL
+                            );
+                            prev_drawn_top = proj_second_height_next;
+
+                        }
+                        
+
+                    } else {
+                        
+                        // just draw regular ceil
+                        int proj_step_next_height = project_to_screen(first_ceil_height, next_perp_dist, pitch, player_z);
+                        if(proj_step_next_height > prev_drawn_top) {
+                            draw_lit_fogged_tex_flat(
+                                output, textures[first_ceil_texture&0xF], decals[first_ceil_texture>>4],
+                                screen_x, proj_ceil_first_step_height, proj_step_next_height, perp_dist, next_perp_dist,
+                                flat_u, flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR * cell_light_level,
+                                FOG_COL
+                            );
+                            prev_drawn_top = proj_step_next_height;
+                        }
+                            
+                    }
+                    
+                }
+
+            }
+
+
+            /*
 
 
             int first_floor_height = floor_height;
@@ -635,16 +910,16 @@ void draw_first_person_level_inner(
 
 
 
-            if(proj_prev_ceil_height > prev_drawn_top) {
-                draw_lit_fogged_tex_flat(
-                    output, 
-                    textures[prev_ceil_texture&0xF], decals[prev_ceil_texture>>4],
-                    screen_x, 
-                    proj_prev_ceil_height_at_prev_dist, proj_prev_ceil_height, 
-                    prev_perp_dist, perp_dist, 
-                    prev_flat_u, prev_flat_v, exit_flat_u, exit_flat_v, 
-                    prev_drawn_top, prev_drawn_bot, prev_cell_light_level*CEIL_LIGHT_FACTOR,
-                    FOG_COL);
+            if(proj_first > prev_drawn_top) {
+                //draw_lit_fogged_tex_flat(
+                //    output, 
+                //    textures[prev_ceil_texture&0xF], decals[prev_ceil_texture>>4],
+                //    screen_x, 
+                //    proj_prev_ceil_height_at_prev_dist, proj_prev_ceil_height, 
+                //    prev_perp_dist, perp_dist, 
+                //    prev_flat_u, prev_flat_v, exit_flat_u, exit_flat_v, 
+                //    prev_drawn_top, prev_drawn_bot, prev_cell_light_level*CEIL_LIGHT_FACTOR,
+                //    FOG_COL);
                 if(editor_mode_enabled) {
                     draw_edit_vline(
                         edit_id_buffer, screen_x,
@@ -663,15 +938,15 @@ void draw_first_person_level_inner(
             }
                 
             if(proj_prev_floor_height < prev_drawn_bot) {
-                draw_lit_fogged_tex_flat(
-                    output, 
-                    textures[prev_floor_texture&0xF],  decals[prev_floor_texture>>4],
-                    screen_x, 
-                    proj_prev_floor_height, proj_prev_floor_height_at_prev_dist, 
-                    perp_dist, prev_perp_dist, 
-                    exit_flat_u, exit_flat_v, prev_flat_u, prev_flat_v, 
-                    prev_drawn_top, prev_drawn_bot, prev_cell_light_level*FLOOR_LIGHT_FACTOR,
-                    FOG_COL);
+                //draw_lit_fogged_tex_flat(
+                //    output, 
+                //    textures[prev_floor_texture&0xF],  decals[prev_floor_texture>>4],
+                //    screen_x, 
+                //    proj_prev_floor_height, proj_prev_floor_height_at_prev_dist, 
+                //    perp_dist, prev_perp_dist, 
+                //    exit_flat_u, exit_flat_v, prev_flat_u, prev_flat_v, 
+                //    prev_drawn_top, prev_drawn_bot, prev_cell_light_level*FLOOR_LIGHT_FACTOR,
+                //    FOG_COL);
                 if(editor_mode_enabled) {
                     draw_edit_vline(
                         edit_id_buffer, screen_x,
@@ -890,22 +1165,13 @@ void draw_first_person_level_inner(
                     prev_drawn_bot = proj_second_floor_height_at_diag;
                 }
             }
+            */
+            map_x = next_map_x;
+            map_y = next_map_y;
+            perp_dist = next_perp_dist;
+            side = next_side;
+            light_factor = next_light_factor;
 
-        //next_iter:
-            prev_floor_height = floor_height;
-            prev_ceil_height = ceil_height;
-            proj_prev_floor_height_at_prev_dist = proj_second_floor_height_at_boundary;
-            proj_prev_ceil_height_at_prev_dist = proj_second_ceil_height_at_boundary;
-
-            prev_perp_dist = perp_dist;
-            prev_flat_u = flat_u;
-            prev_flat_v = flat_v;
-            prev_ceil_texture = second_ceil_texture;
-            prev_floor_texture = second_floor_texture;
-
-            prev_cell_light_level = cell_light_level;
-
-            prev_map_idx = map_idx;
         }
     }
 
