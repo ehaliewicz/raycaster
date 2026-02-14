@@ -515,6 +515,8 @@ void draw_first_person_level_inner(
 
 
             int proj_prev_floor_height = project_to_screen(prev_floor_height, perp_dist, pitch, player_z);
+            int proj_zero_height = project_to_screen(0, perp_dist, pitch, player_z);
+            int proj_max_height = project_to_screen(MAX_WALL_HEIGHT, perp_dist, pitch, player_z);
             int proj_prev_ceil_height = project_to_screen(prev_ceil_height, perp_dist, pitch, player_z);
 
             hit_x = player_x + perp_dist * ray_dir_x;
@@ -700,8 +702,8 @@ void draw_first_person_level_inner(
                     get_texture_column(textures[upper_wall_tex&0xF], wall_u),
                     get_texture_column(decals[upper_wall_tex>>4], wall_u),
                     screen_x, 
-                    proj_prev_ceil_height, proj_first_ceil_height_at_boundary, 
-                    prev_ceil_height, first_ceil_height, TOP_PEGGED,
+                    proj_max_height, proj_first_ceil_height_at_boundary, 
+                    MAX_WALL_HEIGHT, first_ceil_height, TOP_PEGGED,
                     prev_drawn_top, prev_drawn_bot, perp_dist, cell_light_level*light_factor, FOG_COL);
                 if(editor_mode_enabled) {
                     draw_edit_vline(
@@ -728,8 +730,8 @@ void draw_first_person_level_inner(
                     get_texture_column(textures[lower_wall_tex&0xF], wall_u),
                     get_texture_column(decals[lower_wall_tex>>4], wall_u),
                     screen_x, 
-                    proj_first_floor_height_at_boundary, proj_prev_floor_height, 
-                    prev_floor_height, first_floor_height, BOTTOM_PEGGED,
+                    proj_first_floor_height_at_boundary, proj_zero_height, // proj_prev_floor_height, 
+                    first_floor_height, 0, BOTTOM_PEGGED,
                     prev_drawn_top, prev_drawn_bot, perp_dist, cell_light_level*light_factor, FOG_COL);
                 if(editor_mode_enabled) {
                     draw_edit_vline(
@@ -741,7 +743,7 @@ void draw_first_person_level_inner(
                     if(flash_frame && selected_cur_map_idx && editor_selected_side == lower_intersect_wall_side) {
                         draw_tint_vline(
                             output, screen_x, 
-                        proj_first_floor_height_at_boundary, proj_prev_floor_height, 
+                            proj_first_floor_height_at_boundary, proj_prev_floor_height, 
                             prev_drawn_top, prev_drawn_bot
                         );
                     }
