@@ -10,6 +10,7 @@ typedef signed short s16;
 typedef signed long s32;
 typedef signed long long int s64;
 
+#define PLAYER_HEIGHT 5.5f
 
 #define NUM_CELL_TYPES 3
 #define NUM_TEXTURES 6
