@@ -358,6 +358,8 @@ void main_loop() {
 #ifdef PLATFORM_WEB
     if(editor_mode_enabled) {
         emscripten_exit_pointerlock();
+        ShowCursor();
+        printf("wtf\n");
         
     } else {
         emscripten_request_pointerlock("#canvas", EM_TRUE);
