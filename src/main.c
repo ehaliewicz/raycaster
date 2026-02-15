@@ -374,8 +374,8 @@ void main_loop() {
 #endif
 
     //printf("Mouse dx dy %f,%f\n", mouse_delta.x, mouse_delta.y);
-    ClearBackground(BLACK);
-    ImageClearBackground(&draw_img, BLACK);
+    //ClearBackground(BLACK);
+    //ImageClearBackground(&draw_img, BLACK);
 
     if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         Vector2 mouse_pos = GetMousePosition();
@@ -604,8 +604,8 @@ void main_loop() {
     } EndDrawing();
     float frame_time_ms = GetFrameTime()*1000.0f;
     update_player(frame_time_ms, mouse_delta);
-    //printf("%.2ffps\n", 1000.0f/frame_time_ms);
-    printf("%.2f %.2f\n", player_x, player_y);
+    printf("%.2fms %.2ffps\n", frame_time_ms, 1000.0f/frame_time_ms);
+    //printf("%.2f %.2f\n", player_x, player_y);
     //printf("%.3fms\n", frame_time_ms);
     frame++;
 }
@@ -619,7 +619,7 @@ int main(void) {
     InitWindow(screenWidth, screenHeight, "raycast");
 
     SetConfigFlags(FLAG_VSYNC_HINT);
-    SetTargetFPS(144);
+    SetTargetFPS(6000);
 
     load_resources();
     int num_loaded_bytes;

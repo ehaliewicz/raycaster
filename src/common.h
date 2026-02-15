@@ -12,7 +12,17 @@ typedef signed long long int s64;
 
 #define PLAYER_HEIGHT 5.5f
 
-#define NUM_CELL_TYPES 3
+typedef enum {
+    NORMAL_CELL = 0,
+    NE_TO_SW_DIAG=1,
+    NW_TO_SE_DIAG=2,
+    SLOPE_Y=3,
+    SLOPE_X=4,
+    THIN_WALL_X=5,
+    THIN_WALL_Y=6,
+} cell_types;
+
+#define NUM_CELL_TYPES 4
 #define NUM_TEXTURES 6
 #define SKYBOX_TEX_IDX 15
 #define NUM_DECALS 4
@@ -22,16 +32,16 @@ typedef signed long long int s64;
 #define MAX_WALL_HEIGHT 32
 #define FOV (90.0f*.0174f)
 
-#define OUTPUT_WIDTH (1024)
-#define OUTPUT_HEIGHT (768)
-#define FP_SCREEN_WIDTH (OUTPUT_WIDTH/2)
-#define FP_SCREEN_HEIGHT (OUTPUT_HEIGHT/2)
+#define OUTPUT_WIDTH (1920)
+#define OUTPUT_HEIGHT (1080)
+#define FP_SCREEN_WIDTH (OUTPUT_WIDTH)
+#define FP_SCREEN_HEIGHT (OUTPUT_HEIGHT)
 
 
 #define TEX_SIZE (32)
 #define SKYBOX_TEX_HEIGHT (256)
 #define SKYBOX_TEX_WIDTH (1024)
-#define NEAR_PLANE_DIST (0.01f)
+#define NEAR_PLANE_DIST (0.001f)
 
 #define NUM_LIGHT_LEVELS 4
 
@@ -97,11 +107,6 @@ typedef enum {
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #define CLAMP(x,a,b) MIN(MAX(x,a),b)
 
-typedef enum {
-    NORMAL_CELL = 0,
-    NE_TO_SW_DIAG=1,
-    NW_TO_SE_DIAG=2,
-} cell_types;
 
 
 typedef enum {
