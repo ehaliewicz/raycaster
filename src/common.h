@@ -17,13 +17,12 @@ typedef enum {
     NE_TO_SW_DIAG=1,
     NW_TO_SE_DIAG=2,
     SLOPE_Y=3,
-    MIRROR=4,
     SLOPE_X=4,
     THIN_WALL_X=5,
     THIN_WALL_Y=6,
 } cell_types;
 
-#define NUM_CELL_TYPES 5
+#define NUM_CELL_TYPES 4
 #define NUM_TEXTURES 6
 #define SKYBOX_TEX_IDX 15
 #define NUM_DECALS 4

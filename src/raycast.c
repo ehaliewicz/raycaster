@@ -386,7 +386,7 @@ void draw_first_person_level_inner(
     int start_x, int end_x, 
     int frame, 
     level* this_level, 
-    float player_x, float player_y, float player_z, float player_ang, float pitch,
+    float ray_origin_x, float ray_origin_y, float ray_origin_z, float cam_ang, float pitch,
     int editor_mode_enabled, int editor_selected_map_idx, wall_side editor_selected_side
 ) {
     //int id = GetCurrentThreadId();
@@ -398,17 +398,17 @@ void draw_first_person_level_inner(
     u8* cur_level_upper_floor = this_level->upper_floor;
     u8* cur_level_upper_ceil = this_level->upper_ceil;
 
-    float cam_dir_x = cosf(player_ang);
-    float cam_dir_y = sinf(player_ang);
+    float start_cam_dir_x = cosf(cam_ang);
+    float start_cam_dir_y = sinf(cam_ang);
 
-    const int start_map_x = floorf(player_x);
-    const int start_map_y = floorf(player_y);
     
     for(int ix = start_x; ix < end_x; ix++) {
+        float cam_dir_x = start_cam_dir_x;
+        float cam_dir_y = start_cam_dir_y;
         int screen_x = (FP_SCREEN_WIDTH-1)-ix;
         float cam_x = 2.0f * (ix) / (float)FP_SCREEN_WIDTH - 1.0f; // -1 to 1
-        float ray_dir_x = cosf(player_ang) + cam_x * -sinf(player_ang);
-        float ray_dir_y = sinf(player_ang) + cam_x * cosf(player_ang);
+        float ray_dir_x = cosf(cam_ang) + cam_x * -sinf(cam_ang);
+        float ray_dir_y = sinf(cam_ang) + cam_x * cosf(cam_ang);
 
         float ray_ang = atan2f(ray_dir_y, ray_dir_x);
         if(ray_ang < 0.0f) {
@@ -426,13 +426,23 @@ void draw_first_person_level_inner(
             }
             //return;
         }
+        const int MAX_STEPS = 64;
+        int rem_steps = MAX_STEPS;
 
+        float perp_dist = NEAR_PLANE_DIST;
+
+        int prev_drawn_top = 0;
+        int prev_drawn_bot = FP_SCREEN_HEIGHT;
+
+        int start_map_x = floorf(ray_origin_x);
+        int start_map_y = floorf(ray_origin_y);
+        
         // length of ray from one x/y side to the next x/y side
         float delta_dist_x = fabsf(1.0f / ray_dir_x);
         float delta_dist_y = fabsf(1.0f / ray_dir_y);
 
-        int map_x = start_map_x;
-        int map_y = start_map_y;
+        int map_x = floorf(ray_origin_x);
+        int map_y = floorf(ray_origin_y);
         
 
         float def_exit_u = (ray_dir_x >= 0) ? 1.0f : 0.0f;
@@ -440,32 +450,31 @@ void draw_first_person_level_inner(
         float def_start_u = (ray_dir_x >= 0) ? 0.0f : 1.0f;
         float def_start_v = (ray_dir_y >= 0) ? 0.0f : 1.0f;
         
-        float flat_u = player_x - floorf(player_x);
-        float flat_v = player_y - floorf(player_y);           // the u,v position of where we enter the next cell (which we use on the next iteration)
+        float flat_u = ray_origin_x - floorf(ray_origin_x);
+        float flat_v = ray_origin_y - floorf(ray_origin_y);           // the u,v position of where we enter the next cell (which we use on the next iteration)
         int cell_idx = map_y * MAP_SIZE + map_x;
 
-        float perp_dist = NEAR_PLANE_DIST;
+        //float perp_dist = base_perp_dist;
 
         int step_x = (ray_dir_x < 0) ? -1 : 1;
-        float side_dist_x = (ray_dir_x < 0) ? ((player_x - map_x) * delta_dist_x) : ((map_x + 1.0f - player_x) * delta_dist_x);
+        float side_dist_x = (ray_dir_x < 0) ? ((ray_origin_x - map_x) * delta_dist_x) : ((map_x + 1.0f - ray_origin_x) * delta_dist_x);
 
         int step_y = (ray_dir_y < 0) ? -1 : 1;
-        float side_dist_y = (ray_dir_y < 0) ? ((player_y - map_y) * delta_dist_y) : ((map_y + 1.0 - player_y) * delta_dist_y);
+        float side_dist_y = (ray_dir_y < 0) ? ((ray_origin_y - map_y) * delta_dist_y) : ((map_y + 1.0 - ray_origin_y) * delta_dist_y);
 
 
-        int prev_drawn_top = 0;
-        int prev_drawn_bot = FP_SCREEN_HEIGHT;
-        const int MAX_STEPS = 64;
         
         int next_map_x = map_x;
         int next_map_y = map_y;
         float next_perp_dist = perp_dist;
+        
 
         int next_side;
         int side = HORIZONTAL_SIDE;
         float light_factor = 0.75f;
         float next_light_factor;
-        for(int i = 0; i < MAX_STEPS && (prev_drawn_top < prev_drawn_bot); i++) {
+
+        while(rem_steps-- && (prev_drawn_top < prev_drawn_bot)) {
             float wall_u;
             float exit_flat_u, exit_flat_v; // the u,v position of where we "exit" the current cell before stepping to the new one
             float hit_x;
@@ -479,13 +488,13 @@ void draw_first_person_level_inner(
                 next_map_x = map_x + step_x;
                 next_side = VERTICAL_SIDE;
                 next_light_factor = 1.0f;
-                next_perp_dist = ((next_map_x - player_x + (1 - step_x) * 0.5f) / ray_dir_x);
+                next_perp_dist = ((next_map_x - ray_origin_x + (1 - step_x) * 0.5f) / ray_dir_x);
             } else {
                 side_dist_y += delta_dist_y;
                 next_map_y = map_y + step_y;
                 next_side = HORIZONTAL_SIDE;
                 next_light_factor = .75f;
-                next_perp_dist = ((next_map_y - player_y + (1 - step_y) * 0.5f) / ray_dir_y);
+                next_perp_dist = ((next_map_y - ray_origin_y + (1 - step_y) * 0.5f) / ray_dir_y);
             }
             if(map_x >= MAP_SIZE || map_x < 0 || map_y >= MAP_SIZE || map_y < 0) {
                 break;
@@ -502,13 +511,13 @@ void draw_first_person_level_inner(
 
 
 
-            int proj_zero_height = project_to_screen(0, perp_dist, pitch, player_z);
-            int proj_max_height = project_to_screen(MAX_WALL_HEIGHT, perp_dist, pitch, player_z);
+            int proj_zero_height = project_to_screen(0, perp_dist, pitch, ray_origin_z);
+            int proj_max_height = project_to_screen(MAX_WALL_HEIGHT, perp_dist, pitch, ray_origin_z);
 
-            hit_x = player_x + perp_dist * ray_dir_x;
-            hit_y = player_y + perp_dist * ray_dir_y;
-            float next_hit_x = player_x + next_perp_dist * ray_dir_x;
-            float next_hit_y = player_y + next_perp_dist * ray_dir_y;
+            hit_x = ray_origin_x + perp_dist * ray_dir_x;
+            hit_y = ray_origin_y + perp_dist * ray_dir_y;
+            float next_hit_x = ray_origin_x + next_perp_dist * ray_dir_x;
+            float next_hit_y = ray_origin_y + next_perp_dist * ray_dir_y;
 
             
 
@@ -524,8 +533,8 @@ void draw_first_person_level_inner(
 
             if(side == VERTICAL_SIDE) {
                 wall_u = hit_y - floorf(hit_y);
-                flat_u = in_start_cell ? (player_x - floorf(player_x)) : def_start_u;
-                flat_v = in_start_cell ? (player_y - floorf(player_y)) : wall_u;
+                flat_u = in_start_cell ? (ray_origin_x - floorf(ray_origin_x)) : def_start_u;
+                flat_v = in_start_cell ? (ray_origin_y - floorf(ray_origin_y)) : wall_u;
 
                 if(ray_dir_x > 0) {
                     upper_intersect_wall_side = WALL_SIDE_UPPER_WEST;
@@ -541,8 +550,8 @@ void draw_first_person_level_inner(
                 }
             } else {
                 wall_u = hit_x - floorf(hit_x);
-                flat_u = in_start_cell ? (player_x - floorf(player_x)) : wall_u;
-                flat_v = in_start_cell ? (player_y - floorf(player_y)) : def_start_v;
+                flat_u = in_start_cell ? (ray_origin_x - floorf(ray_origin_x)) : wall_u;
+                flat_v = in_start_cell ? (ray_origin_y - floorf(ray_origin_y)) : def_start_v;
                 if(ray_dir_y < 0) {
                     upper_intersect_wall_side = WALL_SIDE_UPPER_SOUTH;
                     lower_intersect_wall_side = WALL_SIDE_LOWER_SOUTH;
@@ -594,8 +603,8 @@ void draw_first_person_level_inner(
                 
 
                 // miscellaneous stuff for diagonal draw order sorting 
-                float subx = player_x - floorf(player_x);
-                float suby = player_y - floorf(player_y);
+                float subx = ray_origin_x - floorf(ray_origin_x);
+                float suby = ray_origin_y - floorf(ray_origin_y);
                 int in_top_right = (subx >= suby);
                 //int in_bottom_left = !in_top_right;
                 int in_top_left = (subx < (1.0f - suby));
@@ -649,8 +658,8 @@ void draw_first_person_level_inner(
                 // draw first steps, this happens regardless of whether we're drawing a diagonal cell or not
                 // (not done if in initial map cell, ie where the player is)
                 // draw first floor step
-                int proj_floor_first_step_height = project_to_screen(first_floor_height, perp_dist, pitch, player_z);
-                int proj_ceil_first_step_height = project_to_screen(first_ceil_height, perp_dist, pitch, player_z);
+                int proj_floor_first_step_height = project_to_screen(first_floor_height, perp_dist, pitch, ray_origin_z);
+                int proj_ceil_first_step_height = project_to_screen(first_ceil_height, perp_dist, pitch, ray_origin_z);
                 if(!in_start_cell && !lower_step_slope && proj_floor_first_step_height < prev_drawn_bot) {
                     draw_lit_fogged_clipped_textured_wall(
                         output,
@@ -714,11 +723,10 @@ void draw_first_person_level_inner(
 
                 }
 
-                
                 if(lower_cell_type == SLOPE_Y) {
                     float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-floorf(next_hit_y);
                     //float y_exit = next_map_y > map_y ? 1.0f : next_hit_y-floorf(next_hit_y);
-                    float y_start = in_start_cell ? (player_y - floorf(player_y)) : hit_y - floorf(hit_y);
+                    float y_start = in_start_cell ? (ray_origin_y - floorf(ray_origin_y)) : hit_y - floorf(hit_y);
                     if(!in_start_cell && step_y == -1 && side == HORIZONTAL_SIDE) {
                         y_start = 1.0f - y_start;
                     }
@@ -726,8 +734,8 @@ void draw_first_person_level_inner(
                     float slope_start_height = (float)first_floor_height + y_start*(float)((float)second_floor_height - (float)first_floor_height);
                     float slope_end_height = (float)first_floor_height + y_exit*(float)((float)second_floor_height - (float)first_floor_height);
 
-                    int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, player_z);
-                    int proj_slope_end_height = project_to_screen(slope_end_height, next_perp_dist, pitch, player_z);
+                    int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
+                    int proj_slope_end_height = project_to_screen(slope_end_height, next_perp_dist, pitch, ray_origin_z);
 
 
                     if(!in_start_cell && proj_slope_start_height < prev_drawn_bot) {      
@@ -790,7 +798,7 @@ void draw_first_person_level_inner(
                     
                 } else if(lower_cell_type == NORMAL_CELL) {
                 // draw normal no-diagonal floor
-                    int proj_step_next_height = project_to_screen(first_floor_height, next_perp_dist, pitch, player_z);
+                    int proj_step_next_height = project_to_screen(first_floor_height, next_perp_dist, pitch, ray_origin_z);
                     if(proj_step_next_height < prev_drawn_bot) {
                         draw_lit_fogged_tex_flat(
                             output, textures[first_floor_texture&0xF], decals[first_floor_texture>>4],
@@ -815,13 +823,13 @@ void draw_first_person_level_inner(
                         }
                         prev_drawn_bot = proj_step_next_height;
                     }
-                } else {
+                } else if(lower_cell_type == NW_TO_SE_DIAG || lower_cell_type == NE_TO_SW_DIAG) {
                     diag_intersect lower_diag_intersect;
-                    int lower_hits_diag = calc_diag_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, player_x, player_y, map_x, map_y, perp_dist, lower_cell_type);    
+                    int lower_hits_diag = calc_diag_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, perp_dist, lower_cell_type);    
                     if(lower_hits_diag && lower_diag_intersect.diag_perp_dist > NEAR_PLANE_DIST) {                        
 
                         // draw first floor
-                        int proj_first_height_diag = project_to_screen(first_floor_height, lower_diag_intersect.diag_perp_dist, pitch, player_z);
+                        int proj_first_height_diag = project_to_screen(first_floor_height, lower_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
                         if(proj_first_height_diag < prev_drawn_bot) {
                             draw_lit_fogged_tex_flat(
                                 output, textures[first_floor_texture&0xF], decals[first_floor_texture>>4],
@@ -848,8 +856,8 @@ void draw_first_person_level_inner(
                         }
 
                         // draw step
-                        int proj_second_height_diag = project_to_screen(second_floor_height, lower_diag_intersect.diag_perp_dist, pitch, player_z);
-                        int proj_zero_height_diag = project_to_screen(0, lower_diag_intersect.diag_perp_dist, pitch, player_z);
+                        int proj_second_height_diag = project_to_screen(second_floor_height, lower_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
+                        int proj_zero_height_diag = project_to_screen(0, lower_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
                         if(proj_second_height_diag < prev_drawn_bot) {
                             draw_lit_fogged_clipped_textured_wall(
                                 output,
@@ -879,7 +887,7 @@ void draw_first_person_level_inner(
                             prev_drawn_bot = proj_second_height_diag;
                         }
                         // draw second floor
-                        int proj_second_height_next = project_to_screen(second_floor_height, next_perp_dist, pitch, player_z);
+                        int proj_second_height_next = project_to_screen(second_floor_height, next_perp_dist, pitch, ray_origin_z);
                         if(proj_second_height_next < prev_drawn_bot) {
                             draw_lit_fogged_tex_flat(
                                 output, textures[second_floor_texture&0xF], decals[second_floor_texture>>4],
@@ -911,7 +919,7 @@ void draw_first_person_level_inner(
                     } else {
 
                         // just draw regular floor
-                        int proj_step_next_height = project_to_screen(first_floor_height, next_perp_dist, pitch, player_z);
+                        int proj_step_next_height = project_to_screen(first_floor_height, next_perp_dist, pitch, ray_origin_z);
                         if(proj_step_next_height < prev_drawn_bot) {
                             draw_lit_fogged_tex_flat(
                                 output, textures[first_floor_texture&0xF], decals[first_floor_texture>>4],
@@ -943,7 +951,7 @@ void draw_first_person_level_inner(
                 
                 if(upper_cell_type == SLOPE_Y) {
                     float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-floorf(next_hit_y);
-                    float y_start = in_start_cell ? (player_y - floorf(player_y)) : hit_y - floorf(hit_y);
+                    float y_start = in_start_cell ? (ray_origin_y - floorf(ray_origin_y)) : hit_y - floorf(hit_y);
                     if(!in_start_cell && step_y == -1 && side == HORIZONTAL_SIDE) {
                         y_start = 1.0f - y_start;
                     }
@@ -951,8 +959,8 @@ void draw_first_person_level_inner(
                     float slope_start_height = (float)first_ceil_height + y_start*(float)((float)second_ceil_height - (float)first_ceil_height);
                     float slope_end_height = (float)first_ceil_height + y_exit*(float)((float)second_ceil_height - (float)first_ceil_height);
 
-                    int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, player_z);
-                    int proj_slope_end_height = project_to_screen(slope_end_height, next_perp_dist, pitch, player_z);
+                    int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
+                    int proj_slope_end_height = project_to_screen(slope_end_height, next_perp_dist, pitch, ray_origin_z);
 
                     // x+ side is upper height
 
@@ -1015,7 +1023,7 @@ void draw_first_person_level_inner(
                     }
 
                 } else if(upper_cell_type == NORMAL_CELL) {
-                    int proj_step_next_height = project_to_screen(first_ceil_height, next_perp_dist, pitch, player_z);
+                    int proj_step_next_height = project_to_screen(first_ceil_height, next_perp_dist, pitch, ray_origin_z);
                     if(proj_step_next_height > prev_drawn_top) {
                         draw_lit_fogged_tex_flat(
                             output, textures[first_ceil_texture&0xF], decals[first_ceil_texture>>4],
@@ -1040,13 +1048,13 @@ void draw_first_person_level_inner(
                         }
                         prev_drawn_top = proj_step_next_height;
                     }
-                } else {
+                } else if(upper_cell_type == NW_TO_SE_DIAG || upper_cell_type == NE_TO_SW_DIAG) {
                     diag_intersect upper_diag_intersect;
-                    int upper_hits_diag = calc_diag_hit(&upper_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, player_x, player_y, map_x, map_y, perp_dist, upper_cell_type);    
+                    int upper_hits_diag = calc_diag_hit(&upper_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, perp_dist, upper_cell_type);    
                     if(upper_hits_diag && upper_diag_intersect.diag_perp_dist > NEAR_PLANE_DIST) {                        
 
                         // draw first ceil
-                        int proj_first_height_diag = project_to_screen(first_ceil_height, upper_diag_intersect.diag_perp_dist, pitch, player_z);
+                        int proj_first_height_diag = project_to_screen(first_ceil_height, upper_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
                         if(proj_first_height_diag > prev_drawn_top) {
                             draw_lit_fogged_tex_flat(
                                 output, textures[first_ceil_texture&0xF], decals[first_ceil_texture>>4],
@@ -1073,8 +1081,8 @@ void draw_first_person_level_inner(
                         }
                         
                         // draw step
-                        int proj_second_height_diag = project_to_screen(second_ceil_height, upper_diag_intersect.diag_perp_dist, pitch, player_z);
-                        int proj_max_height_diag = project_to_screen(MAX_WALL_HEIGHT, upper_diag_intersect.diag_perp_dist, pitch, player_z);
+                        int proj_second_height_diag = project_to_screen(second_ceil_height, upper_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
+                        int proj_max_height_diag = project_to_screen(MAX_WALL_HEIGHT, upper_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
                         if(proj_second_height_diag > prev_drawn_top) {
                             draw_lit_fogged_clipped_textured_wall(
                                 output,
@@ -1106,7 +1114,7 @@ void draw_first_person_level_inner(
                         }
                         
                         // draw second ceil
-                        int proj_second_height_next = project_to_screen(second_ceil_height, next_perp_dist, pitch, player_z);
+                        int proj_second_height_next = project_to_screen(second_ceil_height, next_perp_dist, pitch, ray_origin_z);
                         if(proj_second_height_next > prev_drawn_top) {
                             draw_lit_fogged_tex_flat(
                                 output, textures[second_ceil_texture&0xF], decals[second_ceil_texture>>4],
@@ -1138,7 +1146,7 @@ void draw_first_person_level_inner(
                     } else {
                         
                         // just draw regular ceil
-                        int proj_step_next_height = project_to_screen(first_ceil_height, next_perp_dist, pitch, player_z);
+                        int proj_step_next_height = project_to_screen(first_ceil_height, next_perp_dist, pitch, ray_origin_z);
                         if(proj_step_next_height > prev_drawn_top) {
                             draw_lit_fogged_tex_flat(
                                 output, textures[first_ceil_texture&0xF], decals[first_ceil_texture>>4],
