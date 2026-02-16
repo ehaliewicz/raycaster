@@ -12,7 +12,7 @@ void draw_first_person_level(
     int start_x, int end_x, 
     int frame, 
     level* this_level, 
-    float player_x, float player_y, float player_z, float player_ang, int pitch,
+    float player_x, float player_y, float player_z, float player_ang, float pitch,
     int editor_mode_enabled, int editor_selected_map_idx, wall_side editor_selected_side
 );
 

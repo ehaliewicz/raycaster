@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include "common.h"
 #include "math.h"
 
@@ -83,8 +84,8 @@ void thread_pool_destroy(thread_pool* tp)
 
 #define FOG_COL ((255<<24)|(196<<16)|(162<<8)|(103<<0))
 
-int project_to_screen(float height, float dist, int pitch, float player_z) {
-    return pitch + HALF_SCREEN_HEIGHT - (HEIGHT_SCALE * (((height - player_z) * FOCAL_LENGTH / dist) / MAX_WALL_HEIGHT));
+int project_to_screen(float height, float dist, float pitch, float player_z) {
+    return (pitch*(float)cur_render_height) + HALF_SCREEN_HEIGHT - (HEIGHT_SCALE * (((height - player_z) * FOCAL_LENGTH / dist) / MAX_WALL_HEIGHT));
 }
 
 void draw_tint_vline(u8* output, int x, int y0, int y1, int prev_drawn_top, int prev_drawn_bot) {
@@ -373,24 +374,22 @@ typedef struct {
     int end_x;
     int frame; 
     level* this_level;
-    float player_x; float player_y; float player_z; float player_ang; int pitch;
+    float player_x; float player_y; float player_z; float player_ang; float pitch;
     int editor_mode_enabled;
     int editor_selected_map_idx;
     wall_side editor_selected_side;
-    volatile u64 finished;
+    volatile s64 finished;
 } thread_params;
 
-#include <stdio.h>
 void draw_first_person_level_inner(
     u8* output, edit_wall_id* edit_id_buffer,
     int start_x, int end_x, 
     int frame, 
     level* this_level, 
-    float player_x, float player_y, float player_z, float player_ang, int pitch,
+    float player_x, float player_y, float player_z, float player_ang, float pitch,
     int editor_mode_enabled, int editor_selected_map_idx, wall_side editor_selected_side
 ) {
-
-
+    //int id = GetCurrentThreadId();
     int flash_frame = (frame&0b1000000) == 0b1000000;
 
     //u8* cur_level = this_level;
@@ -407,7 +406,7 @@ void draw_first_person_level_inner(
     
     for(int ix = start_x; ix < end_x; ix++) {
         int screen_x = (FP_SCREEN_WIDTH-1)-ix;
-        float cam_x = 2.0f * ix / (float)FP_SCREEN_WIDTH - 1.0f; // -1 to 1
+        float cam_x = 2.0f * (ix) / (float)FP_SCREEN_WIDTH - 1.0f; // -1 to 1
         float ray_dir_x = cosf(player_ang) + cam_x * -sinf(player_ang);
         float ray_dir_y = sinf(player_ang) + cam_x * cosf(player_ang);
 
@@ -421,7 +420,7 @@ void draw_first_person_level_inner(
             float u = 256.0f* (0.5f + ray_ang / (2.0f * 3.14159));
             int int_u = ((int)u)&(SKYBOX_TEX_WIDTH-1);
             for(int y = 0; y < FP_SCREEN_HEIGHT; y++) {
-                int v = (SKYBOX_TEX_HEIGHT/2+(int)(SKYBOX_V_PER_PIX*(y+-pitch)))&(SKYBOX_TEX_HEIGHT-1);
+                int v = (SKYBOX_TEX_HEIGHT/2+(int)(SKYBOX_V_PER_PIX*(y+(-pitch*(float)FP_SCREEN_HEIGHT))))&(SKYBOX_TEX_HEIGHT-1);
                 u32 texel = *(u32*)(&skybox[(int_u*SKYBOX_TEX_HEIGHT+v)*4]);
                 *(u32*)(&output[(screen_x*FP_SCREEN_HEIGHT+y)*4]) = texel; //(0xFF000000 | texel);
             }
@@ -608,14 +607,7 @@ void draw_first_person_level_inner(
                 int enters_top_side = (step_y == 1) && (side == HORIZONTAL_SIDE);
                 //int in_bottom_half = 
                 // floor
-                //if(lower_cell_type == SLOPE_Y) {    
-                //    first_floor_height = upper_floor_height;
-                //    second_floor_height = floor_height;
-                //    first_floor_texture = upper_floor_texture;
-                //    second_floor_texture = floor_texture;
-                //    first_floor_side = WALL_SIDE_UPPER_TOP;
-                //    second_floor_side = WALL_SIDE_TOP;
-                //} else
+
                 if(lower_cell_type == NE_TO_SW_DIAG || lower_cell_type ==  NW_TO_SE_DIAG) {
                     int draw_upper_first;
                     if(lower_cell_type == NE_TO_SW_DIAG) {
@@ -724,14 +716,10 @@ void draw_first_person_level_inner(
 
                 
                 if(lower_cell_type == SLOPE_Y) {
-                    //int proj_slope_first_height = project_to_screen(floor_height, perp_dist, pitch, player_z);
-                    //int proj_slope_next_height = project_to_screen(upper_floor_height, next_perp_dist, pitch, player_z);
                     float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-floorf(next_hit_y);
-                    float y_start = hit_y - floorf(hit_y);
-                    if(step_y == -1 && side == HORIZONTAL_SIDE && first_floor_height < second_floor_height) { //} < map_y) {
-                        y_start = 1.0f - y_start;
-                    } else if (step_y == 1 && side == HORIZONTAL_SIDE && first_floor_height > second_floor_height) {
-                        // TODO fix
+                    //float y_exit = next_map_y > map_y ? 1.0f : next_hit_y-floorf(next_hit_y);
+                    float y_start = in_start_cell ? (player_y - floorf(player_y)) : hit_y - floorf(hit_y);
+                    if(!in_start_cell && step_y == -1 && side == HORIZONTAL_SIDE) {
                         y_start = 1.0f - y_start;
                     }
 
@@ -741,24 +729,12 @@ void draw_first_person_level_inner(
                     int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, player_z);
                     int proj_slope_end_height = project_to_screen(slope_end_height, next_perp_dist, pitch, player_z);
 
-                    
-                    //int proj_floor_height = project_to_screen(first_floor_height, perp_dist, pitch, player_z);
 
-                    // x+ side is upper height
-                    //prev_drawn_bot = MIN(proj_slope_end_height, proj_slope_start_height);
-                    //goto next_iter;
-
-
-                    if(proj_slope_start_height < prev_drawn_bot) {    
-                        //draw_tint_vline(
-                        //    output,
-                        //    screen_x, proj_slope_top_cur_height, proj_floor_height,
-                        //    prev_drawn_top, prev_drawn_bot
-                        //);       
-                        
+                    if(!in_start_cell && proj_slope_start_height < prev_drawn_bot) {      
+                        // draw wall up to start of slope    
                         draw_lit_fogged_clipped_textured_wall(
                             output,
-                            ((upper_diag_wall_tex&0xF) == SKYBOX_TEX_IDX),
+                            ((lower_wall_tex&0xF) == SKYBOX_TEX_IDX),
                             get_texture_column(textures[lower_wall_tex&0xF], wall_u),
                             get_texture_column(decals[lower_wall_tex>>4], wall_u),
                             screen_x, proj_slope_start_height, proj_zero_height,
@@ -807,7 +783,7 @@ void draw_first_person_level_inner(
                                     );
                                 }
                             }
-                        prev_drawn_bot = proj_slope_end_height; //MIN(proj_slope_first_height, proj_slope_next_height);
+                        prev_drawn_bot = proj_slope_end_height;
                     }
 
 
@@ -964,7 +940,81 @@ void draw_first_person_level_inner(
                 }
 
                 // draw normal no-diagonal ceil
-                if(upper_cell_type == NORMAL_CELL) {
+                
+                if(upper_cell_type == SLOPE_Y) {
+                    float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-floorf(next_hit_y);
+                    float y_start = in_start_cell ? (player_y - floorf(player_y)) : hit_y - floorf(hit_y);
+                    if(!in_start_cell && step_y == -1 && side == HORIZONTAL_SIDE) {
+                        y_start = 1.0f - y_start;
+                    }
+
+                    float slope_start_height = (float)first_ceil_height + y_start*(float)((float)second_ceil_height - (float)first_ceil_height);
+                    float slope_end_height = (float)first_ceil_height + y_exit*(float)((float)second_ceil_height - (float)first_ceil_height);
+
+                    int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, player_z);
+                    int proj_slope_end_height = project_to_screen(slope_end_height, next_perp_dist, pitch, player_z);
+
+                    // x+ side is upper height
+
+
+                    if(proj_slope_start_height > prev_drawn_top) {      
+                        // draw wall up to start of slope    
+                        draw_lit_fogged_clipped_textured_wall(
+                            output,
+                            ((upper_wall_tex&0xF) == SKYBOX_TEX_IDX),
+                            get_texture_column(textures[upper_wall_tex&0xF], wall_u),
+                            get_texture_column(decals[upper_wall_tex>>4], wall_u),
+                            screen_x, 
+                            proj_max_height, proj_slope_start_height,
+                            MAX_WALL_HEIGHT, slope_start_height, TOP_PEGGED,
+                            prev_drawn_top, prev_drawn_bot, perp_dist, light_factor * cell_light_level, 
+                            FOG_COL
+                        );
+                        
+                        if(editor_mode_enabled) {
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_max_height, proj_slope_start_height, 
+                                prev_drawn_top, prev_drawn_bot,
+                                map_idx, upper_intersect_wall_side
+                            );
+                            if(flash_frame && selected_cur_map_idx && editor_selected_side == upper_intersect_wall_side) {
+                                draw_tint_vline(
+                                    output, screen_x, 
+                                    proj_max_height, proj_slope_start_height, 
+                                    prev_drawn_top, prev_drawn_bot
+                                );
+                            }
+                        }
+                        prev_drawn_top = proj_slope_start_height;
+                    }
+                    if (proj_slope_end_height > prev_drawn_top) {
+                        draw_lit_fogged_tex_flat(
+                            output, textures[upper_ceil_texture&0xF], decals[upper_ceil_texture>>4],
+                            screen_x, proj_slope_start_height, proj_slope_end_height, 
+                            perp_dist, next_perp_dist, 
+                            flat_u, flat_v, exit_flat_u, exit_flat_v, 
+                            prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, FOG_COL
+                        );
+                            if(editor_mode_enabled) {
+                                draw_edit_vline(
+                                    edit_id_buffer, screen_x,
+                                    proj_slope_start_height, proj_slope_end_height, 
+                                    prev_drawn_top, prev_drawn_bot,
+                                    map_idx, WALL_SIDE_UPPER_BOTTOM
+                                );
+                                if(flash_frame && selected_cur_map_idx && editor_selected_side == WALL_SIDE_UPPER_BOTTOM) {
+                                    draw_tint_vline(
+                                        output, screen_x, 
+                                        proj_slope_start_height, proj_slope_end_height, 
+                                        prev_drawn_top, prev_drawn_bot
+                                    );
+                                }
+                            }
+                        prev_drawn_top = proj_slope_end_height;
+                    }
+
+                } else if(upper_cell_type == NORMAL_CELL) {
                     int proj_step_next_height = project_to_screen(first_ceil_height, next_perp_dist, pitch, player_z);
                     if(proj_step_next_height > prev_drawn_top) {
                         draw_lit_fogged_tex_flat(
@@ -1147,12 +1197,13 @@ thread_pool_function(raycast_wrapper, arg_var)
 }
 #endif
 
+
 void draw_first_person_level(
     u8* output, edit_wall_id* edit_id_buffer,
     int start_x, int end_x, 
     int frame, 
     level* this_level, 
-    float player_x, float player_y, float player_z, float player_ang, int pitch,
+    float player_x, float player_y, float player_z, float player_ang, float pitch,
     int editor_mode_enabled, int editor_selected_map_idx, wall_side editor_selected_side) {
 
 #ifndef PLATFORM_WEB
@@ -1189,18 +1240,29 @@ void draw_first_person_level(
     for(int i = 0; i < NUM_THREADS; i++) {
         thread_pool_add_work(tp, raycast_wrapper, &parms[i]);
     }
+    long long int iter = 0;
+    long long int core_finish_iter[NUM_THREADS] = {0};
     while(1) {
-        int finished = 1;
+        int finished = 0;
+
         for(int i = 0; i < NUM_THREADS; i++) { 
-            if(parms[i].finished == 0) {
-                finished = 0;
-                break;
+            if(parms[i].finished) {
+                core_finish_iter[i] = core_finish_iter[i] == 0 ? iter : core_finish_iter[i];
+                finished++;
+
             }
         }
-        if(finished) {
+        iter++;
+        if(finished == NUM_THREADS) {
             break;
         }
     }
+
+    
+    //for(int i = 0; i < NUM_THREADS; i++) {
+    //    printf("%lli ", core_finish_iter[i]);
+    //}
+    //printf("\n");
 #else
     for(int i = 0; i < NUM_THREADS; i++) {
         thread_params *tp = parms+i;

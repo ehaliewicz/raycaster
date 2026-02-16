@@ -1,0 +1,72 @@
+#include <Errhandlingapi.h>
+#include <libloaderapi.h>
+
+
+#include "raylib.h"
+
+#include "common.h"
+
+
+typedef game_ret_value (*run_game_ptr)(int frame);
+typedef void (*init_game_ptr)();
+typedef void (*cleanup_game_ptr)();
+
+run_game_ptr run_game;
+cleanup_game_ptr cleanup_game;
+init_game_ptr init_game;
+
+int needs_window = 1;
+
+u8* draw_pix;
+Image draw_img;
+Texture2D draw_tex;
+edit_id_buffer
+
+int done = 0;
+
+void loop(int frame) {
+    game_ret_value ret_val = run_game(frame);
+    game_ret_code ret_code = ret_val.code;    
+    game_ret_payload ret_payload = ret_val.payload;
+    switch(ret_code) {
+        case EXIT_GAME:
+            cleanup_game();
+            done = 1;
+            break;
+        case CONTINUE_GAME:
+            break;
+        case RELOAD_GAME:
+            reload_game_code();
+            init_game();
+            break;
+        case SET_RESOLUTION_VSYNC:
+            change_resolution(
+                ret_payload.resolution[0],
+                ret_payload.resolution[1],
+                ret_payload.requested_render_scale,
+                ret_payload.use_vsync,
+                ret_payload.wide_fov
+            );
+            //SDL_SetWindowSize(window, ret_val.payload.resolution[0], ret_val.payload.resolution[1]);
+            break;
+    }
+}
+
+int main(int argc, char* argv[]) {
+    reload_game_code();
+
+    change_resolution(
+        640, 480, 1, 1, 0
+    );
+    init_game();
+    int frame = 0;
+
+
+    while(!WindowShouldClose() && !done) {
+        loop(frame);
+    }
+
+    cleanup_game();
+
+
+}
