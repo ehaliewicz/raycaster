@@ -17,7 +17,7 @@
 int draw_editor_buffer = 0;
 int editor_mode_enabled = 0;
 int editor_selected_map_idx = -1;
-wall_side editor_selected_side;
+editor_wall_side editor_selected_side;
 
 int resolutions[NUM_RESOLUTIONS][2] = {
     {640, 480},
@@ -128,18 +128,26 @@ float get_height_at_point(float px, float py, int return_ceil) {
     if((check_cell_type == NE_TO_SW_DIAG && in_top_left) || 
        (check_cell_type == NW_TO_SE_DIAG && in_top_right)) {
             return return_ceil ? this_level->upper_ceil[map_idx] : this_level->upper_floor[map_idx];
-    } else if(floor_cell_type == SLOPE_Y) {
+    } else if(check_cell_type == SLOPE_Y) {
         float first_height = this_level->floor[map_idx];
         float second_height = this_level->upper_floor[map_idx];
         if(return_ceil) {
             first_height = this_level->ceil[map_idx];
             second_height = this_level->upper_ceil[map_idx];
         }
-        //float hit_x = 
         float height = first_height + (suby * (second_height - first_height));
 
+        return height; 
+    } else if (check_cell_type == SLOPE_X) { 
+        float first_height = this_level->floor[map_idx];
+        float second_height = this_level->upper_floor[map_idx];
+        if(return_ceil) {
+            first_height = this_level->ceil[map_idx];
+            second_height = this_level->upper_ceil[map_idx];
+        }
+        float height = first_height + (subx * (second_height - first_height));
 
-        return height; //return_ceil ? (MIN(this_level->ceil[map_idx], this_level->upper_ceil[map_idx])) : (MAX(this_level->floor[map_idx], this_level->upper_floor[map_idx]));
+        return height; 
     } else {
         return return_ceil ? this_level->ceil[map_idx] : this_level->floor[map_idx];
     }
@@ -654,9 +662,9 @@ void change_resolution() {
     cur_render_width = cur_output_width / cur_render_scale;
     cur_render_height = cur_output_height / cur_render_scale;
     cur_fov = res_is_wide[cur_render_res_idx] ? 100.0f : 85.0f;
-
+    
     int prev_use_vsync = use_vsync;
-    use_vsync = use_vsync;
+    use_vsync = requested_use_vsync;
     if(prev_use_vsync != use_vsync) {
         CloseWindow();
         needs_window = 1;
@@ -674,7 +682,7 @@ void change_resolution() {
         InitWindow(OUTPUT_WIDTH, OUTPUT_HEIGHT, "raycast");
 
         
-        //font = LoadFont("C:/Windows/Fonts/courbd.ttf");
+        font = LoadFont("C:/Windows/Fonts/courbd.ttf");
         needs_window = 0;
     } else {
         SetWindowSize(OUTPUT_WIDTH, OUTPUT_HEIGHT);
@@ -798,11 +806,11 @@ void run_game() {
         prev_frame_time = frame_time_ms;
         char buf[80]; 
         sprintf(buf, "%i %i -> %i %i FOV%.0f %s", cur_render_width, cur_render_height, cur_output_width, cur_output_height, cur_fov, use_vsync ? "vsync" : "");
-        DrawTextEx(font, buf, (Vector2){.x = 5, .y = 5}, 18, 0, RED);
+        DrawTextEx(font, buf, (Vector2){.x = 5, .y = 5}, 18, 1, RED);
         sprintf(buf, "%4.0f fps", 1000.0f/avg_frame_time);
-        DrawTextEx(font, buf, (Vector2){.x = 5, .y = 20}, 18, 0, RED);
+        DrawTextEx(font, buf, (Vector2){.x = 5, .y = 20}, 18, 1, RED);
         sprintf(buf, "%.2f %.2f %.2f\n", player_x, player_y, player_z);
-        DrawTextEx(font, buf, (Vector2){.x = 5, .y = 35}, 18, 0, RED);
+        DrawTextEx(font, buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
     } EndDrawing();
     frame++;
 }

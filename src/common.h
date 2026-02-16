@@ -13,6 +13,11 @@ typedef signed long long int s64;
 #define PLAYER_HEIGHT 5.5f
 
 typedef enum {
+    VERTICAL_SIDE = 0,
+    HORIZONTAL_SIDE = 1
+} wall_side;
+
+typedef enum {
     NORMAL_CELL = 0,
     NE_TO_SW_DIAG=1,
     NW_TO_SE_DIAG=2,
@@ -22,7 +27,7 @@ typedef enum {
     THIN_WALL_Y=6,
 } cell_types;
 
-#define NUM_CELL_TYPES 4
+#define NUM_CELL_TYPES 5
 #define NUM_TEXTURES 6
 #define SKYBOX_TEX_IDX 15
 #define NUM_DECALS 4
@@ -126,7 +131,7 @@ typedef enum {
     WALL_SIDE_LOWER_WEST,
     WALL_SIDE_UPPER_DIAG,
     WALL_SIDE_LOWER_DIAG,
-} wall_side;
+} editor_wall_side;
 
 #define MIN(x,y) ((x)<(y)?(x):(y))
 #define MAX(x,y) ((x)>(y)?(x):(y))
