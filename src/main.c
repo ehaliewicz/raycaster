@@ -493,6 +493,7 @@ void load_resources() {
     Image tex2 = LoadImage("resources/flat_tex0.png");
     Image tex3 = LoadImage("resources/flat_tex1.png");
     Image tex4 = LoadImage("resources/bookshelf.png");
+    Image tex5 = LoadImage("resources/grass.png");
     Image window_tex = LoadImage("resources/glass_window.png");
     Image moss_tex = LoadImage("resources/moss.png");
     Image chandelier_tex = LoadImage("resources/chandelier.png");
@@ -503,15 +504,18 @@ void load_resources() {
     size_t tex_num_bytes = sizeof(u8)*4*TEX_SIZE*TEX_SIZE;
     u8* backing_texture_data = malloc(tex_num_bytes*(NUM_TEXTURES+NUM_DECALS+NUM_SPRITES));
 
+    
+
     u8* tex0_data = backing_texture_data+(tex_num_bytes*0);
     u8* tex1_data = backing_texture_data+(tex_num_bytes*1);
     u8* tex2_data = backing_texture_data+(tex_num_bytes*2);
     u8* tex3_data = backing_texture_data+(tex_num_bytes*3);
     u8* tex4_data = backing_texture_data+(tex_num_bytes*4);
-    u8* window_tex_data = backing_texture_data+(tex_num_bytes*5);
-    u8* moss_tex_data = backing_texture_data+(tex_num_bytes*6);
-    u8* chandelier_tex_data = backing_texture_data+(tex_num_bytes*7);
-    u8* tree_tex_data = backing_texture_data+(tex_num_bytes*8);
+    u8* tex5_data = backing_texture_data+(tex_num_bytes*5);
+    u8* window_tex_data = backing_texture_data+(tex_num_bytes*6);
+    u8* moss_tex_data = backing_texture_data+(tex_num_bytes*7);
+    u8* chandelier_tex_data = backing_texture_data+(tex_num_bytes*8);
+    u8* tree_tex_data = backing_texture_data+(tex_num_bytes*9);
     
     u8* copy_ptrs[][2] = {
         {tex0_data, tex0.data},
@@ -519,6 +523,7 @@ void load_resources() {
         {tex2_data, tex2.data},
         {tex3_data, tex3.data},
         {tex4_data, tex4.data},
+        {tex5_data, tex5.data},
         {window_tex_data, window_tex.data},
         {moss_tex_data, moss_tex.data},
         {chandelier_tex_data, chandelier_tex.data},
@@ -527,7 +532,7 @@ void load_resources() {
     };
     for(int mip = 0; mip < 1; mip++) {
         int dim = TEX_SIZE>>mip;
-        for(int i = 0; i < 9; i++) {
+        for(long long unsigned int i = 0; i < 10; i++) {
             u8* src = copy_ptrs[i][1];
             u8* dst = copy_ptrs[i][0];
             memcpy(dst, src, tex_num_bytes);
@@ -539,7 +544,7 @@ void load_resources() {
     textures[2] = tex0_data;
     textures[3] = tex1_data;
     textures[4] = tex4_data;
-    textures[5] = tex1_data;
+    textures[5] = tex5_data;
 
     decals[0] = calloc(tex_num_bytes, 1);
     decals[1] = window_tex_data;
