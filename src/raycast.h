@@ -8,7 +8,7 @@
 //void thread_pool_add_work(void* tp, void (*func)(void*), void* arg_var);
 //void thread_pool_destroy(void* tp);
 void draw_first_person_level(
-    u8* output, edit_wall_id* edit_id_buffer,
+    u8* output, edit_wall_id* edit_id_buffer, float* z_buffer,
     int start_x, int end_x, 
     int frame, 
     level* this_level, 

@@ -23,14 +23,17 @@ typedef enum {
     NW_TO_SE_DIAG=2,
     SLOPE_Y=3,
     SLOPE_X=4,
-    THIN_WALL_X=5,
-    THIN_WALL_Y=6,
+    DOOR_Y=5,
+    //THIN_WALL_X=5,
+    //THIN_WALL_Y=6,
 } cell_types;
 
-#define NUM_CELL_TYPES 5
+#define NUM_CELL_TYPES 6
 #define NUM_TEXTURES 6
-#define SKYBOX_TEX_IDX 15
 #define NUM_DECALS 4
+#define NUM_SPRITES 1
+
+#define SKYBOX_TEX_IDX 15
 
 #define MAP_SIZE 32
 
@@ -112,7 +115,7 @@ typedef struct {
     u8 ldtex[MAP_SIZE*MAP_SIZE];
     // cell light level
     u8 light[MAP_SIZE*MAP_SIZE];
-    u8 step_action[MAP_SIZE*MAP_SIZE];
+    u8 parameter[MAP_SIZE*MAP_SIZE];
 } level;
 
 
@@ -150,6 +153,7 @@ typedef enum {
 
 extern u8* textures[16];
 extern u8* decals[NUM_DECALS];
+extern u8* sprites[NUM_SPRITES];
 
 
 typedef struct {

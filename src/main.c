@@ -14,7 +14,13 @@
 
 #include "raycast.h"
 
-int draw_editor_buffer = 0;
+typedef enum {
+    PIXEL_BUFFER = 0,
+    EDITOR_BUFFER = 1,
+    Z_BUFFER = 2,
+} draw_mode;
+#define NUM_RENDER_MODES 3
+
 int editor_mode_enabled = 0;
 int editor_selected_map_idx = -1;
 editor_wall_side editor_selected_side;
@@ -32,7 +38,7 @@ int res_is_wide[NUM_RESOLUTIONS] = {
 };
 
 int cur_render_res_idx = -1;
-int requested_render_res = 0;
+int requested_render_res = 2;
 int cur_render_scale = 1;
 int requested_render_scale = 1;
 int cur_output_width;
@@ -86,6 +92,7 @@ u8* flat_textures[6];
 u8* textures[16];
 u8* decals[NUM_DECALS];
 u8* skybox;
+u8* sprites[NUM_SPRITES];
 
 
 
@@ -109,6 +116,7 @@ int disable_collision = 0;
 
 #define PLAYER_RADIUS (0.25f)
 
+#define DOOR_FULLY_OPEN  200
 
 float get_height_at_point(float px, float py, int return_ceil) {
     int map_x = px;
@@ -125,31 +133,42 @@ float get_height_at_point(float px, float py, int return_ceil) {
     cell_types floor_cell_type = this_level->lower_cell_types[map_idx];
     cell_types ceil_cell_type = this_level->upper_cell_types[map_idx];
     cell_types check_cell_type = return_ceil ? ceil_cell_type : floor_cell_type;
+    int floor = this_level->floor[map_idx];
+    int upper_floor = this_level->upper_floor[map_idx];
+    int ceil = this_level->ceil[map_idx];
+    int upper_ceil = this_level->upper_ceil[map_idx];
+
     if((check_cell_type == NE_TO_SW_DIAG && in_top_left) || 
        (check_cell_type == NW_TO_SE_DIAG && in_top_right)) {
             return return_ceil ? this_level->upper_ceil[map_idx] : this_level->upper_floor[map_idx];
     } else if(check_cell_type == SLOPE_Y) {
-        float first_height = this_level->floor[map_idx];
-        float second_height = this_level->upper_floor[map_idx];
+        float first_height = floor;
+        float second_height = upper_floor;
         if(return_ceil) {
-            first_height = this_level->ceil[map_idx];
-            second_height = this_level->upper_ceil[map_idx];
+            first_height = ceil;
+            second_height = upper_ceil;
         }
         float height = first_height + (suby * (second_height - first_height));
 
         return height; 
     } else if (check_cell_type == SLOPE_X) { 
-        float first_height = this_level->floor[map_idx];
-        float second_height = this_level->upper_floor[map_idx];
+        float first_height = floor;
+        float second_height = upper_floor;
         if(return_ceil) {
-            first_height = this_level->ceil[map_idx];
-            second_height = this_level->upper_ceil[map_idx];
+            first_height = ceil;
+            second_height = upper_ceil;
         }
         float height = first_height + (subx * (second_height - first_height));
 
         return height; 
+    } else if (check_cell_type == DOOR_Y) {
+        if(this_level->parameter[map_idx] >= DOOR_FULLY_OPEN || suby >= 0.25f) {
+            return return_ceil ? ceil : floor;
+        } else {
+            return return_ceil ? upper_ceil : upper_floor;
+        }
     } else {
-        return return_ceil ? this_level->ceil[map_idx] : this_level->floor[map_idx];
+        return return_ceil ? ceil : floor;
     }
 }
 
@@ -180,7 +199,9 @@ int collides(float px, float py, level this_level) {
     return 0;
 }
 
-
+int timer_running = 0;
+int timer_door = 0; // the map idx of the door we're opening
+float start_open_time; // one second to open, one second open, one second to close?
 void update_player(float frame_time, Vector2 mouse_delta) {
     float y = sin(player_ang);
     float x = cos(player_ang);
@@ -191,6 +212,78 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     float move_speed = .06f * frame_time / 16.0f;
     level cur_level = levels[cur_level_idx];
     float r = PLAYER_RADIUS;
+
+    int door_closing = 0;
+    if(timer_running) {
+        float cur_time = GetTime();
+        float open_time = cur_time-start_open_time;
+        int int_open_amount = 0;
+        if(open_time <= 1.0f) {
+            int_open_amount = open_time*255.0f;
+        } else if (open_time <= 2.0f) {
+            int_open_amount = 255;
+        } else if (open_time <= 3.0f) {
+            door_closing = 1;
+            int_open_amount = (1.0f-(open_time-2.0f))*255.0f;
+        } else {
+            door_closing = 1;
+            timer_running = 0;
+        }
+        levels[cur_level_idx].parameter[timer_door] = int_open_amount;
+        int pmx = player_x;
+        int pmy = player_y;
+        if(pmy*MAP_SIZE+pmx == timer_door) {
+            // we are *INSIDE* the door
+            if(door_closing) {
+                float suby = player_y - floorf(player_y);
+                if(suby >= 0.9f) {
+                    player_y = floorf(player_y+1.0f)+PLAYER_RADIUS+0.1f;
+                } else if(int_open_amount >= DOOR_FULLY_OPEN) {
+                    float max_y_in_cell = (((float)int_open_amount-DOOR_FULLY_OPEN)/(255-DOOR_FULLY_OPEN));
+                    printf("open %i max y %f\n", int_open_amount, max_y_in_cell);
+                    if(suby > max_y_in_cell) {
+                        player_y = floorf(player_y) + max_y_in_cell;
+
+                        if((int)player_y != pmy) {
+                            player_y = floorf(player_y)+(PLAYER_RADIUS-0.1f);
+                        }
+                    }
+                } else {
+                    player_y = floorf(player_y)- (PLAYER_RADIUS+0.1f);
+                }
+            }
+
+                //player_y = floorf(player_y)-(PLAYER_RADIUS+.1);
+                //float lerped_close_position = (float)int_open_amount/DOOR_FULLY_OPEN;
+                //printf("PUSH PLAYER OUT! door y pos: %f\n", lerped_close_position);
+                //float max_y_pos = MAX(0.0f, lerped_close_position-1.0f);
+                //if(player_y > max_y_pos) {
+                //    player_y = max_y_pos;
+                //}
+        }
+    }
+
+    if(IsKeyDown(KEY_O)) {
+        int map_x = player_x;
+        int map_y = player_y;
+        int start_x = MAX(0, map_x-1);
+        int end_x = MIN(MAP_SIZE-1, map_x+1);
+        int start_y = MAX(0, map_y-1);
+        int end_y = MIN(MAP_SIZE-1, map_y+1);
+        for(int y = start_y; y <= end_y; y++) {
+            for(int x = start_x; x <= end_x; x++) {
+                int map_idx = y*MAP_SIZE+x;
+                if(levels[cur_level_idx].lower_cell_types[map_idx] == DOOR_Y) {
+                        timer_running = 1;
+                        timer_door = map_idx;
+                        start_open_time = GetTime();
+                }
+            }
+        }
+    }
+
+
+
     if (IsKeyDown(KEY_W)) {
         float vel_x = move_speed*x;
         float vel_y = move_speed*y;
@@ -346,11 +439,11 @@ int wall_mip_scales[6] = {
     32,16,8,4,2,1
 };
 
-void init_level(int init) {
+void init_level(int fresh_map) {
     player_ang =  1.5707963f;
     player_x = levels[cur_level_idx].start_x;
     player_y = levels[cur_level_idx].start_y;
-    if(init) {  
+    if(fresh_map) {  
         player_x = 16;
         player_y = 16;
         memset(levels, 0, sizeof(levels));
@@ -375,6 +468,7 @@ void init_level(int init) {
         levels[cur_level_idx].start_x = 16;
         levels[cur_level_idx].start_y = 16;
     }
+    memset(levels[cur_level_idx].parameter, 0, sizeof(levels[cur_level_idx].parameter));
 
     player_z = get_height_at_point(player_x, player_y, 0) + PLAYER_HEIGHT;
 }
@@ -403,10 +497,11 @@ void load_resources() {
     Image moss_tex = LoadImage("resources/moss.png");
     Image chandelier_tex = LoadImage("resources/chandelier.png");
     Image skybox_tex = LoadImage("resources/skybox.png");
+    Image tree_tex = LoadImage("resources/tree.png");
 
 
     size_t tex_num_bytes = sizeof(u8)*4*TEX_SIZE*TEX_SIZE;
-    u8* backing_texture_data = malloc(tex_num_bytes*(NUM_TEXTURES+NUM_DECALS));
+    u8* backing_texture_data = malloc(tex_num_bytes*(NUM_TEXTURES+NUM_DECALS+NUM_SPRITES));
 
     u8* tex0_data = backing_texture_data+(tex_num_bytes*0);
     u8* tex1_data = backing_texture_data+(tex_num_bytes*1);
@@ -416,6 +511,7 @@ void load_resources() {
     u8* window_tex_data = backing_texture_data+(tex_num_bytes*5);
     u8* moss_tex_data = backing_texture_data+(tex_num_bytes*6);
     u8* chandelier_tex_data = backing_texture_data+(tex_num_bytes*7);
+    u8* tree_tex_data = backing_texture_data+(tex_num_bytes*8);
     
     u8* copy_ptrs[][2] = {
         {tex0_data, tex0.data},
@@ -425,12 +521,13 @@ void load_resources() {
         {tex4_data, tex4.data},
         {window_tex_data, window_tex.data},
         {moss_tex_data, moss_tex.data},
-        {chandelier_tex_data, chandelier_tex.data}
+        {chandelier_tex_data, chandelier_tex.data},
+        {tree_tex_data, tree_tex.data}
 
     };
     for(int mip = 0; mip < 1; mip++) {
         int dim = TEX_SIZE>>mip;
-        for(int i = 0; i < 8; i++) {
+        for(int i = 0; i < 9; i++) {
             u8* src = copy_ptrs[i][1];
             u8* dst = copy_ptrs[i][0];
             memcpy(dst, src, tex_num_bytes);
@@ -448,6 +545,9 @@ void load_resources() {
     decals[1] = window_tex_data;
     decals[2] = moss_tex_data;
     decals[3] = chandelier_tex_data;
+
+    sprites[0] = tree_tex_data;
+
     skybox = malloc(4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT);
     memcpy(skybox, skybox_tex.data, 4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT);
     textures[SKYBOX_TEX_IDX] = skybox;
@@ -653,6 +753,7 @@ Texture2D draw_tex;
 int frame;
 
 u8* draw_pix = NULL;
+float* z_buffer = NULL;
 int needs_window = 1;
 void change_resolution() {
     cur_render_res_idx = requested_render_res;
@@ -707,6 +808,7 @@ void change_resolution() {
     }
     draw_pix = malloc(sizeof(u8)*4*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH);
     edit_id_buffer = malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH);
+    z_buffer = malloc(sizeof(float)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH);
 
     draw_img = (Image){
         .data = draw_pix,
@@ -721,6 +823,7 @@ void change_resolution() {
 
 
 float prev_frame_time = 0;
+draw_mode render_mode = PIXEL_BUFFER;
 
 void run_game() {
     Vector2 mouse_delta = GetMouseDelta();
@@ -751,11 +854,16 @@ void run_game() {
         editor_mode_enabled = !editor_mode_enabled;
     }
     if (IsKeyPressed(KEY_Z)) {
-        draw_editor_buffer = !draw_editor_buffer;
+        render_mode++;
+        if(render_mode >= NUM_RENDER_MODES) {
+            render_mode = 0;
+        }
     }
 
 
     if(editor_mode_enabled) {
+        // clear editor buffer?
+        
         handle_editor();
     } else if (IsKeyPressed(KEY_R)) {
         if(IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
@@ -777,7 +885,6 @@ void run_game() {
     float frame_time_ms = GetFrameTime()*1000.0f;
     if(requested_render_res != cur_render_res_idx || requested_render_scale != cur_render_scale || requested_use_vsync != use_vsync) {
         float prev_pitch = pitch;
-
         change_resolution();
         pitch = prev_pitch;
     } else {
@@ -785,19 +892,40 @@ void run_game() {
     }
     BeginDrawing(); {   
         GetTime();
-        
-        draw_first_person_level(draw_img.data, edit_id_buffer, 
+        for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
+            z_buffer[i] = DARK_DIST;
+        }
+        //z_buffer[(screen_x*FP_SCREEN_HEIGHT+y)] = 1024.0f;
+        draw_first_person_level(draw_img.data, edit_id_buffer, z_buffer,
             0, FP_SCREEN_WIDTH, 
             frame, 
             &levels[cur_level_idx], player_x, player_y, player_z, player_ang, pitch,
             editor_mode_enabled, editor_selected_map_idx, editor_selected_side
         );
 
+        switch(render_mode) {
+            case EDITOR_BUFFER:
+                ClearBackground(BLACK);
+                UpdateTexture(draw_tex, (u32*)edit_id_buffer);
+                break;
+            case PIXEL_BUFFER:
+                UpdateTexture(draw_tex, (u32*)draw_img.data);
+                break;
+            case Z_BUFFER:
+                ClearBackground(BLACK);
+                float recip_far = 1.0f/DARK_DIST;
+                float recip_near = 1.0f/NEAR_PLANE_DIST;
 
-        if(draw_editor_buffer) {
-            UpdateTexture(draw_tex, (u32*)edit_id_buffer);
-        } else {
-            UpdateTexture(draw_tex, draw_img.data);
+                for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
+                    float z = 1.0f/z_buffer[i];
+                    float normalized = (z-NEAR_PLANE_DIST)/(DARK_DIST-NEAR_PLANE_DIST);
+                    int byte_z = normalized*255;
+                    //255*CLAMP(z/DARK_DIST, 0.1f, 1.0f);
+                    ((u32*)z_buffer)[i] = (0xFF000000 | (byte_z<<16) | (byte_z<<8) | byte_z);
+                }
+                UpdateTexture(draw_tex, (u32*)z_buffer);
+                break;
+
         }
         float scale = ((float)OUTPUT_WIDTH/((float)FP_SCREEN_WIDTH));
         DrawTextureEx(draw_tex, (Vector2){.x=OUTPUT_WIDTH,.y=0}, 90.0f, scale, WHITE);
