@@ -116,9 +116,7 @@ void draw_lit_fogged_tex_flat(
     u8* output, float* z_buffer, u8* texture, u8* decal, int x, int y0, int y1, float z0, float z1, float start_u, 
     float start_v, float end_u, float end_v, int prev_drawn_top, int prev_drawn_bot, 
     float light_factor, u32 fog_col) {
-    
-    //return;
-    
+
     if(texture == textures[SKYBOX_TEX_IDX]) {
         return;
     }
@@ -290,6 +288,7 @@ void draw_lit_fogged_clipped_textured_wall(
     if(y1 < prev_drawn_top) {
         return;
     }
+
     int units = fabsf(world_y1 - world_y0);
     float depth_scale = CLAMP(z / DARK_DIST, 0.0f, 1.0f);
     float inv_depth_scale = (1.0f - depth_scale);
@@ -876,41 +875,7 @@ void draw_first_person_level_inner(
                     }
 
                     prev_drawn_bot = proj_floor_first_step_height;
-                }
-
-                // draw first ceil step
-                if(!in_start_cell && !upper_step_slope && proj_ceil_first_step_height > prev_drawn_top) {
-                    draw_lit_fogged_clipped_textured_wall(
-                        output, z_buffer,
-                        ((upper_wall_tex&0xF) == SKYBOX_TEX_IDX),
-                        get_texture_column(textures[upper_wall_tex&0xF], wall_u),
-                        get_texture_column(decals[upper_wall_tex>>4], wall_u),
-                        screen_x, proj_max_height, proj_ceil_first_step_height,
-                        MAX_WALL_HEIGHT, first_ceil_height, TOP_PEGGED,
-                        prev_drawn_top, prev_drawn_bot, perp_dist, light_factor * cell_light_level, 
-                        FOG_COL
-                    );
-
-                    
-                    if(editor_mode_enabled) {
-                        draw_edit_vline(
-                            edit_id_buffer, screen_x,
-                            proj_max_height, proj_ceil_first_step_height, 
-                            prev_drawn_top, prev_drawn_bot,
-                            map_idx, upper_intersect_wall_side
-                        );
-                        if(flash_frame && selected_cur_map_idx && editor_selected_side == upper_intersect_wall_side) {
-                            draw_tint_vline(
-                                output, screen_x, 
-                                proj_max_height, proj_ceil_first_step_height, 
-                                prev_drawn_top, prev_drawn_bot
-                            );
-                        }
-                    }
-                    prev_drawn_top = proj_ceil_first_step_height;
-                }
-
-                if(lower_cell_type == SLOPE_Y || lower_cell_type == SLOPE_X) {
+                } else if (!in_start_cell && lower_step_slope) {
                     float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-floorf(next_hit_y);
                     float y_start = in_start_cell ? (ray_origin_y - floorf(ray_origin_y)) : hit_y - floorf(hit_y);
                     if(!in_start_cell && side == HORIZONTAL_SIDE) {
@@ -920,7 +885,7 @@ void draw_first_person_level_inner(
                             y_start = 0.0f;
                         }
                     }
-                        float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-floorf(next_hit_x);
+                    float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-floorf(next_hit_x);
                     float x_start = in_start_cell ? (ray_origin_x - floorf(ray_origin_x)) : hit_x - floorf(hit_x);
                     if(!in_start_cell && side == VERTICAL_SIDE) {
                         if(step_x == -1) {
@@ -970,7 +935,133 @@ void draw_first_person_level_inner(
                         prev_drawn_bot = proj_slope_start_height;
                     }
                     
+                }
+
+                // draw first ceil step
+                if(!in_start_cell && !upper_step_slope && proj_ceil_first_step_height > prev_drawn_top) {
+                    draw_lit_fogged_clipped_textured_wall(
+                        output, z_buffer,
+                        ((upper_wall_tex&0xF) == SKYBOX_TEX_IDX),
+                        get_texture_column(textures[upper_wall_tex&0xF], wall_u),
+                        get_texture_column(decals[upper_wall_tex>>4], wall_u),
+                        screen_x, proj_max_height, proj_ceil_first_step_height,
+                        MAX_WALL_HEIGHT, first_ceil_height, TOP_PEGGED,
+                        prev_drawn_top, prev_drawn_bot, perp_dist, light_factor * cell_light_level, 
+                        FOG_COL
+                    );
+
                     
+                    if(editor_mode_enabled) {
+                        draw_edit_vline(
+                            edit_id_buffer, screen_x,
+                            proj_max_height, proj_ceil_first_step_height, 
+                            prev_drawn_top, prev_drawn_bot,
+                            map_idx, upper_intersect_wall_side
+                        );
+                        if(flash_frame && selected_cur_map_idx && editor_selected_side == upper_intersect_wall_side) {
+                            draw_tint_vline(
+                                output, screen_x, 
+                                proj_max_height, proj_ceil_first_step_height, 
+                                prev_drawn_top, prev_drawn_bot
+                            );
+                        }
+                    }
+                    prev_drawn_top = proj_ceil_first_step_height;
+                } else if (!in_start_cell && upper_step_slope) {
+                     float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-floorf(next_hit_y);
+                    float y_start = in_start_cell ? (ray_origin_y - floorf(ray_origin_y)) : hit_y - floorf(hit_y);
+                    if(!in_start_cell && side == HORIZONTAL_SIDE) {
+                        if(step_y == -1) {
+                            y_start = 1.0f;
+                        } else {
+                            y_start = 0.0f;
+                        }
+                    }
+                    float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-floorf(next_hit_x);
+                    float x_start = in_start_cell ? (ray_origin_x - floorf(ray_origin_x)) : hit_x - floorf(hit_x);
+                    if(!in_start_cell && side == VERTICAL_SIDE) {
+                        if(step_x == -1) {
+                            x_start = 1.0f;
+                        } else {
+                            x_start = 0.0f;
+                        }
+                    }
+                    float exit = (upper_cell_type == SLOPE_X) ? x_exit : y_exit;
+                    float start = (upper_cell_type == SLOPE_X) ? x_start : y_start;
+
+                    float slope_start_height = (float)first_ceil_height + start*(float)((float)second_ceil_height - (float)first_ceil_height);
+                    float slope_end_height = (float)first_ceil_height + exit*(float)((float)second_ceil_height - (float)first_ceil_height);
+
+                    int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
+                    int proj_slope_end_height = project_to_screen(slope_end_height, next_perp_dist, pitch, ray_origin_z);
+
+                    // x+ side is upper height
+
+
+                    if(proj_slope_start_height > prev_drawn_top) {      
+                        // draw wall up to start of slope    
+                        draw_lit_fogged_clipped_textured_wall(
+                            output, z_buffer,
+                            ((upper_wall_tex&0xF) == SKYBOX_TEX_IDX),
+                            get_texture_column(textures[upper_wall_tex&0xF], wall_u),
+                            get_texture_column(decals[upper_wall_tex>>4], wall_u),
+                            screen_x, 
+                            proj_max_height, proj_slope_start_height,
+                            MAX_WALL_HEIGHT, slope_start_height, TOP_PEGGED,
+                            prev_drawn_top, prev_drawn_bot, perp_dist, light_factor * cell_light_level, 
+                            FOG_COL
+                        );
+                        
+                        if(editor_mode_enabled) {
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_max_height, proj_slope_start_height, 
+                                prev_drawn_top, prev_drawn_bot,
+                                map_idx, upper_intersect_wall_side
+                            );
+                            if(flash_frame && selected_cur_map_idx && editor_selected_side == upper_intersect_wall_side) {
+                                draw_tint_vline(
+                                    output, screen_x, 
+                                    proj_max_height, proj_slope_start_height, 
+                                    prev_drawn_top, prev_drawn_bot
+                                );
+                            }
+                        }
+                        prev_drawn_top = proj_slope_start_height;
+                    }
+
+                }
+
+                if(lower_cell_type == SLOPE_Y || lower_cell_type == SLOPE_X) {
+                    float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-floorf(next_hit_y);
+                    float y_start = in_start_cell ? (ray_origin_y - floorf(ray_origin_y)) : hit_y - floorf(hit_y);
+                    if(!in_start_cell && side == HORIZONTAL_SIDE) {
+                        if(step_y == -1) {
+                            y_start = 1.0f;
+                        } else {
+                            y_start = 0.0f;
+                        }
+                    }
+                    float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-floorf(next_hit_x);
+                    float x_start = in_start_cell ? (ray_origin_x - floorf(ray_origin_x)) : hit_x - floorf(hit_x);
+                    if(!in_start_cell && side == VERTICAL_SIDE) {
+                        if(step_x == -1) {
+                            x_start = 1.0f;
+                        } else {
+                            x_start = 0.0f;
+                        }
+                    }
+                    float start = (lower_cell_type == SLOPE_Y) ? y_start : x_start;
+                    float exit = (lower_cell_type == SLOPE_Y) ? y_exit : x_exit;
+                    float slope_start_height = (float)first_floor_height + start*(float)((float)second_floor_height - (float)first_floor_height);
+                    float slope_end_height = (float)first_floor_height + exit*(float)((float)second_floor_height - (float)first_floor_height);
+
+                    int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
+                    int proj_slope_end_height = project_to_screen(slope_end_height, next_perp_dist, pitch, ray_origin_z);
+
+                    
+                    // draw wall for slope
+
                     if (proj_slope_end_height < prev_drawn_bot) {
                         draw_lit_fogged_tex_flat(
                             output, z_buffer, textures[upper_floor_texture&0xF], decals[upper_floor_texture>>4],
@@ -1194,37 +1285,6 @@ void draw_first_person_level_inner(
                     // x+ side is upper height
 
 
-                    if(proj_slope_start_height > prev_drawn_top) {      
-                        // draw wall up to start of slope    
-                        draw_lit_fogged_clipped_textured_wall(
-                            output, z_buffer,
-                            ((upper_wall_tex&0xF) == SKYBOX_TEX_IDX),
-                            get_texture_column(textures[upper_wall_tex&0xF], wall_u),
-                            get_texture_column(decals[upper_wall_tex>>4], wall_u),
-                            screen_x, 
-                            proj_max_height, proj_slope_start_height,
-                            MAX_WALL_HEIGHT, slope_start_height, TOP_PEGGED,
-                            prev_drawn_top, prev_drawn_bot, perp_dist, light_factor * cell_light_level, 
-                            FOG_COL
-                        );
-                        
-                        if(editor_mode_enabled) {
-                            draw_edit_vline(
-                                edit_id_buffer, screen_x,
-                                proj_max_height, proj_slope_start_height, 
-                                prev_drawn_top, prev_drawn_bot,
-                                map_idx, upper_intersect_wall_side
-                            );
-                            if(flash_frame && selected_cur_map_idx && editor_selected_side == upper_intersect_wall_side) {
-                                draw_tint_vline(
-                                    output, screen_x, 
-                                    proj_max_height, proj_slope_start_height, 
-                                    prev_drawn_top, prev_drawn_bot
-                                );
-                            }
-                        }
-                        prev_drawn_top = proj_slope_start_height;
-                    }
                     if (proj_slope_end_height > prev_drawn_top) {
                         draw_lit_fogged_tex_flat(
                             output, z_buffer, textures[upper_ceil_texture&0xF], decals[upper_ceil_texture>>4],
@@ -1415,6 +1475,9 @@ void draw_first_person_level_inner(
 
         }
     }
+#ifdef DEBUG
+        update_screen_tex_and_draw(); 
+#endif
 
 
     

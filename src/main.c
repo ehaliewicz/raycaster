@@ -503,9 +503,7 @@ void load_resources() {
 
     size_t tex_num_bytes = sizeof(u8)*4*TEX_SIZE*TEX_SIZE;
     u8* backing_texture_data = malloc(tex_num_bytes*(NUM_TEXTURES+NUM_DECALS+NUM_SPRITES));
-
     
-
     u8* tex0_data = backing_texture_data+(tex_num_bytes*0);
     u8* tex1_data = backing_texture_data+(tex_num_bytes*1);
     u8* tex2_data = backing_texture_data+(tex_num_bytes*2);
@@ -829,6 +827,8 @@ void change_resolution() {
 
 float prev_frame_time = 0;
 draw_mode render_mode = PIXEL_BUFFER;
+
+
 
 void run_game() {
     Vector2 mouse_delta = GetMouseDelta();
