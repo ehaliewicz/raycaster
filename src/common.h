@@ -26,12 +26,12 @@ typedef enum {
     DOOR_Y=5,
     //THIN_WALL_X=5,
     //THIN_WALL_Y=6,
-    HEIGHTMAP=6
+    //HEIGHTMAP=6
 } cell_types;
 
 extern u8 heightmap[32*32];
 
-#define NUM_CELL_TYPES 7
+#define NUM_CELL_TYPES 6
 #define NUM_TEXTURES 6
 #define NUM_DECALS 4
 #define BLANK_DECAL_IDX 0

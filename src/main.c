@@ -655,7 +655,7 @@ void handle_editor() {
                 break;
 
             case WALL_SIDE_UPPER_NORTH: do {
-                if(upper_cell_type != NORMAL_CELL && lower_cell_type != HEIGHTMAP) {
+                if(upper_cell_type != NORMAL_CELL) {
                     height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_map_idx];
                 } else {
                     height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
@@ -688,7 +688,7 @@ void handle_editor() {
 
 
             case WALL_SIDE_LOWER_NORTH: do {
-                if(lower_cell_type != NORMAL_CELL && lower_cell_type != HEIGHTMAP) {
+                if(lower_cell_type != NORMAL_CELL) {
                     height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_map_idx];
                 } else {
                     height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
