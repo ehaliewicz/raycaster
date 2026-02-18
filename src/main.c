@@ -54,8 +54,13 @@ edit_wall_id *edit_id_buffer = NULL; //[FP_SCREEN_WIDTH*FP_SCREEN_HEIGHT];
 
 void handle_click(int render_x, int render_y) {
     edit_wall_id id = edit_id_buffer[(FP_SCREEN_WIDTH-1-render_x)*FP_SCREEN_HEIGHT+(render_y)];
-    editor_selected_map_idx = id.cell_idx>>2;
-    editor_selected_side = id.side>>2;
+    editor_selected_map_idx = id.cell_idx;
+    editor_selected_side = id.side;
+}
+
+void* my_malloc(long long unsigned int bytes, char* for_str) {
+    printf("Allocating %i bytes for %s\n", bytes, for_str);
+    return malloc(bytes);
 }
 
 
@@ -103,6 +108,7 @@ level levels[1] = {
         .start_z = 2,
     }
 };
+
 
 float player_x;
 float player_y;
@@ -193,7 +199,7 @@ int collides(float px, float py, level this_level) {
     if(ceil_height < player_z+2 || ceil_height < (floor_height + PLAYER_HEIGHT + 2)) {
         return 1;
     }
-    if(floor_height > (player_z-PLAYER_HEIGHT)+2) {
+    if(floor_height >= (player_z-PLAYER_HEIGHT)+2.5) {
         return 1;
     }
     return 0;
@@ -365,26 +371,27 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     float player_contact_height = player_z-PLAYER_HEIGHT;
     float max_takeable_step = MAX(lf_height, MAX(rt_height, MAX(tp_height, bt_height)));
     int got_takeable_step = 0;
-    if(lf_height <= (player_contact_height+1)) {
+    if(lf_height <= (player_contact_height+2)) {
         got_takeable_step = 1;
         max_takeable_step = MAX(max_takeable_step, lf_height);
     }
-    if(rt_height <= (player_contact_height+1)) {
+    if(rt_height <= (player_contact_height+2)) {
         got_takeable_step = 1;
         max_takeable_step = MAX(max_takeable_step, rt_height);
     }
-    if(tp_height <= (player_contact_height+1)) {
+    if(tp_height <= (player_contact_height+2)) {
         got_takeable_step = 1;
         max_takeable_step = MAX(max_takeable_step, tp_height);
     }
-    if(bt_height <= (player_contact_height+1)) {
+    if(bt_height <= (player_contact_height+2)) {
         got_takeable_step = 1;
         max_takeable_step = MAX(max_takeable_step, bt_height);
     }
 
 
     //if(got_takeable_step) {
-        player_z = max_takeable_step + PLAYER_HEIGHT; 
+        float target_height = max_takeable_step+PLAYER_HEIGHT;
+        player_z += (target_height - player_z)*0.15;
     //}
 
     if(IsKeyDown(KEY_LEFT)) {
@@ -485,9 +492,82 @@ void draw_player() {
 
 Font font;
 
+typedef enum {
+    TEXTURE,
+    DECAL,
+    SPRITE
+} asset_type;
+typedef struct {
+    const char* name;
+    const asset_type type;
+} asset;
+
+u8 heightmap[32*32] = {
+    0,0,0,0,0,0,0,0,4,4,3,0,0,0,0,0,
+    0,0,3,2,2,8,8,6,7,6,0,0,0,0,0,0,
+    0,3,3,6,7,12,11,7,0,0,0,3,3,0,0,0,
+    0,0,0,7,7,11,11,7,5,0,0,3,0,0,0,0,
+    0,0,0,4,4,8,8,8,6,0,0,3,3,0,0,0,
+    0,0,0,0,0,0,0,6,4,2,0,0,3,0,0,0,
+    0,0,0,0,0,0,0,4,3,2,0,0,12,12,0,0,
+    0,0,0,0,0,0,0,2,2,2,0,12,12,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,4,4,4,4,4,4,4,4,0,0,0,0,0,
+    0,0,0,4,4,8,8,8,8,8,4,2,2,2,0,0,
+    0,0,0,4,8,10,10,10,8,4,2,4,2,0,0,0,
+    0,0,0,4,8,12,12,10,8,0,2,2,2,0,0,0,
+    0,0,0,4,8,10,10,10,8,0,0,0,0,0,0,0,
+};
+
 void load_resources() {
     font = LoadFont("C:/Windows/Fonts/courbd.ttf");
 
+    asset assets[] = {
+        {"flat_tex0.png", TEXTURE},
+        {"flat_tex1.png", TEXTURE},
+        {"wall_tex0.png", TEXTURE},
+        {"wall_tex1.png", TEXTURE},
+        {"bookshelf.png", TEXTURE},
+        {"grass.png", TEXTURE},
+        {"glass_window.png", DECAL},
+        {"moss.png", DECAL},
+        {"chandelier.png", DECAL},
+        {"tree.png", SPRITE}
+    }; 
+    const int num_assets = sizeof(assets) / sizeof(assets[0]);
+
+    char buf[80];
+    int tex_idx = 0;
+    int decal_idx = 0;
+    int sprite_idx = 0;
+    size_t tex_num_bytes = sizeof(u8)*4*TEX_SIZE*TEX_SIZE;
+    decals[decal_idx++] = calloc(tex_num_bytes, 1);
+    u8* backing_texture_data = my_malloc(tex_num_bytes*(NUM_TEXTURES+NUM_DECALS+NUM_SPRITES), "assets");
+    for(int asset_idx = 0; asset_idx < num_assets; asset_idx++) {
+        sprintf(buf, "resources/%s", assets[asset_idx].name);
+        Image tex = LoadImage(buf);
+        if(tex.data == NULL) {
+            printf("ERROR LOADING ASSET resources/%s\n", assets[asset_idx].name);
+            exit(1);
+        }
+        u8* data_ptr = backing_texture_data+(tex_num_bytes*asset_idx);
+        memcpy(data_ptr, tex.data, tex_num_bytes);
+        UnloadImage(tex);
+        switch(assets[asset_idx].type) {
+            case SPRITE:
+                sprites[sprite_idx++] = data_ptr;
+                break;
+            case DECAL:
+                decals[decal_idx++] = data_ptr;
+                break;
+            case TEXTURE:
+                textures[tex_idx++] = data_ptr;
+                break;
+        }
+    }
+
+    /*
     Image tex0 = LoadImage("resources/wall_tex0.png");
     Image tex1 = LoadImage("resources/wall_tex1.png");
     Image tex2 = LoadImage("resources/flat_tex0.png");
@@ -497,12 +577,9 @@ void load_resources() {
     Image window_tex = LoadImage("resources/glass_window.png");
     Image moss_tex = LoadImage("resources/moss.png");
     Image chandelier_tex = LoadImage("resources/chandelier.png");
-    Image skybox_tex = LoadImage("resources/skybox.png");
     Image tree_tex = LoadImage("resources/tree.png");
 
 
-    size_t tex_num_bytes = sizeof(u8)*4*TEX_SIZE*TEX_SIZE;
-    u8* backing_texture_data = malloc(tex_num_bytes*(NUM_TEXTURES+NUM_DECALS+NUM_SPRITES));
     
     u8* tex0_data = backing_texture_data+(tex_num_bytes*0);
     u8* tex1_data = backing_texture_data+(tex_num_bytes*1);
@@ -544,16 +621,21 @@ void load_resources() {
     textures[4] = tex4_data;
     textures[5] = tex5_data;
 
-    decals[0] = calloc(tex_num_bytes, 1);
     decals[1] = window_tex_data;
     decals[2] = moss_tex_data;
     decals[3] = chandelier_tex_data;
 
     sprites[0] = tree_tex_data;
+    */
 
-    skybox = malloc(4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT);
+    Image skybox_tex = LoadImage("resources/skybox.png");
+    skybox = my_malloc(4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT, "skybox");
     memcpy(skybox, skybox_tex.data, 4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT);
     textures[SKYBOX_TEX_IDX] = skybox;
+    UnloadImage(skybox_tex);
+    Image height_tex = LoadImage("resources/flat_tex_heightmap.png");
+    memcpy(heightmap, height_tex.data, 32*32);
+    UnloadImage(height_tex);
 }
 
 void handle_editor() {
@@ -573,7 +655,7 @@ void handle_editor() {
                 break;
 
             case WALL_SIDE_UPPER_NORTH: do {
-                if(upper_cell_type != NORMAL_CELL) {
+                if(upper_cell_type != NORMAL_CELL && lower_cell_type != HEIGHTMAP) {
                     height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_map_idx];
                 } else {
                     height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
@@ -606,7 +688,7 @@ void handle_editor() {
 
 
             case WALL_SIDE_LOWER_NORTH: do {
-                if(lower_cell_type != NORMAL_CELL) {
+                if(lower_cell_type != NORMAL_CELL && lower_cell_type != HEIGHTMAP) {
                     height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_map_idx];
                 } else {
                     height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
@@ -809,9 +891,9 @@ void change_resolution() {
         //UnloadImage(draw_img);
         UnloadTexture(draw_tex);
     }
-    draw_pix = malloc(sizeof(u8)*4*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH);
-    edit_id_buffer = malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH);
-    z_buffer = malloc(sizeof(float)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH);
+    draw_pix = my_malloc(sizeof(u8)*4*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
+    edit_id_buffer = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
+    z_buffer = my_malloc(sizeof(float)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
 
     draw_img = (Image){
         .data = draw_pix,
@@ -828,6 +910,8 @@ void change_resolution() {
 float prev_frame_time = 0;
 draw_mode render_mode = PIXEL_BUFFER;
 
+
+float skybox_u_offset;
 
 
 void run_game() {
@@ -895,23 +979,43 @@ void run_game() {
     } else {
         update_player(frame_time_ms, mouse_delta);
     }
+
+    float seconds = GetTime();
+    float quarter_seconds = seconds*4;
+    int iquarter_seconds = quarter_seconds;
+
+    skybox_u_offset = (seconds*2); // scrolls every 2 seconds
+
+    //skybox_u_offset &= SKYBOX_TEX_WIDTH-1;
+    int flash_frame = iquarter_seconds&0b1;
     BeginDrawing(); {   
-        GetTime();
+        //if(sixteenth_seconds&1) {
+        //    
+        //}
+
         for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
             z_buffer[i] = DARK_DIST;
         }
+        memset(draw_img.data, 0xFFFFFFFF, FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH*4);
         //z_buffer[(screen_x*FP_SCREEN_HEIGHT+y)] = 1024.0f;
         draw_first_person_level(draw_img.data, edit_id_buffer, z_buffer,
-            0, FP_SCREEN_WIDTH, 
-            frame, 
+            0, FP_SCREEN_WIDTH, flash_frame, 
             &levels[cur_level_idx], player_x, player_y, player_z, player_ang, pitch,
             editor_mode_enabled, editor_selected_map_idx, editor_selected_side
         );
 
         switch(render_mode) {
             case EDITOR_BUFFER:
-                ClearBackground(BLACK);
-                UpdateTexture(draw_tex, (u32*)edit_id_buffer);
+                //ClearBackground(BLACK);                
+                for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
+                    edit_wall_id w = edit_id_buffer[i];
+                    u32 r = (w.cell_idx>>5)<<3;
+                    u32 g = (w.cell_idx&0b11111)<<3;
+                    u32 b = w.side << 4;
+
+                    ((u32*)draw_img.data)[i] = (0xFF000000 | (b << 16) | (g << 8) | r);
+                }
+                UpdateTexture(draw_tex, (u32*)draw_img.data);
                 break;
             case PIXEL_BUFFER:
                 UpdateTexture(draw_tex, (u32*)draw_img.data);
@@ -922,7 +1026,7 @@ void run_game() {
                 float recip_near = 1.0f/NEAR_PLANE_DIST;
 
                 for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
-                    float z = 1.0f/z_buffer[i];
+                    float z = z_buffer[i];
                     float normalized = (z-NEAR_PLANE_DIST)/(DARK_DIST-NEAR_PLANE_DIST);
                     int byte_z = normalized*255;
                     //255*CLAMP(z/DARK_DIST, 0.1f, 1.0f);
@@ -966,13 +1070,14 @@ void init_game() {
 }
 
 int main(void) {
-    
+    printf("SIZEOF LEVELS %llu\n", sizeof(levels));
+
     init_game();
     change_resolution();
     frame = 0;
 
 #ifdef PLATFORM_WEB
-    emscripten_set_main_loop(main_loop, 0, 1);
+    emscripten_set_main_loop(run_game, 0, 1);
 #else 
     while(!WindowShouldClose()) {
 

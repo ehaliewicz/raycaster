@@ -26,11 +26,15 @@ typedef enum {
     DOOR_Y=5,
     //THIN_WALL_X=5,
     //THIN_WALL_Y=6,
+    HEIGHTMAP=6
 } cell_types;
 
-#define NUM_CELL_TYPES 6
+extern u8 heightmap[32*32];
+
+#define NUM_CELL_TYPES 7
 #define NUM_TEXTURES 6
 #define NUM_DECALS 4
+#define BLANK_DECAL_IDX 0
 #define NUM_SPRITES 1
 
 #define SKYBOX_TEX_IDX 15
@@ -59,6 +63,7 @@ extern int cur_render_scale;
 #define SKYBOX_TEX_HEIGHT (256)
 #define SKYBOX_TEX_WIDTH (1024)
 #define NEAR_PLANE_DIST (0.001f)
+
 
 #define NUM_LIGHT_LEVELS 4
 
@@ -157,13 +162,19 @@ extern u8* sprites[NUM_SPRITES];
 
 
 typedef struct {
-    u32 alpha:8;
-    u32 cell_idx:16;
-    u32 side:8;
+    union {
+        u16 raw_val;
+        struct {
+        //u32 alpha:8;
+        u16 cell_idx:12; // up to 64x64 maps
+        u16 side:4;
+        };
+    };
 } edit_wall_id;
 
 extern float player_ang;
 extern float pitch;
+extern float skybox_u_offset;
 
 
 typedef enum {
