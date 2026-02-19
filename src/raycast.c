@@ -78,8 +78,10 @@ void thread_pool_destroy(thread_pool* tp)
 #endif 
 
 
+// MAX_HEIGHT/8
 #define FOCAL_LENGTH (FP_SCREEN_WIDTH / (2.0f * tanf(1.57f/2.0f)))
-#define HEIGHT_SCALE (4)
+#define HEIGHT_SCALE (MAX_WALL_HEIGHT/8)
+//(4)
 #define HALF_SCREEN_HEIGHT (FP_SCREEN_HEIGHT/2)
 
 #define FOG_COL ((255<<24)|(196<<16)|(162<<8)|(103<<0))
@@ -95,6 +97,26 @@ void draw_tint_vline(u8* output, int x, int y0, int y1, int prev_drawn_top, int 
         output[(x*FP_SCREEN_HEIGHT+y)*4+2] >>= 1;
     }
 }
+
+void draw_z_buffered_alpha_tint_vline(u8* output, float* z_buffer, u8 *tex_column, int x, int y0, int y1, float z) {
+    float tex_per_pix = 32.0f / (y1-y0);
+    for(int y = CLAMP(y0, 0, FP_SCREEN_HEIGHT-1); y <= CLAMP(y1, 0, FP_SCREEN_HEIGHT-1); y++) {
+        int dy = y-y0;
+        int idx = (int)(dy*tex_per_pix)&31;
+        float pix_z = z_buffer[(x*FP_SCREEN_HEIGHT+y)];
+        if(pix_z <= z) {
+            continue;
+        }
+        u32 texel = *(u32*)(&tex_column[idx*4]);
+        u32 texel_a = ((texel >> 24) & 0xFF);
+        int a = texel_a == 255.0f ? 1 : 0;
+        if(a == 0) { continue; }
+        output[(x*FP_SCREEN_HEIGHT+y)*4+0] >>= 1;
+        output[(x*FP_SCREEN_HEIGHT+y)*4+1] >>= 1;
+        output[(x*FP_SCREEN_HEIGHT+y)*4+2] >>= 1;
+    }
+}
+
 void draw_solid_vline(u8* output, float* z_buffer, int x, int y0, int y1, float world_z, u32 col, int prev_drawn_top, int prev_drawn_bot) {
     for(int y = CLAMP(y0, prev_drawn_top+1, prev_drawn_bot-1); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
         *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]) = col;
@@ -207,12 +229,31 @@ void draw_lit_fogged_tex_flat(
 }
 
 
-void draw_edit_vline(edit_wall_id* edit_id_buffer, int x, float y0, float y1, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_wall_side side) {
+void draw_edit_vline(edit_wall_id* edit_id_buffer, int x, float y0, float y1, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side) {
     edit_wall_id id = {.cell_idx = cell_idx, .side = side};
     for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
         edit_id_buffer[x*FP_SCREEN_HEIGHT+y] = id;
     }
 }
+void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buffer, u8 *tex_column, int x, float y0, float y1, float z, int cell_idx, editor_selected_thing side) {
+    edit_wall_id id = {.cell_idx = cell_idx, .side = side};
+    float tex_per_pix = 32.0f / (y1-y0);
+    for(int y = CLAMP(y0, 0, FP_SCREEN_HEIGHT-1); y < CLAMP(y1, 0, FP_SCREEN_HEIGHT-1); y++) {
+        int dy = y-y0;
+        int idx = (int)(dy*tex_per_pix)&31;
+        u32 texel = *(u32*)(&tex_column[idx*4]);
+        u32 texel_a = ((texel >> 24) & 0xFF);
+        int a = texel_a == 255.0f ? 1 : 0;
+        if(a == 0) { continue; }
+        
+        float pix_z = z_buffer[(x*FP_SCREEN_HEIGHT+y)];
+        if(pix_z <= z) {
+            continue;
+        }
+        edit_id_buffer[x*FP_SCREEN_HEIGHT+y] = id;
+    }
+}
+
 
 typedef enum {
     TOP_PEGGED,
@@ -227,10 +268,10 @@ void draw_lit_fogged_textured_z_buffered_sprite(
     float y0, float y1, 
     pegging_type peg_type,
     float z, float light_factor, u32 fog_col) {
-
+    //return;
     float depth_scale = CLAMP(z / DARK_DIST, 0.0f, 1.0f);
     float inv_depth_scale = (1.0f - depth_scale);
-    float mult = light_factor; //depth_scale * light_factor;
+    float mult = inv_depth_scale * light_factor;
 
     float tex_per_pix = 32.0f / (y1-y0);
 
@@ -250,22 +291,23 @@ void draw_lit_fogged_textured_z_buffered_sprite(
             }
             u32 texel = *(u32*)(&tex_column[idx*4]);
             u32 texel_a = ((texel >> 24) & 0xFF);
-            u32 texel_r = ((texel >> 16) & 0xFF);
-            u32 texel_g = ((texel >> 8) & 0xFF);
-            u32 texel_b = ((texel >> 0) & 0xFF);
-            float a = texel_a == 255.0f ? 1.0f : 0.0f;
+            u32 texel_r = ((texel >> 16) & 0xFF) * mult + scaled_fog_r;
+            u32 texel_g = ((texel >> 8) & 0xFF) * mult + scaled_fog_g;
+            u32 texel_b = ((texel >> 0) & 0xFF) * mult + scaled_fog_b;
+            int a = texel_a == 255.0f ? 1 : 0;
+            //if(a == 0) { continue; }
             u32 pix = *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]);
             u32 pix_r = ((pix >> 16) & 0xFF);
             u32 pix_g = ((pix >> 8) & 0xFF);
             u32 pix_b = ((pix >> 0) & 0xFF);
 
 
-            float r = ((a * texel_r) + ((1.0f - a) * pix_r)) * mult;
-            float g = ((a * texel_g) + ((1.0f - a) * pix_g)) * mult;
-            float b = ((a * texel_b) + ((1.0f - a) * pix_b)) * mult;
-            r = ((r * inv_depth_scale) + scaled_fog_r);
-            g = ((g * inv_depth_scale) + scaled_fog_g);
-            b = ((b * inv_depth_scale) + scaled_fog_b);
+            float r = a ? texel_r : pix_r;//((a * texel_r) + ((1 - a) * pix_r));
+            float g = a ? texel_g : pix_g;//((a * texel_g) + ((1 - a) * pix_g));
+            float b = a ? texel_b : pix_b;//((a * texel_b) + ((1 - a) * pix_b));
+            //r = ((r * inv_depth_scale) + scaled_fog_r);
+            //g = ((g * inv_depth_scale) + scaled_fog_g);
+            //b = ((b * inv_depth_scale) + scaled_fog_b);
 
             u32 intr = CLAMP((int)r, 0, 0xFF);
             u32 intg = CLAMP((int)g, 0, 0xFF);
@@ -559,8 +601,9 @@ typedef struct {
     float player_x; float player_y; float player_z; float player_ang; float pitch;
     int editor_mode_enabled;
     int editor_selected_map_idx;
-    editor_wall_side editor_selected_side;
+    editor_selected_thing editor_selected_thg;
     volatile s64 finished;
+    u8 *visited_cell_bitmap;
 } thread_params;
 
 void draw_normal_cell_first_step() {
@@ -590,9 +633,12 @@ void draw_diagonal_second_step() {
 
 }
 
+void set_byte_in_bitmap(u8* bitmap, int bit_idx) {
+    int byte_idx = bit_idx>>3;
+    int bit = bit_idx&0b111;
+    bitmap[byte_idx] |= (1 << bit);
 
-//u32 heightmap_col[16*16] = {
-//}
+}
 
 void draw_first_person_level_inner(
     u8* output, edit_wall_id* edit_id_buffer, float* z_buffer,
@@ -600,7 +646,8 @@ void draw_first_person_level_inner(
     int flash_frame, 
     level* this_level, 
     float ray_origin_x, float ray_origin_y, float ray_origin_z, float cam_ang, float pitch,
-    int editor_mode_enabled, int editor_selected_map_idx, editor_wall_side editor_selected_side
+    int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side,
+    u8* visited_cell_bitmap
 ) {
     
 
@@ -710,7 +757,7 @@ void draw_first_person_level_inner(
             float hit_x;
             float hit_y;
 
-
+            
 
 
             if(side_dist_x < side_dist_y) {
@@ -734,6 +781,8 @@ void draw_first_person_level_inner(
 
 
             int map_idx = map_y * MAP_SIZE + map_x;
+            set_byte_in_bitmap(visited_cell_bitmap, map_idx);
+
             int selected_cur_map_idx = editor_selected_map_idx == map_idx;
             cell_types upper_cell_type = this_level->upper_cell_types[map_idx];
             cell_types lower_cell_type = this_level->lower_cell_types[map_idx];
@@ -759,7 +808,7 @@ void draw_first_person_level_inner(
 
 
             u8 upper_wall_tex, lower_wall_tex;
-            editor_wall_side upper_intersect_wall_side, lower_intersect_wall_side;
+            editor_selected_thing upper_intersect_wall_side, lower_intersect_wall_side;
 
             if(side == VERTICAL_SIDE) {
                 wall_u = hit_y - floorf(hit_y);
@@ -820,15 +869,15 @@ void draw_first_person_level_inner(
                 int second_floor_height = upper_floor_height;
                 u8 first_floor_texture = floor_texture;
                 u8 second_floor_texture = upper_floor_texture;
-                editor_wall_side first_floor_side = WALL_SIDE_TOP;
-                editor_wall_side second_floor_side = WALL_SIDE_UPPER_TOP;
+                editor_selected_thing first_floor_side = WALL_SIDE_TOP;
+                editor_selected_thing second_floor_side = WALL_SIDE_UPPER_TOP;
 
                 int first_ceil_height = ceil_height;
                 int second_ceil_height = upper_ceil_height;
                 u8 first_ceil_texture = ceil_texture;
                 u8 second_ceil_texture = upper_ceil_texture;
-                editor_wall_side first_ceil_side = WALL_SIDE_BOTTOM;
-                editor_wall_side second_ceil_side = WALL_SIDE_UPPER_BOTTOM;
+                editor_selected_thing first_ceil_side = WALL_SIDE_BOTTOM;
+                editor_selected_thing second_ceil_side = WALL_SIDE_UPPER_BOTTOM;
 
                 
 
@@ -1211,7 +1260,8 @@ void draw_first_person_level_inner(
                                 output, z_buffer,
                                 ((lower_diag_wall_tex&0xF) == SKYBOX_TEX_IDX),
                                 get_texture_column(textures[lower_diag_wall_tex&0xF], lower_diag_intersect.diag_wall_u),
-                                get_texture_column(decals[lower_diag_wall_tex>>4], lower_diag_intersect.diag_wall_u),((lower_wall_tex>>4) != BLANK_DECAL_IDX),
+                                get_texture_column(decals[lower_diag_wall_tex>>4], lower_diag_intersect.diag_wall_u),
+                                ((lower_diag_wall_tex>>4) != BLANK_DECAL_IDX),
                                 screen_x, proj_second_height_diag, proj_zero_height_diag,
                                 second_floor_height, 0, BOTTOM_PEGGED,
                                 prev_drawn_top, prev_drawn_bot, lower_diag_intersect.diag_perp_dist, DIAG_LIGHT_FACTOR * cell_light_level, 
@@ -1420,7 +1470,8 @@ void draw_first_person_level_inner(
                                 output, z_buffer,
                                 ((upper_diag_wall_tex&0xF) == SKYBOX_TEX_IDX),
                                 get_texture_column(textures[upper_diag_wall_tex&0xF], upper_diag_intersect.diag_wall_u),
-                                get_texture_column(decals[upper_diag_wall_tex>>4], upper_diag_intersect.diag_wall_u),((lower_wall_tex>>4) != BLANK_DECAL_IDX),
+                                get_texture_column(decals[upper_diag_wall_tex>>4], upper_diag_intersect.diag_wall_u),
+                                ((upper_diag_wall_tex>>4) != BLANK_DECAL_IDX),
                                 screen_x, proj_max_height_diag, proj_second_height_diag,
                                 MAX_WALL_HEIGHT, second_ceil_height, TOP_PEGGED,
                                 prev_drawn_top, prev_drawn_bot, upper_diag_intersect.diag_perp_dist, DIAG_LIGHT_FACTOR * cell_light_level, 
@@ -1527,6 +1578,61 @@ void draw_first_person_level_inner(
     return; 
 }
 
+typedef struct {
+    float y0, y1, z;
+    float x0, x1;
+    int map_idx;
+} transformed_sprite;
+// tranformed into camera space: x, y0, y1, z (y0 and y1 are not actually transformed)
+transformed_sprite transformed_sprites[MAP_SIZE*MAP_SIZE];
+
+int num_trans_sprites = 0;
+
+
+void draw_transformed_sprites(u8* output, edit_wall_id* edit_id_buffer, float* z_buffer, int flash_frame, float camera_z, int start_x, int end_x,
+                              int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_thg
+) {
+    for(int spr = 0; spr < num_trans_sprites; spr++) {
+        transformed_sprite sprite = transformed_sprites[spr];
+
+        float screen_x0 = sprite.x0;
+        float screen_x1 = sprite.x1;
+        float screen_y0 = sprite.y0;
+        float screen_y1 = sprite.y1;
+        float rot_z = sprite.z;
+        int map_idx = sprite.map_idx;
+        
+        int clipped_sprite_left_x = MAX(start_x, (int)screen_x0);
+        int clipped_sprite_right_x = MIN(end_x-1, (int)screen_x1);
+        for(int x = clipped_sprite_left_x; x <= clipped_sprite_right_x; x++) {
+            if(screen_y1 > 0 && screen_y0 < FP_SCREEN_HEIGHT-1) {
+                draw_lit_fogged_textured_z_buffered_sprite(
+                    output, z_buffer,
+                    get_texture_column(sprites[0], ((float)x-screen_x0)/(screen_x1-screen_x0)),
+                    x, screen_y0, screen_y1,
+                    TOP_PEGGED, rot_z, 1.0f, FOG_COL
+                );
+                if(editor_mode_enabled) {
+                    draw_z_buffered_alpha_edit_vline(
+                        edit_id_buffer, z_buffer, 
+                        get_texture_column(sprites[0], ((float)x-screen_x0)/(screen_x1-screen_x0)),
+                        x, screen_y0, screen_y1, rot_z, map_idx, CELL_SPRITE
+                    );
+                    if(flash_frame && editor_selected_map_idx == map_idx && editor_selected_thg == CELL_SPRITE) {
+                        draw_z_buffered_alpha_tint_vline(
+                            output, z_buffer, 
+                            get_texture_column(sprites[0], ((float)x-screen_x0)/(screen_x1-screen_x0)),
+                            x, screen_y0, screen_y1, rot_z
+                        );
+                    
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 #ifndef PLATFORM_WEB
 thread_pool_function(raycast_wrapper, arg_var)
 {
@@ -1536,12 +1642,20 @@ thread_pool_function(raycast_wrapper, arg_var)
         tp->start_x, tp->end_x,
         tp->flash_frame, tp->this_level, tp->player_x, tp->player_y, tp->player_z,
         tp->player_ang, tp->pitch, 
-        tp->editor_mode_enabled, tp->editor_selected_map_idx, tp->editor_selected_side
+        tp->editor_mode_enabled, tp->editor_selected_map_idx, tp->editor_selected_thg,
+        tp->visited_cell_bitmap
     );
     InterlockedIncrement64(&tp->finished);
-
+}
+thread_pool_function(draw_sprites_wrapper, arg_var)
+{
+    thread_params* tp = (thread_params*)arg_var;
+    draw_transformed_sprites(tp->output, tp->edit_id_buffer, tp->z_buffer, tp->flash_frame, tp->player_z, tp->start_x, tp->end_x, tp->editor_mode_enabled, tp->editor_selected_map_idx, tp->editor_selected_thg);
+    InterlockedIncrement64(&tp->finished);
 }
 #endif
+
+u8 visited_cells[NUM_THREADS][MAP_SIZE*MAP_SIZE/8];
 
 void draw_first_person_level(
     u8* output, edit_wall_id* edit_id_buffer, float* z_buffer,
@@ -1549,7 +1663,12 @@ void draw_first_person_level(
     int flash_frame, 
     level* this_level, 
     float player_x, float player_y, float player_z, float player_ang, float pitch,
-    int editor_mode_enabled, int editor_selected_map_idx, editor_wall_side editor_selected_side) {
+    int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side) {
+
+
+
+
+
 #ifndef PLATFORM_WEB
     static int tp_created = 0;
     static thread_pool* tp;
@@ -1560,6 +1679,7 @@ void draw_first_person_level(
     }
 #endif
 
+    memset(visited_cells, 0, sizeof(NUM_THREADS*MAP_SIZE*MAP_SIZE/8));
     thread_params parms[NUM_THREADS];
     for(int i = 0; i < NUM_THREADS; i++) {
         parms[i].output = output;
@@ -1576,89 +1696,155 @@ void draw_first_person_level(
         parms[i].pitch = pitch;
         parms[i].editor_mode_enabled = editor_mode_enabled;
         parms[i].editor_selected_map_idx = editor_selected_map_idx;
-        parms[i].editor_selected_side = editor_selected_side;
-        parms[i].finished = 0;
+        parms[i].editor_selected_thg = editor_selected_side;
+        parms[i].finished = 1;
+        parms[i].visited_cell_bitmap = &visited_cells[i][0];
     }
+
+    
+#ifndef PLATFORM_WEB
+    for(int i = 0; i < NUM_THREADS; i++) {
+        parms[i].finished = 0;
+        thread_pool_add_work(tp, raycast_wrapper, &parms[i]);
+    }
+
+    while(1) {
+        int finished = 0;
+
+            for(int i = 0; i < NUM_THREADS; i++) { 
+            if(parms[i].finished) {
+                finished++;
+            }
+        }
+        if(finished == NUM_THREADS) {
+            break;
+        }
+    }
+#else
+    draw_first_person_level_inner(
+        output, edit_id_buffer, z_buffer, 
+        start_x, end_x,
+        flash_frame, this_level, player_x, player_y, player_z,
+        player_ang, pitch, 
+        editor_mode_enabled, editor_selected_map_idx, editor_selected_side, visited_cell_bitmap[0]
+
+    );
+#endif 
+
+    {
+        num_trans_sprites = 0;
+        float sinA = sin(player_ang);
+        float cosA = cos(player_ang);
+
+        // Forward
+        float forwardX = cosA;
+        float forwardY = sinA;
+
+        // Right (90° clockwise from forward)
+        float rightX = -sinA;
+        float rightY = cosA;
+        for(int j = 0; j < (MAP_SIZE*MAP_SIZE/8); j++) {
+            u8 byte = visited_cells[0][j];
+            for(int i = 1; i < NUM_THREADS; i++) {
+                byte |= visited_cells[i][j];
+            }
+            for(int b = 0; b < 8; b++) {
+                if((byte & (1 << b)) == 0) { 
+                    continue;
+                }
+                
+
+                int sector = j*8+b;
+                int map_y = sector/32;
+                int map_x = sector - (map_y*32);
+                s8 idx = this_level->sprite_index[sector];
+                if(idx == -1) {
+                    continue;
+                }
+
+                //for(int spr = 0; spr < num_world_sprites; spr++) {
+                //float sprite_world_x = world_sprite_positions[spr].x+0.5f;
+                //float sprite_world_y = world_sprite_positions[spr].y+0.5f;
+                float sprite_world_x = map_x+0.5f;
+                float sprite_world_y = map_y+0.5f;
+                float sprite_world_z0 = 20.0f;
+                float sprite_world_z1 = 10.0f;
+
+
+                float rel_x0 = sprite_world_x - player_x; // 2d x axis
+                float rel_y = sprite_world_y - player_y; // 2d y axis
+
+
+
+                float rot_z = rel_x0 * forwardX + rel_y * forwardY; // forward distance
+                float rot_x = rel_x0 * rightX   + rel_y * rightY;   // sideways offset
+                if(rot_z <= NEAR_PLANE_DIST) { continue; }
+
+                // BILLBOARD SPRITE
+                float screen_x0 = FP_SCREEN_WIDTH/2.0f - ((rot_x-0.62f)*FOCAL_LENGTH/rot_z);
+                float screen_x1 = FP_SCREEN_WIDTH/2.0f - ((rot_x+0.62f)*FOCAL_LENGTH/rot_z);
+                if(screen_x0 > screen_x1) { 
+                    float tmp = screen_x0;
+                    screen_x0 = screen_x1;
+                    screen_x1 = tmp;
+                }
+                if(screen_x1 < 0 || screen_x0 > FP_SCREEN_WIDTH-1) {
+                    continue;
+                }
+
+
+                float screen_y0 = project_to_screen(sprite_world_z0, rot_z, pitch, player_z);
+                float screen_y1 = project_to_screen(sprite_world_z1, rot_z, pitch, player_z);
+
+                // find the correct place to put this transformed sprite
+
+                int i = num_trans_sprites++;
+                for(int j = i-1; j >= 0; j--) {
+                    if(transformed_sprites[j].z >= rot_z) {
+                        break;
+                    }
+                    transformed_sprites[i] = transformed_sprites[j];
+                    i = j;
+                }
+                transformed_sprites[i].x0 = screen_x0;
+                transformed_sprites[i].x1 = screen_x1;
+                transformed_sprites[i].y0 = screen_y0;
+                transformed_sprites[i].y1 = screen_y1;
+                transformed_sprites[i].z = rot_z;
+                transformed_sprites[i].map_idx = (map_y*MAP_SIZE+map_x);
+                //}
+            }
+        }
+    }
+    printf("%i sprites: \n", num_trans_sprites);
 
 
 #ifndef PLATFORM_WEB
     for(int i = 0; i < NUM_THREADS; i++) {
-        thread_pool_add_work(tp, raycast_wrapper, &parms[i]);
-    }
-    long long int iter = 0;
-    long long int core_finish_iter[NUM_THREADS] = {0};
+        parms[i].finished = 0;
+        thread_pool_add_work(tp, draw_sprites_wrapper, &parms[i]);
+    }    
     while(1) {
         int finished = 0;
 
         for(int i = 0; i < NUM_THREADS; i++) { 
             if(parms[i].finished) {
-                core_finish_iter[i] = core_finish_iter[i] == 0 ? iter : core_finish_iter[i];
                 finished++;
-
             }
         }
-        iter++;
         if(finished == NUM_THREADS) {
             break;
         }
     }
 
-    float sprite_world_x = 17.0f;
-    float sprite_world_z0 = 13.0f;
-    float sprite_world_z1 = 27.0f;
-    float sprite_world_y = 10.0f;
-
-    float rel_x = sprite_world_x - player_x; // 2d x axis
-    float rel_y = sprite_world_y - player_y; // 2d y axis
-    //float rel_z = sprite_world_z0 - player_z; // vertical position
+#else 
+    draw_transformed_sprites(output, edit_id_buffer, z_buffer, flash_frame, player_z, start_x, end_x);
+#endif
 
 
 
-    float cosa = cosf(player_ang);
-    float sina = sinf(player_ang);
-    float rot_x = rel_x * sina + rel_y * cosa;
-    float rot_y = -rel_x *cosa + rel_y * sina;
-
-    float screen_x = FP_SCREEN_WIDTH/2 + (rot_x/rot_y) * FP_SCREEN_WIDTH;
-    float screen_y0 = FP_SCREEN_HEIGHT/2+(-4.0f/rot_y)*(FP_SCREEN_HEIGHT); //* FP_SCREEN_HEIGHT +  FP_SCREEN_HEIGHT/2; //rot_z * FP_SCREEN_HEIGHT) + FP_SCREN_HEIGHT/2;
-    float screen_y1 = FP_SCREEN_HEIGHT/2+(4.0f/rot_y)*(FP_SCREEN_HEIGHT); //* FP_SCREEN_HEIGHT +  FP_SCREEN_HEIGHT/2; //rot_z * FP_SCREEN_HEIGHT) + FP_SCREN_HEIGHT/2;
 
 
-    float sprite_left_x = screen_x-128.0f;//FP_SCREEN_WIDTH/2-128;
-    float sprite_right_x = screen_x+128;//FP_SCREEN_WIDTH/2+128;
-    int clipped_sprite_left_x = MAX(0, (int)sprite_left_x);
-    int clipped_sprite_right_x = MIN(FP_SCREEN_WIDTH-1, (int)sprite_right_x);
-    for(int x = clipped_sprite_left_x; x <= sprite_right_x; x++) {
-        if(x < end_x && sprite_right_x >= start_x) {
-            //draw_lit_fogged_textured_z_buffered_sprite(
-            //    output, z_buffer,
-            //    get_texture_column(sprites[0], ((float)x-sprite_left_x)/(sprite_right_x-sprite_left_x)),
-            //    x, screen_y0, screen_y1,
-            //    TOP_PEGGED, 1.0f, 1.0f, FOG_COL
-            //);
-        }
-    }
-
-    
-    //for(int i = 0; i < NUM_THREADS; i++) {
-    //    printf("%lli ", core_finish_iter[i]);
-    //}
-    //printf("\n");
-#else
-    for(int i = 0; i < NUM_THREADS; i++) {
-        thread_params *tp = parms+i;
-        draw_first_person_level_inner(
-            tp->output, tp->edit_id_buffer, tp->z_buffer, 
-            tp->start_x, tp->end_x,
-            tp->flash_frame, tp->this_level, tp->player_x, tp->player_y, tp->player_z,
-            tp->player_ang, tp->pitch, 
-            tp->editor_mode_enabled, tp->editor_selected_map_idx, tp->editor_selected_side
-        );
-    }
-#endif 
-
-
-
-        return;
+    return;
         
 }

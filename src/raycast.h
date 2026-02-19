@@ -13,7 +13,7 @@ void draw_first_person_level(
     int flash_frame, 
     level* this_level, 
     float player_x, float player_y, float player_z, float player_ang, float pitch,
-    int editor_mode_enabled, int editor_selected_map_idx, editor_wall_side editor_selected_side
+    int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side
 );
 
 #endif 

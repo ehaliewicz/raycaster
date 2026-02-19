@@ -42,7 +42,8 @@ extern u8 heightmap[32*32];
 #define MAP_SIZE 32
 
 #define MAX_WALL_HEIGHT 32
-#define FOV (cur_fov*.0174f)
+#define FOV (cur_fov*0.0174533f)
+#define VFOV (45.0f*0.0174533f)
 
 #define NUM_RESOLUTIONS 6
 
@@ -80,6 +81,24 @@ extern int cur_render_scale;
 #else
     #define NUM_THREADS 4
 #endif 
+
+#define EMPTY_SPRITE_INDEX 31
+
+typedef enum {
+    CENTER,
+    N,
+    E,
+    S,
+    W
+} sprite_location;
+
+typedef struct {
+    u8 index:4;
+    u8 is_fixed_rotation:1;
+    sprite_location loc:3;
+    u8 sprite_is_fixed_to_top:1; // otherwise fixed to bottom
+    u8 sprite_y_offset:7;
+} sprite_info;
 
 typedef struct {
     int start_x, start_y, start_z; // map position on load
@@ -121,6 +140,8 @@ typedef struct {
     // cell light level
     u8 light[MAP_SIZE*MAP_SIZE];
     u8 parameter[MAP_SIZE*MAP_SIZE];
+
+    s8 sprite_index[MAP_SIZE*MAP_SIZE]; // sprite in this block, if -1, no sprite 
 } level;
 
 
@@ -139,7 +160,8 @@ typedef enum {
     WALL_SIDE_LOWER_WEST,
     WALL_SIDE_UPPER_DIAG,
     WALL_SIDE_LOWER_DIAG,
-} editor_wall_side;
+    CELL_SPRITE
+} editor_selected_thing;
 
 #define MIN(x,y) ((x)<(y)?(x):(y))
 #define MAX(x,y) ((x)>(y)?(x):(y))
@@ -195,5 +217,13 @@ typedef struct {
     game_ret_code code;
     game_ret_payload payload;
 } game_ret_value;
+
+typedef struct {
+    int x, y;
+    int height, top_height;
+} sprite_world_position;
+
+extern int num_world_sprites;
+extern sprite_world_position world_sprite_positions[];
 
 #endif

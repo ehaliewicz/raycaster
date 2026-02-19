@@ -23,7 +23,7 @@ typedef enum {
 
 int editor_mode_enabled = 0;
 int editor_selected_map_idx = -1;
-editor_wall_side editor_selected_side;
+editor_selected_thing editor_selected_side;
 
 int resolutions[NUM_RESOLUTIONS][2] = {
     {640, 480},
@@ -209,8 +209,8 @@ int timer_running = 0;
 int timer_door = 0; // the map idx of the door we're opening
 float start_open_time; // one second to open, one second open, one second to close?
 void update_player(float frame_time, Vector2 mouse_delta) {
-    float y = sin(player_ang);
-    float x = cos(player_ang);
+    float y = sin(-player_ang);
+    float x = cos(-player_ang);
     float strafe_right_x = -y;
     float strafe_right_y = x;
     float strafe_left_x = y;
@@ -388,26 +388,39 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         max_takeable_step = MAX(max_takeable_step, bt_height);
     }
 
-
-    //if(got_takeable_step) {
-        float target_height = max_takeable_step+PLAYER_HEIGHT;
-        player_z += (target_height - player_z)*0.15;
-    //}
+    float target_height = max_takeable_step+PLAYER_HEIGHT;
+    if(editor_mode_enabled) {
+        if(target_height > player_z) {
+            player_z += (target_height - player_z)*0.15;
+        }
+    } else {
+        //if(got_takeable_step) {
+            player_z += (target_height - player_z)*0.15;
+        //}
+    }
+    player_z = MIN(MAX_WALL_HEIGHT, player_z);
 
     if(IsKeyDown(KEY_LEFT)) {
-        player_ang -= 0.0035f*frame_time;
+        player_ang += 0.0035f*frame_time;
     }
     if(IsKeyDown(KEY_RIGHT)) {
-        player_ang += 0.0035f*frame_time;
+        player_ang -= 0.0035f*frame_time;
     }
     if(!editor_mode_enabled) {
         if(mouse_delta.y != 0) {
             pitch -= .0015f*mouse_delta.y;
         }
         if(mouse_delta.x != 0) {
-            player_ang += mouse_delta.x*.0017f;
+            player_ang -= mouse_delta.x*.0017f;
         }
     }
+    // cleanup angle
+    if(player_ang < 0.0f) {
+        player_ang += 6.28f;
+    } else if (player_ang > 6.28f) {
+        player_ang -= 6.28f;
+    }
+
     if (IsKeyDown(KEY_I)) {
         pitch += .0015f*frame_time;
     } else if (IsKeyDown(KEY_K)) {
@@ -470,13 +483,13 @@ void init_level(int fresh_map) {
 
                     levels[cur_level_idx].ctex[idx] = SKYBOX_TEX_IDX;
                 }
+                levels[cur_level_idx].sprite_index[idx] = -1;
             }
         }
         levels[cur_level_idx].start_x = 16;
         levels[cur_level_idx].start_y = 16;
     }
     memset(levels[cur_level_idx].parameter, 0, sizeof(levels[cur_level_idx].parameter));
-
     player_z = get_height_at_point(player_x, player_y, 0) + PLAYER_HEIGHT;
 }
 
@@ -567,66 +580,7 @@ void load_resources() {
         }
     }
 
-    /*
-    Image tex0 = LoadImage("resources/wall_tex0.png");
-    Image tex1 = LoadImage("resources/wall_tex1.png");
-    Image tex2 = LoadImage("resources/flat_tex0.png");
-    Image tex3 = LoadImage("resources/flat_tex1.png");
-    Image tex4 = LoadImage("resources/bookshelf.png");
-    Image tex5 = LoadImage("resources/grass.png");
-    Image window_tex = LoadImage("resources/glass_window.png");
-    Image moss_tex = LoadImage("resources/moss.png");
-    Image chandelier_tex = LoadImage("resources/chandelier.png");
-    Image tree_tex = LoadImage("resources/tree.png");
 
-
-    
-    u8* tex0_data = backing_texture_data+(tex_num_bytes*0);
-    u8* tex1_data = backing_texture_data+(tex_num_bytes*1);
-    u8* tex2_data = backing_texture_data+(tex_num_bytes*2);
-    u8* tex3_data = backing_texture_data+(tex_num_bytes*3);
-    u8* tex4_data = backing_texture_data+(tex_num_bytes*4);
-    u8* tex5_data = backing_texture_data+(tex_num_bytes*5);
-    u8* window_tex_data = backing_texture_data+(tex_num_bytes*6);
-    u8* moss_tex_data = backing_texture_data+(tex_num_bytes*7);
-    u8* chandelier_tex_data = backing_texture_data+(tex_num_bytes*8);
-    u8* tree_tex_data = backing_texture_data+(tex_num_bytes*9);
-    
-    u8* copy_ptrs[][2] = {
-        {tex0_data, tex0.data},
-        {tex1_data, tex1.data},
-        {tex2_data, tex2.data},
-        {tex3_data, tex3.data},
-        {tex4_data, tex4.data},
-        {tex5_data, tex5.data},
-        {window_tex_data, window_tex.data},
-        {moss_tex_data, moss_tex.data},
-        {chandelier_tex_data, chandelier_tex.data},
-        {tree_tex_data, tree_tex.data}
-
-    };
-    for(int mip = 0; mip < 1; mip++) {
-        int dim = TEX_SIZE>>mip;
-        for(long long unsigned int i = 0; i < 10; i++) {
-            u8* src = copy_ptrs[i][1];
-            u8* dst = copy_ptrs[i][0];
-            memcpy(dst, src, tex_num_bytes);
-        }
-    }
-    
-    textures[0] = tex2_data;
-    textures[1] = tex3_data;
-    textures[2] = tex0_data;
-    textures[3] = tex1_data;
-    textures[4] = tex4_data;
-    textures[5] = tex5_data;
-
-    decals[1] = window_tex_data;
-    decals[2] = moss_tex_data;
-    decals[3] = chandelier_tex_data;
-
-    sprites[0] = tree_tex_data;
-    */
 
     Image skybox_tex = LoadImage("resources/skybox.png");
     skybox = my_malloc(4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT, "skybox");
@@ -638,11 +592,40 @@ void load_resources() {
     UnloadImage(height_tex);
 }
 
+sprite_world_position world_sprite_positions[128] = {
+    { 6, 3, 0, 0 },
+    { 8, 2, 0, 0  },
+    { 9, 4, 0, 0  },
+    { 29, 30, 0, 0   },
+    { 25, 29, 0, 0   },
+    { 19, 21, 0, 0  },
+    { 2, 25, 0, 0  },
+    { 4, 29, 0, 0  }
+};
+int num_world_sprites = 8;
+
+void recalculate_world_sprites() {
+    const float spr_height = 10.0f;
+    for(int i = 0; i < num_world_sprites; i++) {
+        world_sprite_positions[i].height = get_height_at_point(world_sprite_positions[i].x, world_sprite_positions[i].y, 0);
+        world_sprite_positions[i].top_height = world_sprite_positions[i].height+spr_height;
+    }
+}
+
 void handle_editor() {
-    int dy = 0;
-    if(IsKeyPressed(KEY_DOWN)) {
+    int dy = 0;    
+    if (IsKeyDown(KEY_X)) {
+        player_z -= 0.1f;
+    } else if (IsKeyDown(KEY_C)) {
+        player_z += 0.1f;
+    }
+    int key = GetKeyPressed();
+    if(key == 0) {
+        return;
+    }
+    if(key == KEY_DOWN) {
         dy = -1;
-    } else if (IsKeyPressed(KEY_UP)) {
+    } else if (key == KEY_UP) {
         dy = 1;
     }
     if(dy != 0) {
@@ -729,7 +712,18 @@ void handle_editor() {
             nval = CLAMP(nval, 0, MAX_WALL_HEIGHT);
             *height_ptr = nval;
         }
-    } else if (IsKeyPressed(KEY_T)) {
+        recalculate_world_sprites();
+    } else if (key == KEY_P) {
+        int idx = editor_selected_map_idx;
+        int y = idx / 32;
+        int x = (idx- (y*32));
+        if(levels[cur_level_idx].sprite_index[y*MAP_SIZE+x] == -1) {
+            levels[cur_level_idx].sprite_index[y*MAP_SIZE+x] = 0;
+        } else {
+            levels[cur_level_idx].sprite_index[y*MAP_SIZE+x] = -1;
+        }
+
+    } else if (key == KEY_T) {
         u8* type_ptr = NULL;
         switch(editor_selected_side) {
             case WALL_SIDE_BOTTOM:
@@ -758,12 +752,12 @@ void handle_editor() {
             }
             *type_ptr = nval;
         }
-    } else if (IsKeyPressed(KEY_L)) {
+    } else if (key == KEY_L) {
         levels[cur_level_idx].light[editor_selected_map_idx] += 1;
         if(levels[cur_level_idx].light[editor_selected_map_idx] >= NUM_LIGHT_LEVELS) {
             levels[cur_level_idx].light[editor_selected_map_idx] = 0;
         }
-    } else if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_F)) {
+    } else if ((key == KEY_R) || (key == KEY_F) || (key >= KEY_KP_0 && key <= KEY_KP_9) || (key >= '0' && key <= '9')) {
         u8* tex_ptr = NULL;
         switch(editor_selected_side) {
             case WALL_SIDE_BOTTOM:
@@ -810,7 +804,7 @@ void handle_editor() {
                 break;
         }
         if(tex_ptr != NULL) {
-            if(IsKeyPressed(KEY_R)) {
+            if((key == KEY_R)) {
                 u8 ntex_idx = ((*tex_ptr)&0xF)+1;
                 if(ntex_idx > SKYBOX_TEX_IDX) {
                     ntex_idx = 0;
@@ -820,16 +814,27 @@ void handle_editor() {
                 }
                 *tex_ptr &= 0xF0;
                 *tex_ptr |= ntex_idx;
-            } else if (IsKeyPressed(KEY_F)) {
+            } else if ((key == KEY_F)) {
                 u8 ndec_idx = ((*tex_ptr)>>4) + 1;
                 if(ndec_idx >= NUM_DECALS) {
                     ndec_idx = 0;
                 }
                 *tex_ptr &= 0x0F;
                 *tex_ptr |= (ndec_idx << 4);
+            } else {
+                u8 ntex_idx = ((*tex_ptr)&0xF);
+                for(int i = 0; i < NUM_TEXTURES; i++) {
+                    if((key == KEY_KP_0+i) || (key == ('0'+i))) {
+                        ntex_idx = i;
+                        *tex_ptr &= 0xF0;
+                        *tex_ptr |= ntex_idx;
+                        break;
+                    }
+                }
             }
         }
     }
+
     
 }
 
@@ -913,6 +918,7 @@ draw_mode render_mode = PIXEL_BUFFER;
 
 float skybox_u_offset;
 
+ 
 
 void run_game() {
     Vector2 mouse_delta = GetMouseDelta();
@@ -1000,7 +1006,7 @@ void run_game() {
         //z_buffer[(screen_x*FP_SCREEN_HEIGHT+y)] = 1024.0f;
         draw_first_person_level(draw_img.data, edit_id_buffer, z_buffer,
             0, FP_SCREEN_WIDTH, flash_frame, 
-            &levels[cur_level_idx], player_x, player_y, player_z, player_ang, pitch,
+            &levels[cur_level_idx], player_x, player_y, player_z, -player_ang, pitch,
             editor_mode_enabled, editor_selected_map_idx, editor_selected_side
         );
 
@@ -1046,7 +1052,7 @@ void run_game() {
         DrawTextEx(font, buf, (Vector2){.x = 5, .y = 5}, 18, 1, RED);
         sprintf(buf, "%4.0f fps", 1000.0f/avg_frame_time);
         DrawTextEx(font, buf, (Vector2){.x = 5, .y = 20}, 18, 1, RED);
-        sprintf(buf, "%.2f %.2f %.2f\n", player_x, player_y, player_z);
+        sprintf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         DrawTextEx(font, buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
     } EndDrawing();
     frame++;
@@ -1066,7 +1072,8 @@ void init_game() {
     } else {
         printf("Initializing new map data\n");
         init_level(1);
-    }
+    }     
+    recalculate_world_sprites();
 }
 
 int main(void) {
