@@ -649,6 +649,32 @@ void set_byte_in_bitmap(u8* bitmap, int bit_idx) {
 
 }
 
+const int MAX_STEPS = 64;
+
+typedef struct {
+    // screen y coordinates, used to calculate texture v coords in the innermost loop
+    float unclipped_y0, unclipped_y1;
+    float clipped_y0, clipped_y1; 
+    int sprite_idx; // which sprite?
+    float z; // the depth of this column, written directly to framebuffer without testing
+    float u; // the texture column, 0 <= u < 1
+} sprite_cache_entry;
+
+/*
+    Each thread gets MAX_STEPS*2 entry cache for sprites
+    while raycasting, whenever we take a step into a new cell,
+    check if the entered side of the new cell, and the exited side of the new cell have sprites assigned.
+
+    If any sprites exist, they are pushed into the cache in a front to back order.
+    Once raycasting is complete, these sprite columns are drawn in reverse, back to front order.
+
+    The pixels are blended with previous pixels, if necessary, or overwrite the previous pixels otherwise.
+    No depth testing is performed, it is not necessary, but each pixel that writes a color also writes depth.
+
+    NOTE - currently we only support one sprite per cell, so technically we only need MAX_STEPS, without the *2
+*/
+sprite_cache_entry per_thread_sprite_cache[NUM_THREADS][MAX_STEPS*2];
+
 void draw_first_person_level_inner(
     u8* output, edit_wall_id* edit_id_buffer, float* z_buffer,
     int start_x, int end_x, 
@@ -656,7 +682,7 @@ void draw_first_person_level_inner(
     level* this_level, 
     float ray_origin_x, float ray_origin_y, float ray_origin_z, float cam_ang, float pitch,
     int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side,
-    u8* visited_cell_bitmap
+    u8* visited_cell_bitmap, sprite_cache_entry* sprite_cache
 ) {
     
 
@@ -672,9 +698,7 @@ void draw_first_person_level_inner(
 
     
     for(int ix = start_x; ix < end_x; ix++) {
-        //if(ix == 0) {
-        //    printf("test\n");
-        //}
+
         float cam_dir_x = start_cam_dir_x;
         float cam_dir_y = start_cam_dir_y;
         int screen_x = (FP_SCREEN_WIDTH-1)-ix;
@@ -682,38 +706,30 @@ void draw_first_person_level_inner(
         float ray_dir_x = cosf(cam_ang) + cam_x * -sinf(cam_ang);
         float ray_dir_y = sinf(cam_ang) + cam_x * cosf(cam_ang);
 
-        float ray_ang = atan2f(ray_dir_y, ray_dir_x);
-        if(ray_ang < 0.0f) {
-            ray_ang += 6.28f;
-        }
 
+
+        /* DRAW SKYBOX */
         {
+            float ray_ang = atan2f(ray_dir_y, ray_dir_x);
+            if(ray_ang < 0.0f) {
+                ray_ang += 6.28f;
+            }
+
             u8* skybox = textures[SKYBOX_TEX_IDX];
 
             float u = 1024.0f* (0.5f + ray_ang / (2.0f * 3.14159));
             float flt_u = (u+skybox_u_offset);
             float subtex_u = flt_u - floorf(flt_u);
             int int_u = ((int)(u+skybox_u_offset))&(SKYBOX_TEX_WIDTH-1);
-            //int int_ur = ((int)(u+1+skybox_u_offset))&(SKYBOX_TEX_WIDTH-1);
             for(int y = 0; y < FP_SCREEN_HEIGHT-1; y++) {
                 int v = (SKYBOX_TEX_HEIGHT/4+(int)(SKYBOX_V_PER_PIX*(y+(-pitch*(float)FP_SCREEN_HEIGHT))))&(SKYBOX_TEX_HEIGHT-1);
                 u32 texell = *(u32*)(&skybox[(int_u*SKYBOX_TEX_HEIGHT+v)*4]);
-                //u32 texelr = *(u32*)(&skybox[(int_ur*SKYBOX_TEX_HEIGHT+v)*4]);
-                //u32 lb = texell&0xFF;
-                //u32 lg = (texell>>8)&0xFF;
-                //u32 lr = (texell>>16)&0xFF;
-                //u32 rb = texelr&0xFF;
-                //u32 rg = (texelr>>8)&0xFF;
-                //u32 rr = (texelr>>16)&0xFF;
-                //u32 cr = (lr * (1.0f - subtex_u)) + (rr * subtex_u);
-                //u32 cg = (lg * (1.0f - subtex_u)) + (rg * subtex_u);
-                //u32 cb = (lb * (1.0f - subtex_u)) + (rb * subtex_u);
 
-                *(u32*)(&output[(screen_x*FP_SCREEN_HEIGHT+y)*4]) = texell;//(0xFF000000 | (cr << 16) | (cg << 8) | cb);
+                *(u32*)(&output[(screen_x*FP_SCREEN_HEIGHT+y)*4]) = texell;
             }
         }
+        int num_sprites_hit = 0;
         
-        const int MAX_STEPS = 64;
         int rem_steps = MAX_STEPS;
 
         float perp_dist = NEAR_PLANE_DIST;
@@ -740,8 +756,6 @@ void draw_first_person_level_inner(
         float flat_u = ray_origin_x - floorf(ray_origin_x);
         float flat_v = ray_origin_y - floorf(ray_origin_y);           // the u,v position of where we enter the next cell (which we use on the next iteration)
 
-        //float perp_dist = base_perp_dist;
-
         int step_x = (ray_dir_x < 0) ? -1 : 1;
         float side_dist_x = (ray_dir_x < 0) ? ((ray_origin_x - map_x) * delta_dist_x) : ((map_x + 1.0f - ray_origin_x) * delta_dist_x);
 
@@ -759,16 +773,24 @@ void draw_first_person_level_inner(
         wall_side side = HORIZONTAL_SIDE;
         float light_factor = 0.75f;
         float next_light_factor;
+        
 
-        while(rem_steps-- && (prev_drawn_top < prev_drawn_bot)) {
+        for(int step = 0; 
+            (step < rem_steps) && 
+            (prev_drawn_top < prev_drawn_bot);
+            step++,
+            map_x = next_map_x,
+            map_y = next_map_y,
+            perp_dist = next_perp_dist,
+            side = next_side,
+            light_factor = next_light_factor
+        ) {
             float wall_u;
             float exit_flat_u, exit_flat_v; // the u,v position of where we "exit" the current cell before stepping to the new one
             float hit_x;
             float hit_y;
 
             
-
-
             if(side_dist_x < side_dist_y) {
                 side_dist_x += delta_dist_x;
                 next_map_x = map_x + step_x;
@@ -786,17 +808,31 @@ void draw_first_person_level_inner(
                 break;
             }
             next_perp_dist = MAX(next_perp_dist, perp_dist);
-            int in_start_cell = (map_x == start_map_x && map_y == start_map_y);
-
 
             int map_idx = map_y * MAP_SIZE + map_x;
+            int in_start_cell = (map_x == start_map_x && map_y == start_map_y);
+            if(!in_start_cell) {
+                // PROJECT SPRITE?
+                sprite_info spr = this_level->sprite_index[map_idx];
+                int spr_idx = spr.index;
+                sprite_cache[num_sprites_hit].
+                if(spr_idx != EMPTY_SPRITE_INDEX) {
+                    if(side == HORIZONTAL_SIDE) {
+                        if(ray_dir_x > 0) {
+                            // west side
+                            if(spr.loc == W)
+                        } else {
+                            if()
+                        }
+                    }
+                }
+            }
+
             set_byte_in_bitmap(visited_cell_bitmap, map_idx);
 
             int selected_cur_map_idx = editor_selected_map_idx == map_idx;
             cell_types upper_cell_type = this_level->upper_cell_types[map_idx];
             cell_types lower_cell_type = this_level->lower_cell_types[map_idx];
-
-
 
 
             int proj_zero_height = project_to_screen(0, perp_dist, pitch, ray_origin_z);
@@ -1570,14 +1606,8 @@ void draw_first_person_level_inner(
 
             }
 
-            map_x = next_map_x;
-            map_y = next_map_y;
-            perp_dist = next_perp_dist;
-            side = next_side;
-            light_factor = next_light_factor;
 
         }
-        next_col:;
     
 
     }
