@@ -400,10 +400,10 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     }
     player_z = MIN(MAX_WALL_HEIGHT, player_z);
 
-    if(IsKeyDown(KEY_LEFT)) {
+    if(IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_U)) {
         player_ang += 0.0035f*frame_time;
     }
-    if(IsKeyDown(KEY_RIGHT)) {
+    if(IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_O)) {
         player_ang -= 0.0035f*frame_time;
     }
     if(!editor_mode_enabled) {
