@@ -35,7 +35,7 @@ extern u8 heightmap[32*32];
 #define NUM_TEXTURES 6
 #define NUM_DECALS 4
 #define BLANK_DECAL_IDX 0
-#define NUM_SPRITES 3
+#define NUM_SPRITES 5
 
 #define SKYBOX_TEX_IDX 15
 
@@ -85,10 +85,10 @@ extern int cur_render_scale;
 
 typedef enum {
     //CENTER=0,
-    N=0,
-    E=1,
-    S=2,
-    W=3
+    NORTH=0,
+    EAST=1,
+    SOUTH=2,
+    WEST=3
 } sprite_location;
 
 typedef struct {

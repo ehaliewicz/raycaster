@@ -117,6 +117,22 @@ void draw_z_buffered_alpha_tint_vline(u8* output, float* z_buffer, u8 *tex_colum
     }
 }
 
+void draw_alpha_tint_vline(u8* output, u8 *tex_column, int x, int y0, int y1, int prev_drawn_top, int prev_drawn_bot) {
+    float tex_per_pix = 32.0f / (y1-y0);
+    for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot-1); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
+        int dy = y-y0;
+        int idx = (int)(dy*tex_per_pix)&31;
+
+        u32 texel = *(u32*)(&tex_column[idx*4]);
+        u32 texel_a = ((texel >> 24) & 0xFF);
+        int a = texel_a != 0 ? 1 : 0;
+        if(a == 0) { continue; }
+        output[(x*FP_SCREEN_HEIGHT+y)*4+0] >>= 1;
+        output[(x*FP_SCREEN_HEIGHT+y)*4+1] >>= 1;
+        output[(x*FP_SCREEN_HEIGHT+y)*4+2] >>= 1;
+    }
+}
+
 void draw_solid_vline(u8* output, float* z_buffer, int x, int y0, int y1, float world_z, u32 col, int prev_drawn_top, int prev_drawn_bot) {
     for(int y = CLAMP(y0, prev_drawn_top+1, prev_drawn_bot-1); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
         *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]) = col;
@@ -252,6 +268,23 @@ void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buf
         edit_id_buffer[x*FP_SCREEN_HEIGHT+y] = id;
     }
 }
+void draw_alpha_edit_vline(
+    edit_wall_id* edit_id_buffer, u8 *tex_column, 
+    int x, float y0, float y1, int prev_drawn_top, int prev_drawn_bot,
+    int cell_idx, editor_selected_thing side) {
+    edit_wall_id id = {.cell_idx = cell_idx, .side = side};
+    float tex_per_pix = 32.0f / (y1-y0);
+    for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot-1); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot-1); y++) {
+        int dy = y-y0;
+        int idx = (int)(dy*tex_per_pix)&31;
+        u32 texel = *(u32*)(&tex_column[idx*4]);
+        u32 texel_a = ((texel >> 24) & 0xFF);
+        int a = texel_a != 0 ? 1 : 0;
+        if(a == 0) { continue; }
+        
+        edit_id_buffer[x*FP_SCREEN_HEIGHT+y] = id;
+    }
+}
 
 
 typedef enum {
@@ -322,6 +355,53 @@ void draw_lit_fogged_textured_z_buffered_sprite(
             //u32 intg = CLAMP((int)g, 0, 0xFF);
             //u32 intb = CLAMP((int)b, 0, 0xFF);
             *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]) = use_pix;// 0xFF000000|(intr<<16)|(intg<<8)|intb;
+    }
+}
+
+
+void draw_lit_fogged_textured_z_buffered_sprite_no_depth_test(
+    u8* output, float* z_buffer,
+    u8 *tex_column,
+    int x,
+    float y0, float y1, int prev_drawn_top, int prev_drawn_bot,
+    pegging_type peg_type,
+    float z, float light_factor, u32 fog_col) {
+    //return;
+    float depth_scale = CLAMP(z / DARK_DIST, 0.0f, 1.0f);
+    float inv_depth_scale = (1.0f - depth_scale);
+    float mult = inv_depth_scale * light_factor;
+
+    float tex_per_pix = 32.0f / (y1-y0);
+
+    u32 fog_r = (fog_col >> 16)&0xFF;
+    u32 fog_g = (fog_col >> 8)&0xFF;
+    u32 fog_b = (fog_col >> 0)&0xFF;
+    u32 scaled_fog_r = (depth_scale * fog_r);
+    u32 scaled_fog_g = (depth_scale * fog_g);
+    u32 scaled_fog_b = (depth_scale * fog_b);
+
+    for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
+            int dy = y-y0;
+            int idx = (int)(dy*tex_per_pix)&31;
+            u32 texel = *(u32*)(&tex_column[idx*4]);
+            u32 texel_a = ((texel >> 24) & 0xFF);
+            float a = texel_a/255.0f;
+            u32 old_pix = *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]);
+            u32 old_r = (old_pix >> 16) & 0xFF;
+            u32 old_g = (old_pix >> 8) & 0xFF;
+            u32 old_b = (old_pix >> 0) & 0xFF;
+
+            u32 texel_r = (((texel >> 16) & 0xFF) * mult + scaled_fog_r)*a + (old_r*(1-a));
+            u32 texel_g = (((texel >> 8) & 0xFF) * mult + scaled_fog_g)*a + (old_g*(1-a));
+            u32 texel_b = (((texel >> 0) & 0xFF) * mult + scaled_fog_b)*a + (old_b*(1-a));
+            
+            u32 intr = CLAMP((int)texel_r, 0, 0xFF);
+            u32 intg = CLAMP((int)texel_g, 0, 0xFF);
+            u32 intb = CLAMP((int)texel_b, 0, 0xFF);
+            u32 lit_texel = 0xFF000000|(intr<<16)|(intg<<8)|intb;
+
+            *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]) = 0xFF000000|lit_texel;
+            z_buffer[(x*FP_SCREEN_HEIGHT+y)] = z;
     }
 }
 
@@ -599,21 +679,6 @@ int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
 
 float light_level_mults[4] = {1.0f, 0.25f, 1.5f, 1.5f};
 
-typedef struct {
-    u8* output;
-    edit_wall_id* edit_id_buffer;
-    float* z_buffer;
-    int start_x;
-    int end_x;
-    int flash_frame; 
-    level* this_level;
-    float player_x; float player_y; float player_z; float player_ang; float pitch;
-    int editor_mode_enabled;
-    int editor_selected_map_idx;
-    editor_selected_thing editor_selected_thg;
-    volatile s64 finished;
-    u8 *visited_cell_bitmap;
-} thread_params;
 
 void draw_normal_cell_first_step() {
 
@@ -649,21 +714,22 @@ void set_byte_in_bitmap(u8* bitmap, int bit_idx) {
 
 }
 
-const int MAX_STEPS = 64;
+#define MAX_STEPS 64
 
 typedef struct {
     // screen y coordinates, used to calculate texture v coords in the innermost loop
     float unclipped_y0, unclipped_y1;
-    float clipped_y0, clipped_y1; 
+    int prev_drawn_top, prev_drawn_bot; 
     int sprite_idx; // which sprite?
     float z; // the depth of this column, written directly to framebuffer without testing
     float u; // the texture column, 0 <= u < 1
+    int map_idx;
 } sprite_cache_entry;
 
 /*
-    Each thread gets MAX_STEPS*2 entry cache for sprites
+    Each thread gets MAX_STEPS entry cache for sprites
     while raycasting, whenever we take a step into a new cell,
-    check if the entered side of the new cell, and the exited side of the new cell have sprites assigned.
+    check if the entered side of the new cell, or the exited side of the new cell have sprites assigned.
 
     If any sprites exist, they are pushed into the cache in a front to back order.
     Once raycasting is complete, these sprite columns are drawn in reverse, back to front order.
@@ -671,9 +737,26 @@ typedef struct {
     The pixels are blended with previous pixels, if necessary, or overwrite the previous pixels otherwise.
     No depth testing is performed, it is not necessary, but each pixel that writes a color also writes depth.
 
-    NOTE - currently we only support one sprite per cell, so technically we only need MAX_STEPS, without the *2
 */
-sprite_cache_entry per_thread_sprite_cache[NUM_THREADS][MAX_STEPS*2];
+sprite_cache_entry per_thread_sprite_cache[NUM_THREADS][MAX_STEPS];
+
+
+typedef struct {
+    u8* output;
+    edit_wall_id* edit_id_buffer;
+    float* z_buffer;
+    int start_x;
+    int end_x;
+    int flash_frame; 
+    level* this_level;
+    float player_x; float player_y; float player_z; float player_ang; float pitch;
+    int editor_mode_enabled;
+    int editor_selected_map_idx;
+    editor_selected_thing editor_selected_thg;
+    volatile s64 finished;
+    u8 *visited_cell_bitmap;
+    sprite_cache_entry* sprite_cache;
+} thread_params;
 
 void draw_first_person_level_inner(
     u8* output, edit_wall_id* edit_id_buffer, float* z_buffer,
@@ -811,22 +894,9 @@ void draw_first_person_level_inner(
 
             int map_idx = map_y * MAP_SIZE + map_x;
             int in_start_cell = (map_x == start_map_x && map_y == start_map_y);
-            if(!in_start_cell) {
-                // PROJECT SPRITE?
-                sprite_info spr = this_level->sprite_index[map_idx];
-                int spr_idx = spr.index;
-                sprite_cache[num_sprites_hit].
-                if(spr_idx != EMPTY_SPRITE_INDEX) {
-                    if(side == HORIZONTAL_SIDE) {
-                        if(ray_dir_x > 0) {
-                            // west side
-                            if(spr.loc == W)
-                        } else {
-                            if()
-                        }
-                    }
-                }
-            }
+            
+
+            
 
             set_byte_in_bitmap(visited_cell_bitmap, map_idx);
 
@@ -850,6 +920,8 @@ void draw_first_person_level_inner(
             int upper_floor_height = cur_level_upper_floor[map_idx];
             int ceil_height = cur_level_ceil[map_idx];
             int upper_ceil_height = cur_level_upper_ceil[map_idx];
+
+
 
 
             u8 upper_wall_tex, lower_wall_tex;
@@ -898,8 +970,81 @@ void draw_first_person_level_inner(
                 exit_flat_v = def_exit_v;
 
             }
+            int hit_exit_sprite = 0;
 
-            
+                sprite_info spr = this_level->sprite_index[map_idx];
+                int spr_idx = spr.index;
+                
+
+            if(spr_idx != EMPTY_SPRITE_INDEX && spr.is_fixed_rotation) {
+                float sprite_top_y = floor_height+8.0f;
+                float sprite_bot_y = floor_height;
+                float sprite_dist; float spr_u;
+                int hit_sprite = 0;
+                if(spr.loc == WEST) {
+                    if (ray_dir_x < 0 && next_side == VERTICAL_SIDE) {
+                        sprite_dist = next_perp_dist;
+                        hit_sprite = 1; 
+                        hit_exit_sprite = 1;
+                        spr_u = next_hit_y-floor(next_hit_y);
+                    } else if (ray_dir_x >= 0 && side == VERTICAL_SIDE && !in_start_cell) {
+                        sprite_dist = perp_dist;
+                        hit_sprite = 1;
+                        spr_u = wall_u;
+                    }
+                } else if(spr.loc == NORTH) {
+                    if(ray_dir_y < 0 && next_side == HORIZONTAL_SIDE) {
+                        sprite_dist = next_perp_dist;
+                        hit_exit_sprite = 1;
+                        hit_sprite = 1;
+                        spr_u = next_hit_x-floor(next_hit_x);
+                    } else if (ray_dir_y >= 0 && side == HORIZONTAL_SIDE && !in_start_cell) {
+                        sprite_dist = perp_dist;
+                        hit_sprite = 1;
+                        spr_u = wall_u;
+                    }
+                } else if (spr.loc == EAST) {
+                    if(ray_dir_x >= 0 && next_side == VERTICAL_SIDE) {
+                        sprite_dist = next_perp_dist;
+                        hit_exit_sprite = 1;
+                        hit_sprite = 1;
+                        spr_u = next_hit_y-floor(next_hit_y);
+                    } else if (ray_dir_x < 0 && side == VERTICAL_SIDE && !in_start_cell) {
+                        sprite_dist = perp_dist;
+                        hit_sprite = 1;
+                        spr_u = wall_u;
+                    }
+                } else if (spr.loc == SOUTH) {
+                    if(ray_dir_y >= 0 && next_side == HORIZONTAL_SIDE) {
+                        sprite_dist = next_perp_dist;
+                        hit_exit_sprite = 1;
+                        hit_sprite = 1;
+                        spr_u = next_hit_x-floor(next_hit_x);
+                    } else if (ray_dir_y < 0 && side == HORIZONTAL_SIDE && !in_start_cell) {
+                        sprite_dist = perp_dist;
+                        hit_sprite = 1;
+                        spr_u = wall_u;
+                    }
+                }
+
+                if(hit_sprite && num_sprites_hit < MAX_STEPS) {
+                    float unclipped_y0 = project_to_screen(
+                        sprite_top_y, sprite_dist, pitch, ray_origin_z
+                    );
+                    float unclipped_y1 = project_to_screen(
+                        sprite_bot_y, sprite_dist, pitch, ray_origin_z
+                    );
+                    sprite_cache[num_sprites_hit].unclipped_y0 = unclipped_y0;
+                    sprite_cache[num_sprites_hit].unclipped_y1 = unclipped_y1;
+                    sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
+                    sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
+                    sprite_cache[num_sprites_hit].sprite_idx = spr_idx;
+                    sprite_cache[num_sprites_hit].u = spr_u;
+                    sprite_cache[num_sprites_hit].map_idx = map_idx;
+                    sprite_cache[num_sprites_hit++].z = sprite_dist;
+                }
+            }
+
             u8 lower_diag_wall_tex = this_level->ldtex[map_idx];
             u8 floor_texture = this_level->ftex[map_idx];
             u8 upper_floor_texture = this_level->uftex[map_idx];
@@ -1226,7 +1371,6 @@ void draw_first_person_level_inner(
                     }
 
 
-                    
                 } else if(lower_cell_type == NORMAL_CELL) {
                 // draw normal no-diagonal floor
                     int proj_step_next_height = project_to_screen(first_floor_height, next_perp_dist, pitch, ray_origin_z);
@@ -1604,12 +1748,48 @@ void draw_first_person_level_inner(
                     
                 }
 
+
+            }
+
+            if(hit_exit_sprite) {
+                sprite_cache[num_sprites_hit-1].prev_drawn_bot = prev_drawn_bot;
+                sprite_cache[num_sprites_hit-1].prev_drawn_top = prev_drawn_top;
             }
 
 
         }
     
-
+        if(num_sprites_hit > 0) {
+            //printf("raycasted %i sprites!!!\n", num_sprites_hit);
+            for(int i = num_sprites_hit-1; i >= 0; i--) {
+                sprite_cache_entry spr = sprite_cache[i];
+                
+                u8* tex_col = get_texture_column(sprites[spr.sprite_idx], spr.u);
+                draw_lit_fogged_textured_z_buffered_sprite_no_depth_test(
+                    output, z_buffer, tex_col, screen_x, 
+                    spr.unclipped_y0, spr.unclipped_y1, 
+                    spr.prev_drawn_top, spr.prev_drawn_bot,
+                    TOP_PEGGED, spr.z, 1.0f, FOG_COL
+                );
+                if(editor_mode_enabled) {
+                    int clipped_y0 = CLAMP(spr.unclipped_y0, spr.prev_drawn_top, spr.prev_drawn_bot);
+                    int clipped_y1 = CLAMP(spr.unclipped_y1, spr.prev_drawn_top, spr.prev_drawn_bot);
+                    draw_alpha_edit_vline(
+                        edit_id_buffer, tex_col, screen_x, 
+                        spr.unclipped_y0, spr.unclipped_y1,
+                        spr.prev_drawn_top, spr.prev_drawn_bot,
+                        spr.map_idx, CELL_SPRITE
+                    );
+                    if(flash_frame && editor_selected_map_idx == spr.map_idx) {
+                        draw_alpha_tint_vline(
+                            output, tex_col, screen_x, 
+                            spr.unclipped_y0, spr.unclipped_y1,
+                            spr.prev_drawn_top, spr.prev_drawn_bot
+                        );
+                    }
+                }
+            }
+        }
     }
 
     
@@ -1619,10 +1799,8 @@ void draw_first_person_level_inner(
 
 typedef struct {
     float x0, x1;
-    float left_y0, left_y1; // top bottom
-    float right_y0, right_y1; // top bottom
-    float z0, z1; // z between left and right sides
-    float z_center;
+    float y0, y1;
+    float z;
     int map_idx;
     int fixed_rotation;
     int image_idx;
@@ -1641,103 +1819,42 @@ void draw_transformed_sprites(u8* output, edit_wall_id* edit_id_buffer, float* z
 
         float screen_x0 = sprite.x0;
         float screen_x1 = sprite.x1;
-        float screen_left_y0 = sprite.left_y0;
-        float screen_left_y1 = sprite.left_y1;
-        float screen_right_y0 = sprite.right_y0;
-        float screen_right_y1 = sprite.right_y1;
-        float rot_z0 = sprite.z0;
-        float rot_z1 = sprite.z1;
-        float center_z = sprite.z_center;
-        int is_fixed_rotation = transformed_sprites[spr].fixed_rotation;
+        float screen_y0 = sprite.y0;
+        float screen_y1 = sprite.y1;
+        float z = sprite.z;
         int spr_idx = sprite.image_idx;
 
         if(screen_x0 > screen_x1) {
             float tmp = screen_x0;
             screen_x0 = screen_x1;
             screen_x1 = tmp;
-
-            tmp = screen_left_y0;
-            screen_left_y0 = screen_right_y0;
-            screen_right_y0 = tmp;
-
-            tmp = screen_left_y1;
-            screen_left_y1 = screen_right_y1;
-            screen_right_y1 = tmp;
-
-            tmp = MIN(rot_z0, rot_z1);
-            rot_z1 = MAX(rot_z0, rot_z1);
-            rot_z0 = tmp;
-            //tmp = rot_z0;
-            //rot_z0 = rot_z1;
-            //rot_z1 = tmp;
         }
         int map_idx = sprite.map_idx;
-        float inv_z0 = 1.0f / rot_z0;
-        float inv_z1 = 1.0f / rot_z1;
-        float dinvz = (inv_z1 - inv_z0) / (screen_x1-screen_x0);
 
-        float u_over_z = 0.0f * inv_z0;
-        float d_u_over_z = ((1.0f * inv_z1) - u_over_z) / (screen_x1-screen_x0);
-
-        float top_dy = (screen_right_y0 - screen_left_y0)/(screen_x1-screen_x0);
-        float bot_dy = (screen_right_y1 - screen_left_y1)/(screen_x1-screen_x0);
         int clipped_sprite_left_x = MAX(start_x, (int)screen_x0);
         int clipped_sprite_right_x = MIN(end_x-1, (int)screen_x1);
-        int min_z = MIN(rot_z0, rot_z1);
+        float tex_per_pix = 1.0f / (screen_x1-screen_x0);
 
         for(int x = clipped_sprite_left_x; x <= clipped_sprite_right_x; x++) {
-            float screen_y0 = screen_left_y0 + top_dy*(x-screen_x0);
-            float screen_y1 = screen_left_y1 + bot_dy*(x-screen_x0);
+
             if(screen_y1 > 0 && screen_y0 < FP_SCREEN_HEIGHT-1) {
-                if(!is_fixed_rotation) {
-                    
-                    draw_lit_fogged_textured_z_buffered_sprite(
-                        output, z_buffer,
-                        get_texture_column(sprites[spr_idx], ((float)x-screen_x0)/(screen_x1-screen_x0)),
-                        x, screen_y0, screen_y1,
-                        TOP_PEGGED, center_z, 1.0f, FOG_COL
+                u8* tex_col = get_texture_column(sprites[spr_idx], (x-screen_x0)*tex_per_pix);
+
+                draw_lit_fogged_textured_z_buffered_sprite(
+                    output, z_buffer, tex_col,
+                    x, screen_y0, screen_y1,
+                    TOP_PEGGED, z, 1.0f, FOG_COL
+                );
+                if(editor_mode_enabled) {
+                    draw_z_buffered_alpha_edit_vline(
+                        edit_id_buffer, z_buffer, tex_col,
+                        x, screen_y0, screen_y1, z, map_idx, CELL_SPRITE
                     );
-                    if(editor_mode_enabled) {
-                        draw_z_buffered_alpha_edit_vline(
-                            edit_id_buffer, z_buffer, 
-                            get_texture_column(sprites[spr_idx], ((float)x-screen_x0)/(screen_x1-screen_x0)),
-                            x, screen_y0, screen_y1, center_z, map_idx, CELL_SPRITE
+                    if(flash_frame && editor_selected_map_idx == map_idx && editor_selected_thg == CELL_SPRITE) {
+                        draw_z_buffered_alpha_tint_vline(
+                            output, z_buffer, tex_col,
+                            x, screen_y0, screen_y1, z
                         );
-                        if(flash_frame && editor_selected_map_idx == map_idx && editor_selected_thg == CELL_SPRITE) {
-                            draw_z_buffered_alpha_tint_vline(
-                                output, z_buffer, 
-                                get_texture_column(sprites[spr_idx], ((float)x-screen_x0)/(screen_x1-screen_x0)),
-                                x, screen_y0, screen_y1, center_z
-                            );
-                        
-                        }
-                    }
-                    
-                } else {
-                    float inv_z = inv_z1 + (dinvz*(x-screen_x0));
-                    float z = 1.0f / inv_z;
-                    if(z < NEAR_PLANE_DIST) { continue; }
-                    float u = (u_over_z + (d_u_over_z*(x-screen_x0))) * z;
-                    draw_lit_fogged_textured_z_buffered_sprite(
-                        output, z_buffer,
-                        get_texture_column(sprites[spr_idx], u),
-                        x, screen_y0, screen_y1,
-                        TOP_PEGGED, min_z, 1.0f, FOG_COL
-                    );
-                    if(editor_mode_enabled) {
-                        draw_z_buffered_alpha_edit_vline(
-                            edit_id_buffer, z_buffer, 
-                            get_texture_column(sprites[spr_idx], u),
-                            x, screen_y0, screen_y1, min_z, map_idx, CELL_SPRITE
-                        );
-                        if(flash_frame && editor_selected_map_idx == map_idx && editor_selected_thg == CELL_SPRITE) {
-                            draw_z_buffered_alpha_tint_vline(
-                                output, z_buffer, 
-                                get_texture_column(sprites[spr_idx], u),
-                                x, screen_y0, screen_y1, min_z
-                            );
-                        
-                        }
                     }
                 }
             }
@@ -1756,7 +1873,7 @@ thread_pool_function(raycast_wrapper, arg_var)
         tp->flash_frame, tp->this_level, tp->player_x, tp->player_y, tp->player_z,
         tp->player_ang, tp->pitch, 
         tp->editor_mode_enabled, tp->editor_selected_map_idx, tp->editor_selected_thg,
-        tp->visited_cell_bitmap
+        tp->visited_cell_bitmap, tp->sprite_cache
     );
     InterlockedIncrement64(&tp->finished);
 }
@@ -1811,7 +1928,8 @@ void draw_first_person_level(
         parms[i].editor_selected_map_idx = editor_selected_map_idx;
         parms[i].editor_selected_thg = editor_selected_side;
         parms[i].finished = 1;
-        parms[i].visited_cell_bitmap = &visited_cells[i][0];
+        parms[i].visited_cell_bitmap = visited_cells[i];
+        parms[i].sprite_cache = per_thread_sprite_cache[i];
     }
 
     
@@ -1876,7 +1994,6 @@ void draw_first_person_level(
                     continue;
                 }
                 
-
                 int sector = j*8+b;
                 int map_y = sector/32;
                 int map_x = sector - (map_y*32);
@@ -1886,89 +2003,45 @@ void draw_first_person_level(
                 }
 
                 int is_fixed_rotation = this_level->sprite_index[sector].is_fixed_rotation;
+                if(is_fixed_rotation) {
+                    // FIXED POSITION/ROTATION sprites are handled via the raycast process
+                    continue;
+                }
                 int image_idx = this_level->sprite_index[sector].index;
 
-                float sprite_world_x, sprite_world_y;
+                float sprite_world_x = map_x+0.5f;
+                float sprite_world_y = map_y+0.5f;
                 float sprite_world_z1 = get_height_at_point(map_x+0.5f, map_y+0.5f, 0);
                 float sprite_world_z0 = sprite_world_z1+10.0f;
                 
                 int loc = this_level->sprite_index[sector].loc;
 
-                float rel_x0, rel_x1, rel_x2;
-                float rel_y0, rel_y1, rel_y2;
-                if(is_fixed_rotation) {
-                    float sprite_world_x = map_x;
-                    float sprite_world_y = map_y;
-                    rel_x0 = (sprite_world_x +  offsets[loc][0]) - player_x; // 2d x axis
-                    rel_x2 = (sprite_world_x + offsets[loc][1]) - player_x;
-                    rel_x1 = (rel_x0+rel_x2)/2.0f;//(sprite_world_x) - player_x;
-                    rel_y0 = (sprite_world_y + offsets[loc][2]) - player_y; // 2d y axis
-                    rel_y2 = (sprite_world_y + offsets[loc][3]) - player_y; // 2d y axis
-                    rel_y1 = (rel_y0+rel_y2)/2.0f;
-                } else {
-                    float sprite_world_x = map_x+0.5f;
-                    float sprite_world_y = map_y+0.5f;
-                    rel_x0 = (sprite_world_x-0.5f) - player_x; // 2d x axis
-                    rel_x1 = (sprite_world_x) - player_x;
-                    rel_x2 = (sprite_world_x+0.5f) - player_x;
-                    rel_y0 = sprite_world_y - player_y; // 2d y axis
-                    rel_y1 = sprite_world_y - player_y; // 2d y axis
-                    rel_y2 = sprite_world_y - player_y; // 2d y axis
+                float rel_x = sprite_world_x - player_x;
+                float rel_y = sprite_world_y - player_y; // 2d y axis
 
-                }
+                float rot_x = rel_x * rightX   + rel_y * rightY;
+                float rot_z = rel_x * forwardX + rel_y * forwardY;
 
 
-
-                float rot_z0;
-                float rot_z1;
-                float rot_z2;
-
-                float rot_x0;
-                float rot_x1;
-                if(is_fixed_rotation) {
-
-                    rot_z0 = rel_x0 * forwardX + rel_y0 * forwardY;
-                    rot_z1 = rel_x1 * forwardX + rel_y1 * forwardY;
-                    rot_z2 = rel_x2 * forwardX + rel_y2 * forwardY;
-
-                    rot_x0 = rel_x0 * rightX   + rel_y0 * rightY;
-                    rot_x1 = rel_x2 * rightX   + rel_y2 * rightY;
-                } else {
-                    rot_z1 = rel_x1 * forwardX + rel_y0 * forwardY;
-                    rot_z0 = rot_z1;
-                    rot_z2 = rot_z1;
-
-                    rot_x0 = rel_x1 * rightX   + rel_y0 * rightY;
-                    rot_x1 = rel_x1 * rightX   + rel_y0 * rightY;
-                }
-
-                //if(this_level)
-
-                if(rot_z0 < NEAR_PLANE_DIST && rot_z2 < NEAR_PLANE_DIST) { continue; }
+                if(rot_z < NEAR_PLANE_DIST) { continue; }
                 float screen_x0, screen_x1;
-                if(is_fixed_rotation) {
-                    screen_x0 = FP_SCREEN_WIDTH/2.0f - (rot_x0*FOCAL_LENGTH/rot_z0);
-                    screen_x1 = FP_SCREEN_WIDTH/2.0f - (rot_x1*FOCAL_LENGTH/rot_z2);
-                } else {
-                    screen_x0 = FP_SCREEN_WIDTH/2.0f - ((rot_x0-0.62f)*FOCAL_LENGTH/rot_z0);
-                    screen_x1 = FP_SCREEN_WIDTH/2.0f - ((rot_x1+0.62f)*FOCAL_LENGTH/rot_z2);
-                }
+
+                screen_x0 = FP_SCREEN_WIDTH/2.0f - ((rot_x-0.62f)*FOCAL_LENGTH/rot_z);
+                screen_x1 = FP_SCREEN_WIDTH/2.0f - ((rot_x+0.62f)*FOCAL_LENGTH/rot_z);
 
                 if(MAX(screen_x0, screen_x1) < 0 || MIN(screen_x0, screen_x1) > FP_SCREEN_WIDTH-1) {
                     continue;
                 }
 
 
-                float screen_left_y0 = project_to_screen(sprite_world_z0, rot_z0, pitch, player_z);
-                float screen_left_y1 = project_to_screen(sprite_world_z1, rot_z0, pitch, player_z);
-                float screen_right_y0 = project_to_screen(sprite_world_z0, rot_z2, pitch, player_z);
-                float screen_right_y1 = project_to_screen(sprite_world_z1, rot_z2, pitch, player_z);
+                float screen_y0 = project_to_screen(sprite_world_z0, rot_z, pitch, player_z);
+                float screen_y1 = project_to_screen(sprite_world_z1, rot_z, pitch, player_z);
 
                 // find the correct place to put this transformed sprite
 
                 int i = num_trans_sprites++;
                 for(int j = i-1; j >= 0; j--) {
-                    if(transformed_sprites[j].z_center >= rot_z1) {
+                    if(transformed_sprites[j].z >= rot_z) {
                         break;
                     }
                     transformed_sprites[i] = transformed_sprites[j];
@@ -1976,21 +2049,17 @@ void draw_first_person_level(
                 }
                 transformed_sprites[i].x0 = screen_x0;
                 transformed_sprites[i].x1 = screen_x1;
-                transformed_sprites[i].left_y0 = screen_left_y0;
-                transformed_sprites[i].left_y1 = screen_left_y1;
-                transformed_sprites[i].right_y0 = screen_right_y0;
-                transformed_sprites[i].right_y1 = screen_right_y1;
-                transformed_sprites[i].z0 = rot_z0;
-                transformed_sprites[i].z1 = rot_z2;
-                transformed_sprites[i].z_center = rot_z1;
+                transformed_sprites[i].y0 = screen_y0;
+                transformed_sprites[i].y1 = screen_y1;
+                transformed_sprites[i].z = rot_z;
                 transformed_sprites[i].map_idx = (map_y*MAP_SIZE+map_x);
                 transformed_sprites[i].fixed_rotation = is_fixed_rotation;
                 transformed_sprites[i].image_idx = image_idx;
-                //}
+
             }
         }
     }
-    printf("%i sprites: \n", num_trans_sprites);
+    //printf("%i sprites: \n", num_trans_sprites);
 
 
 #ifndef PLATFORM_WEB
@@ -2012,7 +2081,7 @@ void draw_first_person_level(
     }
 
 #else 
-    draw_transformed_sprites(output, edit_id_buffer, z_buffer, flash_frame, player_z, start_x, end_x);
+    draw_transformed_sprites(output, edit_id_buffer, z_buffer, flash_frame, player_z, start_x, end_x, per_thread_sprite_cache[0]);
 #endif
 
 

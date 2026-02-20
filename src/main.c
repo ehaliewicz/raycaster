@@ -550,9 +550,12 @@ void load_resources() {
         {"grass.png", TEXTURE},
         {"glass_window.png", DECAL},
         {"moss.png", DECAL},
+        {"chandelier.png", DECAL},
         {"tree.png", SPRITE},
         {"moss.png", SPRITE},
         {"chandelier.png", SPRITE},
+        {"glass_window2.png", SPRITE},
+        {"glass_window3.png", SPRITE},
     }; 
     const int num_assets = sizeof(assets) / sizeof(assets[0]);
 
