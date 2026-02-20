@@ -483,14 +483,19 @@ void init_level(int fresh_map) {
 
                     levels[cur_level_idx].ctex[idx] = SKYBOX_TEX_IDX;
                 }
-                levels[cur_level_idx].sprite_index[idx] = -1;
+                levels[cur_level_idx].sprite_index[idx].index = EMPTY_SPRITE_INDEX;
             }
         }
         levels[cur_level_idx].start_x = 16;
         levels[cur_level_idx].start_y = 16;
     }
     memset(levels[cur_level_idx].parameter, 0, sizeof(levels[cur_level_idx].parameter));
+    for(int i = 0; i < MAP_SIZE*MAP_SIZE; i++) {
+        //levels[cur_level_idx].sprite_index[i].loc = 0;
+        //levels[cur_level_idx].sprite_index[i].index = EMPTY_SPRITE_INDEX; //MIN(levels[cur_level_idx].sprite_index[i].index, NUM_SPRITES-1);
+    }
     player_z = get_height_at_point(player_x, player_y, 0) + PLAYER_HEIGHT;
+
 }
 
 
@@ -545,8 +550,9 @@ void load_resources() {
         {"grass.png", TEXTURE},
         {"glass_window.png", DECAL},
         {"moss.png", DECAL},
-        {"chandelier.png", DECAL},
-        {"tree.png", SPRITE}
+        {"tree.png", SPRITE},
+        {"moss.png", SPRITE},
+        {"chandelier.png", SPRITE},
     }; 
     const int num_assets = sizeof(assets) / sizeof(assets[0]);
 
@@ -630,6 +636,7 @@ void handle_editor() {
     }
     if(dy != 0) {
         u8* height_ptr = NULL;
+        sprite_info* spr_ptr = NULL;
         cell_types lower_cell_type = levels[cur_level_idx].lower_cell_types[editor_selected_map_idx];
         cell_types upper_cell_type = levels[cur_level_idx].upper_cell_types[editor_selected_map_idx];
             switch(editor_selected_side) {
@@ -706,25 +713,35 @@ void handle_editor() {
             case WALL_SIDE_LOWER_DIAG:
                 height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_map_idx];
                 break;
+            case CELL_SPRITE:
+                spr_ptr = &levels[cur_level_idx].sprite_index[editor_selected_map_idx];
+                break;
         }
         if(height_ptr != NULL) {
             int nval = *height_ptr+dy;
             nval = CLAMP(nval, 0, MAX_WALL_HEIGHT);
             *height_ptr = nval;
         }
+        if(spr_ptr != NULL) {
+            spr_ptr->loc++;
+            if(spr_ptr->loc >= 4) {
+                spr_ptr->loc = 0;
+            }
+        }
         recalculate_world_sprites();
     } else if (key == KEY_P) {
         int idx = editor_selected_map_idx;
         int y = idx / 32;
         int x = (idx- (y*32));
-        if(levels[cur_level_idx].sprite_index[y*MAP_SIZE+x] == -1) {
-            levels[cur_level_idx].sprite_index[y*MAP_SIZE+x] = 0;
+        if(levels[cur_level_idx].sprite_index[y*MAP_SIZE+x].index == EMPTY_SPRITE_INDEX) {
+            levels[cur_level_idx].sprite_index[y*MAP_SIZE+x].index = 0;
         } else {
-            levels[cur_level_idx].sprite_index[y*MAP_SIZE+x] = -1;
+            levels[cur_level_idx].sprite_index[y*MAP_SIZE+x].index = EMPTY_SPRITE_INDEX;
         }
 
     } else if (key == KEY_T) {
         u8* type_ptr = NULL;
+        sprite_info* spr_ptr = NULL;
         switch(editor_selected_side) {
             case WALL_SIDE_BOTTOM:
             case WALL_SIDE_UPPER_NORTH:
@@ -744,6 +761,8 @@ void handle_editor() {
             case WALL_SIDE_LOWER_DIAG:
                 type_ptr = &levels[cur_level_idx].lower_cell_types[editor_selected_map_idx];
                 break;
+            case CELL_SPRITE:
+                spr_ptr = &levels[cur_level_idx].sprite_index[editor_selected_map_idx];
         }
         if(type_ptr != NULL) {
             u8 nval = *type_ptr + 1;
@@ -752,6 +771,13 @@ void handle_editor() {
             }
             *type_ptr = nval;
         }
+        if(spr_ptr != NULL) {
+            if(spr_ptr->is_fixed_rotation) {
+                spr_ptr->is_fixed_rotation = 0;
+            } else {
+                spr_ptr->is_fixed_rotation = 1;
+            }
+        }
     } else if (key == KEY_L) {
         levels[cur_level_idx].light[editor_selected_map_idx] += 1;
         if(levels[cur_level_idx].light[editor_selected_map_idx] >= NUM_LIGHT_LEVELS) {
@@ -759,6 +785,7 @@ void handle_editor() {
         }
     } else if ((key == KEY_R) || (key == KEY_F) || (key >= KEY_KP_0 && key <= KEY_KP_9) || (key >= '0' && key <= '9')) {
         u8* tex_ptr = NULL;
+        sprite_info* spr_ptr = NULL;
         switch(editor_selected_side) {
             case WALL_SIDE_BOTTOM:
                 tex_ptr = &levels[cur_level_idx].ctex[editor_selected_map_idx];
@@ -802,6 +829,9 @@ void handle_editor() {
             case WALL_SIDE_LOWER_DIAG:
                 tex_ptr = &levels[cur_level_idx].ldtex[editor_selected_map_idx];
                 break;
+            case CELL_SPRITE:
+                spr_ptr = &levels[cur_level_idx].sprite_index[editor_selected_map_idx];
+                break;
         }
         if(tex_ptr != NULL) {
             if((key == KEY_R)) {
@@ -831,6 +861,15 @@ void handle_editor() {
                         break;
                     }
                 }
+            }
+        }
+        if(spr_ptr != NULL) {
+            if(spr_ptr->index == NUM_SPRITES-1) {
+                spr_ptr->index = EMPTY_SPRITE_INDEX;
+            } else if (spr_ptr->index == EMPTY_SPRITE_INDEX) {
+                spr_ptr->index = 0;
+            } else {
+                spr_ptr->index++;
             }
         }
     }

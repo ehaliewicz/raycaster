@@ -35,7 +35,7 @@ extern u8 heightmap[32*32];
 #define NUM_TEXTURES 6
 #define NUM_DECALS 4
 #define BLANK_DECAL_IDX 0
-#define NUM_SPRITES 1
+#define NUM_SPRITES 3
 
 #define SKYBOX_TEX_IDX 15
 
@@ -68,8 +68,7 @@ extern int cur_render_scale;
 
 #define NUM_LIGHT_LEVELS 4
 
-#define DARK_DIST 64.0f 
-//32.0f
+#define DARK_DIST 64.0f
 #define DARK_DIST_FIXED (32<<16)
 #define RECIP_DARK_DIST ((int)(65536.0f/32.0f))
 
@@ -82,22 +81,22 @@ extern int cur_render_scale;
     #define NUM_THREADS 4
 #endif 
 
-#define EMPTY_SPRITE_INDEX 31
+#define EMPTY_SPRITE_INDEX 15
 
 typedef enum {
-    CENTER,
-    N,
-    E,
-    S,
-    W
+    //CENTER=0,
+    N=0,
+    E=1,
+    S=2,
+    W=3
 } sprite_location;
 
 typedef struct {
     u8 index:4;
     u8 is_fixed_rotation:1;
-    sprite_location loc:3;
-    u8 sprite_is_fixed_to_top:1; // otherwise fixed to bottom
-    u8 sprite_y_offset:7;
+    u8 loc:3;
+    //u8 sprite_is_fixed_to_top:1; // otherwise fixed to bottom
+    //u8 sprite_y_offset:7;
 } sprite_info;
 
 typedef struct {
@@ -141,7 +140,7 @@ typedef struct {
     u8 light[MAP_SIZE*MAP_SIZE];
     u8 parameter[MAP_SIZE*MAP_SIZE];
 
-    s8 sprite_index[MAP_SIZE*MAP_SIZE]; // sprite in this block, if -1, no sprite 
+    sprite_info sprite_index[MAP_SIZE*MAP_SIZE]; // sprite in this block, if -1, no sprite 
 } level;
 
 
@@ -225,5 +224,7 @@ typedef struct {
 
 extern int num_world_sprites;
 extern sprite_world_position world_sprite_positions[];
+
+float get_height_at_point(float px, float py, int return_ceil);
 
 #endif
