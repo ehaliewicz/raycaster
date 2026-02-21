@@ -35,7 +35,7 @@ extern u8 heightmap[32*32];
 #define NUM_TEXTURES 6
 #define NUM_DECALS 4
 #define BLANK_DECAL_IDX 0
-#define NUM_SPRITES 5
+#define NUM_SPRITES 7
 
 #define SKYBOX_TEX_IDX 15
 

@@ -33,7 +33,7 @@ int resolutions[NUM_RESOLUTIONS][2] = {
     {1280, 720},
     {1920, 1080}
 };
-int res_is_wide[NUM_RESOLUTIONS] = {
+const int res_is_wide[NUM_RESOLUTIONS] = {
     0,0,0,0,1,1
 };
 
@@ -215,7 +215,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     float strafe_right_y = x;
     float strafe_left_x = y;
     float strafe_left_y = -x;
-    float move_speed = .06f * frame_time / 16.0f;
+    float move_speed = .04f * frame_time / 16.0f;
     level cur_level = levels[cur_level_idx];
     float r = PLAYER_RADIUS;
 
@@ -556,6 +556,8 @@ void load_resources() {
         {"chandelier.png", SPRITE},
         {"glass_window2.png", SPRITE},
         {"glass_window3.png", SPRITE},
+        {"fence.png", SPRITE},
+        {"bush.png", SPRITE},
     }; 
     const int num_assets = sizeof(assets) / sizeof(assets[0]);
 

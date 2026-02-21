@@ -91,7 +91,7 @@ int project_to_screen(float height, float dist, float pitch, float player_z) {
 }
 
 void draw_tint_vline(u8* output, int x, int y0, int y1, int prev_drawn_top, int prev_drawn_bot) {
-    for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot-1); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
+    for(int y = MAX(y0, prev_drawn_top); y < MIN(y1, prev_drawn_bot); y++) {
         output[(x*FP_SCREEN_HEIGHT+y)*4+0] >>= 1;
         output[(x*FP_SCREEN_HEIGHT+y)*4+1] >>= 1;
         output[(x*FP_SCREEN_HEIGHT+y)*4+2] >>= 1;
@@ -109,7 +109,7 @@ void draw_z_buffered_alpha_tint_vline(u8* output, float* z_buffer, u8 *tex_colum
         }
         u32 texel = *(u32*)(&tex_column[idx*4]);
         u32 texel_a = ((texel >> 24) & 0xFF);
-        int a = texel_a == 255.0f ? 1 : 0;
+        int a = texel_a != 0 ? 1 : 0;
         if(a == 0) { continue; }
         output[(x*FP_SCREEN_HEIGHT+y)*4+0] >>= 1;
         output[(x*FP_SCREEN_HEIGHT+y)*4+1] >>= 1;
@@ -119,7 +119,7 @@ void draw_z_buffered_alpha_tint_vline(u8* output, float* z_buffer, u8 *tex_colum
 
 void draw_alpha_tint_vline(u8* output, u8 *tex_column, int x, int y0, int y1, int prev_drawn_top, int prev_drawn_bot) {
     float tex_per_pix = 32.0f / (y1-y0);
-    for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot-1); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
+    for(int y = MAX(y0, prev_drawn_top); y < MIN(y1, prev_drawn_bot); y++) {
         int dy = y-y0;
         int idx = (int)(dy*tex_per_pix)&31;
 
@@ -134,7 +134,7 @@ void draw_alpha_tint_vline(u8* output, u8 *tex_column, int x, int y0, int y1, in
 }
 
 void draw_solid_vline(u8* output, float* z_buffer, int x, int y0, int y1, float world_z, u32 col, int prev_drawn_top, int prev_drawn_bot) {
-    for(int y = CLAMP(y0, prev_drawn_top+1, prev_drawn_bot-1); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
+    for(int y = MAX(y0,prev_drawn_top); y < MIN(y1, prev_drawn_bot); y++) {
         *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]) = col;
         z_buffer[(x*FP_SCREEN_HEIGHT+y)] = world_z;
     }
@@ -179,8 +179,9 @@ void draw_lit_fogged_tex_flat(
     float v_over_z = start_v * inv_z0;
     float d_u_over_z = ((end_u * inv_z1) - u_over_z) / (y1-y0);
     float d_v_over_z = ((end_v * inv_z1) - v_over_z) / (y1-y0);
-    int clipped_y0 = CLAMP(y0, prev_drawn_top, prev_drawn_bot);
-    int clipped_y1 = CLAMP(y1, prev_drawn_top, prev_drawn_bot);
+    
+    int clipped_y0 = MAX(y0, prev_drawn_top);
+    int clipped_y1 = MIN(y1, prev_drawn_bot);
     
     u32 fog_r = (fog_col >> 16)&0xFF;
     u32 fog_g = (fog_col >> 8)&0xFF;
@@ -246,6 +247,7 @@ void draw_lit_fogged_tex_flat(
 
 void draw_edit_vline(edit_wall_id* edit_id_buffer, int x, float y0, float y1, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side) {
     edit_wall_id id = {.cell_idx = cell_idx, .side = side};
+    
     for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
         edit_id_buffer[x*FP_SCREEN_HEIGHT+y] = id;
     }
@@ -258,7 +260,7 @@ void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buf
         int idx = (int)(dy*tex_per_pix)&31;
         u32 texel = *(u32*)(&tex_column[idx*4]);
         u32 texel_a = ((texel >> 24) & 0xFF);
-        int a = texel_a == 255.0f ? 1 : 0;
+        int a = texel_a != 0 ? 1 : 0;
         if(a == 0) { continue; }
         
         float pix_z = z_buffer[(x*FP_SCREEN_HEIGHT+y)];
@@ -274,7 +276,7 @@ void draw_alpha_edit_vline(
     int cell_idx, editor_selected_thing side) {
     edit_wall_id id = {.cell_idx = cell_idx, .side = side};
     float tex_per_pix = 32.0f / (y1-y0);
-    for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot-1); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot-1); y++) {
+    for(int y = MAX(y0, prev_drawn_top); y < MIN(y1, prev_drawn_bot); y++) {
         int dy = y-y0;
         int idx = (int)(dy*tex_per_pix)&31;
         u32 texel = *(u32*)(&tex_column[idx*4]);
@@ -321,7 +323,7 @@ void draw_lit_fogged_textured_z_buffered_sprite(
             u32 texel_a = ((texel >> 24) & 0xFF);
             float old_z = z_buffer[(x*FP_SCREEN_HEIGHT+y)];
             u32 old_pix = *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]);
-            int use_new_pix = (texel_a == 255.0f && z < old_z);
+            int use_new_pix = (texel_a != 0 && z < old_z);
             //if(old_z < z) {
             //    continue;
             //}
@@ -337,7 +339,7 @@ void draw_lit_fogged_textured_z_buffered_sprite(
             //int a = texel_a == 255.0f ? 1 : 0;
             //if(a == 0) { continue; }
             float new_z = use_new_pix ? z : old_z;
-            u32 use_pix = use_new_pix ? lit_texel : old_pix;
+            u32 use_pix = use_new_pix ? lit_texel : old_pix;//old_pix;
             z_buffer[(x*FP_SCREEN_HEIGHT+y)] = new_z;
             //u32 pix_r = ((pix >> 16) & 0xFF);
             //u32 pix_g = ((pix >> 8) & 0xFF);
@@ -381,12 +383,13 @@ void draw_lit_fogged_textured_z_buffered_sprite_no_depth_test(
     u32 scaled_fog_b = (depth_scale * fog_b);
 
     for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
+            float old_z = z_buffer[(x*FP_SCREEN_HEIGHT+y)];
+            u32 old_pix = *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]);
             int dy = y-y0;
             int idx = (int)(dy*tex_per_pix)&31;
             u32 texel = *(u32*)(&tex_column[idx*4]);
             u32 texel_a = ((texel >> 24) & 0xFF);
             float a = texel_a/255.0f;
-            u32 old_pix = *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]);
             u32 old_r = (old_pix >> 16) & 0xFF;
             u32 old_g = (old_pix >> 8) & 0xFF;
             u32 old_b = (old_pix >> 0) & 0xFF;
@@ -399,9 +402,10 @@ void draw_lit_fogged_textured_z_buffered_sprite_no_depth_test(
             u32 intg = CLAMP((int)texel_g, 0, 0xFF);
             u32 intb = CLAMP((int)texel_b, 0, 0xFF);
             u32 lit_texel = 0xFF000000|(intr<<16)|(intg<<8)|intb;
-
-            *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]) = 0xFF000000|lit_texel;
-            z_buffer[(x*FP_SCREEN_HEIGHT+y)] = z;
+            float new_z = (texel_a == 0) ? old_z : z;
+            u32 new_pixel = (texel_a == 0) ? old_pix : lit_texel;
+            *(u32*)(&output[(x*FP_SCREEN_HEIGHT+y)*4]) = new_pixel;
+            z_buffer[(x*FP_SCREEN_HEIGHT+y)] = new_z;
     }
 }
 
@@ -450,7 +454,7 @@ void draw_lit_fogged_clipped_textured_wall(
     u32 scaled_fog_b = (depth_scale * fog_b);
     //float inv_z = 1.0f/z;
     if(uses_decal) {
-        for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
+        for(int y = MAX(y0, prev_drawn_top); y < MIN(y1, prev_drawn_bot); y++) {
             int dy = y-y0;
             int idx = (int)(start_v + dy*tex_per_pix)&31;
             int decal_idx = CLAMP((int)floorf(dy*decal_tex_per_pix), 0, 31);
@@ -484,7 +488,7 @@ void draw_lit_fogged_clipped_textured_wall(
             z_buffer[(x*FP_SCREEN_HEIGHT+y)] = world_z;
         }
     } else {
-        for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
+        for(int y = MAX(y0, prev_drawn_top); y < MIN(y1, prev_drawn_bot); y++) {
             int dy = y-y0;
 
             int idx = (int)(start_v + dy*tex_per_pix)&31;
@@ -537,7 +541,7 @@ typedef struct {
     float mid_flat_v;
 } diag_intersect;
 
-float diag_dy[3] = {
+const float diag_dy[3] = {
     1.0f, // dummy entry for normal walls
     -1.0f, // NE_TO_SW_DIAG
     1.0f,  // NW_TO_SE_DIAG
@@ -553,7 +557,9 @@ float lerp(float start, float end, float amount)
 
 #define CEIL_LIGHT_FACTOR (0.35f)
 #define FLOOR_LIGHT_FACTOR (0.65f)
-#define DIAG_LIGHT_FACTOR (0.87)
+#define DIAG_LIGHT_FACTOR (0.87f)
+#define HORIZONTAL_LIGHT_FACTOR (0.75f)
+#define VERTICAL_LIGHT_FACTOR (1.0f)
 
 //int ray_vs_segment(diag_intersect *result, float ray_dir_x, float ray_dir_y, float cam_dir_x, float cam_dir_y, float player_x, float ray_origin_x, float ray_origin_y, int map_x, int map_y,
 //    float perp_dist)    
@@ -979,7 +985,7 @@ void draw_first_person_level_inner(
             if(spr_idx != EMPTY_SPRITE_INDEX && spr.is_fixed_rotation) {
                 float sprite_top_y = floor_height+8.0f;
                 float sprite_bot_y = floor_height;
-                float sprite_dist; float spr_u;
+                float sprite_dist = 0.0f; float spr_u = 0.0f;
                 int hit_sprite = 0;
                 if(spr.loc == WEST) {
                     if (ray_dir_x < 0 && next_side == VERTICAL_SIDE) {
@@ -1780,7 +1786,7 @@ void draw_first_person_level_inner(
                         spr.prev_drawn_top, spr.prev_drawn_bot,
                         spr.map_idx, CELL_SPRITE
                     );
-                    if(flash_frame && editor_selected_map_idx == spr.map_idx) {
+                    if(flash_frame && editor_selected_map_idx == spr.map_idx && editor_selected_side == CELL_SPRITE) {
                         draw_alpha_tint_vline(
                             output, tex_col, screen_x, 
                             spr.unclipped_y0, spr.unclipped_y1,
@@ -1916,7 +1922,7 @@ void draw_first_person_level(
         parms[i].edit_id_buffer = edit_id_buffer;
         parms[i].z_buffer = z_buffer,
         parms[i].start_x = (i == 0) ? 0 : parms[i-1].end_x, //i*FP_SCREEN_WIDTH/NUM_THREADS;
-        parms[i].end_x = parms[i].start_x + FP_SCREEN_WIDTH/NUM_THREADS;
+        parms[i].end_x = (i == NUM_THREADS-1) ? FP_SCREEN_WIDTH : parms[i].start_x + FP_SCREEN_WIDTH/NUM_THREADS;
         parms[i].flash_frame = flash_frame;
         parms[i].this_level = this_level;
         parms[i].player_x = player_x;
