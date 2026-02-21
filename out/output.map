@@ -1,7 +1,7 @@
 Archive member included to satisfy reference by file (symbol)
 
 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rcore.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccFz9CYv.o (symbol from plugin) (WindowShouldClose)
+                              C:\Users\Erik\AppData\Local\Temp\ccGIx5YK.o (symbol from plugin) (WindowShouldClose)
 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rshapes.o)
                               C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rcore.o) (SetShapesTexture)
 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rtextures.o)
@@ -151,7 +151,7 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmin
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o)
                               C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rshapes.o) (pow)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sin.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o (symbol from plugin) (sin)
+                              C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o (symbol from plugin) (sin)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
                               C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rcore.o) (sinf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinl_internal.o)
@@ -313,7 +313,7 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsv
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0s00006.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrtbase_compat.o) (__p___wargv)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0s00018.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o (symbol from plugin) (_assert)
+                              C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o (symbol from plugin) (_assert)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0s00022.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/crt2.o (_cexit)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0s00024.o)
@@ -471,15 +471,15 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libker
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01439.o)
                               C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rglfw.o) (__imp_TlsAlloc)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01413.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o (symbol from plugin) (SubmitThreadpoolWork)
+                              C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o (symbol from plugin) (SubmitThreadpoolWork)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01406.o)
                               C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rcore.o) (Sleep)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01390.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/crt2.o (__imp_SetUnhandledExceptionFilter)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01382.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o (symbol from plugin) (SetThreadpoolThreadMinimum)
+                              C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o (symbol from plugin) (SetThreadpoolThreadMinimum)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01381.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o (symbol from plugin) (SetThreadpoolThreadMaximum)
+                              C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o (symbol from plugin) (SetThreadpoolThreadMaximum)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01368.o)
                               C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rglfw.o) (__imp_SetThreadExecutionState)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01129.o)
@@ -527,17 +527,17 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libker
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00280.o)
                               C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rglfw.o) (__imp_DeleteCriticalSection)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00255.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o (symbol from plugin) (CreateThreadpoolWork)
+                              C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o (symbol from plugin) (CreateThreadpoolWork)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00251.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o (symbol from plugin) (CreateThreadpoolCleanupGroup)
+                              C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o (symbol from plugin) (CreateThreadpoolCleanupGroup)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00250.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o (symbol from plugin) (CreateThreadpool)
+                              C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o (symbol from plugin) (CreateThreadpool)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00148.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o (symbol from plugin) (CloseThreadpoolCleanupGroupMembers)
+                              C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o (symbol from plugin) (CloseThreadpoolCleanupGroupMembers)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00147.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o (symbol from plugin) (CloseThreadpoolCleanupGroup)
+                              C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o (symbol from plugin) (CloseThreadpoolCleanupGroup)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00146.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o (symbol from plugin) (CloseThreadpool)
+                              C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o (symbol from plugin) (CloseThreadpool)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32h.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01543.o) (_head_lib64_libkernel32_a)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32t.o)
@@ -719,13 +719,13 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuse
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32t.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32h.o) (__lib64_libuser32_a_iname)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_sprintf.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o (sprintf)
+                              C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o (sprintf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_printf.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o (printf)
+                              C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o (printf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-stdio-l1-1-0s00013.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_sprintf.o) (__stdio_common_vsprintf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-stdio-l1-1-0s00177.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o (puts)
+                              C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o (puts)
 
 Discarded input sections
 
@@ -734,10 +734,10 @@ Discarded input sections
  .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtbegin.o
  .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtbegin.o
  .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtbegin.o
- .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .rdata$zzz     0x0000000000000000       0x30 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+ .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .rdata$zzz     0x0000000000000000       0x30 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .rdata$zzz     0x0000000000000000       0x40 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rcore.o)
  .bss           0x0000000000000000        0x0 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rshapes.o)
  .rdata$zzz     0x0000000000000000       0x40 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rshapes.o)
@@ -1740,9 +1740,9 @@ Linker script and memory map
                 0x0000000000000160                __dll_characteristics__ = 0x160
 LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/crt2.o
 LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtbegin.o
-LOAD C:\Users\Erik\AppData\Local\Temp\ccgWgHwu.o
-LOAD C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
-LOAD C:\Users\Erik\AppData\Local\Temp\ccFz9CYv.o
+LOAD C:\Users\Erik\AppData\Local\Temp\ccwu5VJI.o
+LOAD C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+LOAD C:\Users\Erik\AppData\Local\Temp\ccGIx5YK.o
 LOAD C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a
 LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libgdi32.a
 LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libwinmm.a
@@ -1770,7 +1770,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
                 0x00000000000004a8                . = SIZEOF_HEADERS
                 0x0000000000001000                . = ALIGN (__section_alignment__)
 
-.text           0x0000000140001000    0xa1600
+.text           0x0000000140001000    0xa1400
  *(SORT_NONE(.init))
  *(.text)
  .text          0x0000000140001000      0x430 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/crt2.o
@@ -3326,61 +3326,61 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
  *(SORT_BY_NAME(.text$*))
  *fill*         0x0000000140098b48        0x8 
  .text$calc_diag_hit
-                0x0000000140098b50      0x260 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x0000000140098b50      0x260 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$change_resolution
-                0x0000000140098db0      0x300 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x0000000140098db0      0x300 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$collides.part.0
-                0x00000001400990b0       0xc0 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400990b0       0xc0 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$draw_edit_vline
-                0x0000000140099170       0xa0 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x0000000140099170       0xa0 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$draw_lit_fogged_clipped_textured_wall.part.0.constprop.0
-                0x0000000140099210      0x630 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x0000000140099210      0x540 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$draw_lit_fogged_tex_flat.part.0.constprop.0
-                0x0000000140099840      0x460 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x0000000140099750      0x440 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$draw_sprites_wrapper
-                0x0000000140099ca0      0x770 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x0000000140099b90      0x6e0 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$draw_tint_vline
-                0x000000014009a410      0x4d0 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x000000014009a270      0x4d0 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$get_height_at_point
-                0x000000014009a8e0      0x2a0 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x000000014009a740      0x2a0 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$init_level
-                0x000000014009ab80      0x1a0 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x000000014009a9e0      0x1a0 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$load_resources
-                0x000000014009ad20      0x420 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x000000014009ab80      0x420 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$raycast_wrapper
-                0x000000014009b140     0x4ce0 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x000000014009afa0     0x4d00 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .text$recalculate_world_sprites
-                0x000000014009fe20       0x80 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .text$run_game
-                0x000000014009fea0     0x2430 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x000000014009fca0       0x80 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .text$run_game.part.0
+                0x000000014009fd20     0x2460 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  *(.text.*)
  .text.startup.main
-                0x00000001400a22d0      0x110 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
-                0x00000001400a22d0                main
- .text.startup  0x00000001400a23e0       0x10 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
+                0x00000001400a2180      0x130 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+                0x00000001400a2180                main
+ .text.startup  0x00000001400a22b0       0x10 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
  *(.gnu.linkonce.t.*)
  *(.glue_7t)
  *(.glue_7)
-                0x00000001400a23f0                . = ALIGN (0x8)
-                0x00000001400a23f0                ___CTOR_LIST__ = .
-                0x00000001400a23f0                __CTOR_LIST__ = .
-                0x00000001400a23f0        0x4 LONG 0xffffffffffffffff
-                0x00000001400a23f4        0x4 LONG 0xffffffffffffffff
+                0x00000001400a22c0                . = ALIGN (0x8)
+                0x00000001400a22c0                ___CTOR_LIST__ = .
+                0x00000001400a22c0                __CTOR_LIST__ = .
+                0x00000001400a22c0        0x4 LONG 0xffffffffffffffff
+                0x00000001400a22c4        0x4 LONG 0xffffffffffffffff
  *(.ctors)
  *(.ctor)
  *(SORT_BY_NAME(.ctors.*))
- .ctors.65535   0x00000001400a23f8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
-                0x00000001400a2400        0x4 LONG 0x0
-                0x00000001400a2404        0x4 LONG 0x0
-                0x00000001400a2408                ___DTOR_LIST__ = .
-                0x00000001400a2408                __DTOR_LIST__ = .
-                0x00000001400a2408        0x4 LONG 0xffffffffffffffff
-                0x00000001400a240c        0x4 LONG 0xffffffffffffffff
+ .ctors.65535   0x00000001400a22c8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
+                0x00000001400a22d0        0x4 LONG 0x0
+                0x00000001400a22d4        0x4 LONG 0x0
+                0x00000001400a22d8                ___DTOR_LIST__ = .
+                0x00000001400a22d8                __DTOR_LIST__ = .
+                0x00000001400a22d8        0x4 LONG 0xffffffffffffffff
+                0x00000001400a22dc        0x4 LONG 0xffffffffffffffff
  *(.dtors)
  *(.dtor)
  *(SORT_BY_NAME(.dtors.*))
-                0x00000001400a2410        0x4 LONG 0x0
-                0x00000001400a2414        0x4 LONG 0x0
+                0x00000001400a22e0        0x4 LONG 0x0
+                0x00000001400a22e4        0x4 LONG 0x0
  *(SORT_NONE(.fini))
  *(.gcc_exc)
                 [!provide]                        PROVIDE (etext = .)
@@ -3432,99 +3432,100 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
                 0x00000001400a5c10                __imp__onexit
  *(.data2)
  *(SORT_BY_NAME(.data$*))
- .data$cur_fov  0x00000001400a5c20       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+ .data$cur_fov  0x00000001400a5c20       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$cur_output_height
-                0x00000001400a5c30       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5c30       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$cur_output_width
-                0x00000001400a5c40       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5c40       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$cur_render_height
-                0x00000001400a5c50       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5c50       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$cur_render_res_idx
-                0x00000001400a5c60       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5c60       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$cur_render_scale
-                0x00000001400a5c70       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5c70       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$cur_render_width
-                0x00000001400a5c80       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5c80       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  *fill*         0x00000001400a5c90       0x10 
- .data$decals   0x00000001400a5ca0       0x20 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+ .data$decals   0x00000001400a5ca0       0x20 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .data$door_timer_running
+                0x00000001400a5cc0       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$draw_img
-                0x00000001400a5cc0       0x20 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5cd0       0x20 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$draw_pix
-                0x00000001400a5ce0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5cf0       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$draw_tex
-                0x00000001400a5cf0       0x20 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5d00       0x20 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$edit_id_buffer
-                0x00000001400a5d10       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5d20       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$editor_mode_enabled
-                0x00000001400a5d20       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5d30       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$editor_selected_map_idx
-                0x00000001400a5d30       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5d40       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$editor_selected_side
-                0x00000001400a5d40       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- *fill*         0x00000001400a5d50       0x10 
- .data$font     0x00000001400a5d60       0x40 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .data$frame    0x00000001400a5da0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400a5d50       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .data$font     0x00000001400a5d60       0x40 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .data$frame    0x00000001400a5da0       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  *fill*         0x00000001400a5db0       0x10 
- .data$levels   0x00000001400a5dc0     0x5c20 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+ .data$levels   0x00000001400a5dc0     0x5c20 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$needs_window
-                0x00000001400ab9e0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ab9e0       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$num_trans_sprites
-                0x00000001400ab9f0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ab9f0       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$per_thread_sprite_cache
-                0x00000001400aba00     0x2000 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .data$pitch    0x00000001400ada00       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400aba00     0x2000 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .data$pitch    0x00000001400ada00       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$player_ang
-                0x00000001400ada10       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ada10       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$player_x
-                0x00000001400ada20       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ada20       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$player_y
-                0x00000001400ada30       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ada30       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$player_z
-                0x00000001400ada40       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ada40       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$prev_frame_time
-                0x00000001400ada50       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ada50       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$render_mode
-                0x00000001400ada60       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ada60       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$requested_render_res
-                0x00000001400ada70       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ada70       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$requested_render_scale
-                0x00000001400ada80       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ada80       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$requested_use_vsync
-                0x00000001400ada90       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ada90       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .data$running_time
+                0x00000001400adaa0       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$skybox_u_offset
-                0x00000001400adaa0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- *fill*         0x00000001400adab0       0x10 
- .data$sprites  0x00000001400adac0       0x40 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400adab0       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .data$sprites  0x00000001400adac0       0x40 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$start_open_time
-                0x00000001400adb00       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400adb00       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  *fill*         0x00000001400adb10       0x10 
  .data$textures
-                0x00000001400adb20       0x80 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400adb20       0x80 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$timer_door
-                0x00000001400adba0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .data$timer_running
-                0x00000001400adbb0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .data$tp.0     0x00000001400adbc0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400adba0       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .data$tp.0     0x00000001400adbb0       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$tp_created.1
-                0x00000001400adbd0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400adbc0       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ *fill*         0x00000001400adbd0       0x10 
  .data$transformed_sprites
-                0x00000001400adbe0     0x8000 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400adbe0     0x8000 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$use_vsync
-                0x00000001400b5be0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400b5be0       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  *fill*         0x00000001400b5bf0       0x10 
  .data$visited_cells
-                0x00000001400b5c00      0x200 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400b5c00      0x200 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$world_sprite_positions
-                0x00000001400b5e00      0x800 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400b5e00      0x800 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .data$z_buffer
-                0x00000001400b6600       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400b6600       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  *(.jcr)
                 0x00000001400b6610                __data_end__ = .
  *(.data_cygwin_nocopy)
 
 .rdata          0x00000001400b7000    0x2e800
  *(.rdata)
- .rdata         0x00000001400b7000      0x500 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+ .rdata         0x00000001400b7000      0x500 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .rdata         0x00000001400b7500     0x9740 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rcore.o)
  .rdata         0x00000001400c0c40       0x90 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rshapes.o)
  *fill*         0x00000001400c0cd0       0x10 
@@ -3664,23 +3665,20 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
                 0x00000001400e5600       0x10 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rtext.o)
                 0x00000001400e5600                .refptr.isGpuReady
  .rdata$diag_dy
-                0x00000001400e5610       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .rdata$light_level_mults
-                0x00000001400e5620       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e5610       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .rdata$res_is_wide
-                0x00000001400e5630       0x20 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- *fill*         0x00000001400e5650       0x10 
+                0x00000001400e5620       0x20 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .rdata$resolutions
-                0x00000001400e5660       0x40 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
-                0x00000001400e56a0                . = ALIGN (0x4)
-                0x00000001400e56a0                __rt_psrelocs_start = .
+                0x00000001400e5640       0x40 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+                0x00000001400e5680                . = ALIGN (0x4)
+                0x00000001400e5680                __rt_psrelocs_start = .
  *(.rdata_runtime_pseudo_reloc)
-                0x00000001400e56a0                __rt_psrelocs_end = .
+                0x00000001400e5680                __rt_psrelocs_end = .
                 0x0000000000000000                __rt_psrelocs_size = (__rt_psrelocs_end - __rt_psrelocs_start)
-                0x00000001400e56a0                ___RUNTIME_PSEUDO_RELOC_LIST_END__ = .
-                0x00000001400e56a0                __RUNTIME_PSEUDO_RELOC_LIST_END__ = .
-                0x00000001400e56a0                ___RUNTIME_PSEUDO_RELOC_LIST__ = (. - __rt_psrelocs_size)
-                0x00000001400e56a0                __RUNTIME_PSEUDO_RELOC_LIST__ = (. - __rt_psrelocs_size)
+                0x00000001400e5680                ___RUNTIME_PSEUDO_RELOC_LIST_END__ = .
+                0x00000001400e5680                __RUNTIME_PSEUDO_RELOC_LIST_END__ = .
+                0x00000001400e5680                ___RUNTIME_PSEUDO_RELOC_LIST__ = (. - __rt_psrelocs_size)
+                0x00000001400e5680                __RUNTIME_PSEUDO_RELOC_LIST__ = (. - __rt_psrelocs_size)
 
 .eh_frame
  *(.eh_frame*)
@@ -3690,35 +3688,35 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
  .pdata         0x00000001400e6000       0x54 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/crt2.o
  .pdata         0x00000001400e6054       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtbegin.o
  .pdata$draw_tint_vline
-                0x00000001400e606c        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e606c        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$draw_edit_vline
-                0x00000001400e6078        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e6078        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$draw_lit_fogged_tex_flat.part.0.constprop.0
-                0x00000001400e6084        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e6084        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$calc_diag_hit
-                0x00000001400e6090        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e6090        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$get_height_at_point
-                0x00000001400e609c        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e609c        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$recalculate_world_sprites
-                0x00000001400e60a8        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e60a8        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$collides.part.0
-                0x00000001400e60b4        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e60b4        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$draw_sprites_wrapper
-                0x00000001400e60c0        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e60c0        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$draw_lit_fogged_clipped_textured_wall.part.0.constprop.0
-                0x00000001400e60cc        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e60cc        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$raycast_wrapper
-                0x00000001400e60d8        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e60d8        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$init_level
-                0x00000001400e60e4        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e60e4        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$load_resources
-                0x00000001400e60f0        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e60f0        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata$change_resolution
-                0x00000001400e60fc        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .pdata$run_game
-                0x00000001400e6108        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e60fc        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .pdata$run_game.part.0
+                0x00000001400e6108        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata.startup.main
-                0x00000001400e6114        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400e6114        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .pdata         0x00000001400e6120     0x1de8 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rcore.o)
  .pdata         0x00000001400e7f08      0x318 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rshapes.o)
  .pdata         0x00000001400e8220     0x19d4 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rtextures.o)
@@ -3794,104 +3792,104 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
  .xdata         0x00000001400ec000       0x6c C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/crt2.o
  .xdata         0x00000001400ec06c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtbegin.o
  .xdata$draw_tint_vline
-                0x00000001400ec074       0x1c C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec074       0x1c C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$draw_edit_vline
-                0x00000001400ec090        0x4 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec090        0x4 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$draw_lit_fogged_tex_flat.part.0.constprop.0
-                0x00000001400ec094       0x3c C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec094       0x3c C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$calc_diag_hit
-                0x00000001400ec0d0       0x28 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec0d0       0x28 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$get_height_at_point
-                0x00000001400ec0f8       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec0f8       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$recalculate_world_sprites
-                0x00000001400ec108       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec108       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$collides.part.0
-                0x00000001400ec118       0x18 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec118       0x18 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$draw_sprites_wrapper
-                0x00000001400ec130       0x40 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec130       0x40 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$draw_lit_fogged_clipped_textured_wall.part.0.constprop.0
-                0x00000001400ec170       0x38 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec170       0x2c C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$raycast_wrapper
-                0x00000001400ec1a8       0x40 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec19c       0x40 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$init_level
-                0x00000001400ec1e8       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec1dc       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$load_resources
-                0x00000001400ec1f8       0x18 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec1ec       0x18 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata$change_resolution
-                0x00000001400ec210       0x10 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .xdata$run_game
-                0x00000001400ec220       0x40 C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
+                0x00000001400ec204       0x10 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .xdata$run_game.part.0
+                0x00000001400ec214       0x40 C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
  .xdata.startup.main
-                0x00000001400ec260        0xc C:\Users\Erik\AppData\Local\Temp\ccpiCEEk.ltrans0.ltrans.o
- .xdata         0x00000001400ec26c     0x1f28 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rcore.o)
- .xdata         0x00000001400ee194      0x80c C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rshapes.o)
- .xdata         0x00000001400ee9a0     0x24e8 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rtextures.o)
- .xdata         0x00000001400f0e88      0x604 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rtext.o)
- .xdata         0x00000001400f148c       0xb8 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(utils.o)
- .xdata         0x00000001400f1544      0xf84 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rglfw.o)
- .xdata         0x00000001400f24c8       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-gccmain.o)
- .xdata         0x00000001400f24e0        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-dllargv.o)
- .xdata         0x00000001400f24e4       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-tlssup.o)
- .xdata         0x00000001400f24fc       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-merr.o)
- .xdata         0x00000001400f2514        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-CRT_fp10.o)
- .xdata         0x00000001400f2518       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-pseudo-reloc.o)
- .xdata         0x00000001400f2548        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-usermatherr.o)
- .xdata         0x00000001400f2554        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-crt_handler.o)
- .xdata         0x00000001400f255c       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-tlsthrd.o)
- .xdata         0x00000001400f258c       0x2c C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-pesect.o)
- .xdata         0x00000001400f25b8        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmax.o)
- .xdata         0x00000001400f25bc        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmaxf.o)
- .xdata         0x00000001400f25c0        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmin.o)
- .xdata         0x00000001400f25c4        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fminf.o)
- .xdata         0x00000001400f25c8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-hypot.o)
- .xdata         0x00000001400f25d0        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-logf.o)
- .xdata         0x00000001400f25d8        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-roundf.o)
- .xdata         0x00000001400f25e4        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sqrt.o)
- .xdata         0x00000001400f25f0        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sqrtf.o)
- .xdata         0x00000001400f25fc       0x48 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-dirent.o)
- .xdata         0x00000001400f2644        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
- .xdata         0x00000001400f2650       0x70 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o)
- .xdata         0x00000001400f26c0        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
- .xdata         0x00000001400f26cc        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
- .xdata         0x00000001400f26d4        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
- .xdata         0x00000001400f26dc        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
- .xdata         0x00000001400f26e4        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-atan2f.o)
- .xdata         0x00000001400f26ec        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-ceilf.o)
- .xdata         0x00000001400f26f4        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cos.o)
- .xdata         0x00000001400f2700        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
- .xdata         0x00000001400f2708       0x14 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cossin.o)
- .xdata         0x00000001400f271c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-floor.o)
- .xdata         0x00000001400f2724        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-floorf.o)
- .xdata         0x00000001400f272c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmod.o)
- .xdata         0x00000001400f2734        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmodf.o)
- .xdata         0x00000001400f273c        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-log.o)
- .xdata         0x00000001400f2748       0x1c C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o)
- .xdata         0x00000001400f2764        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sin.o)
- .xdata         0x00000001400f2770        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
- .xdata         0x00000001400f2778        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtof.o)
- .xdata         0x00000001400f2780        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtopx.o)
- .xdata         0x00000001400f2788        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-powi.o)
- .xdata         0x00000001400f2794       0xf8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_pformat.o)
- .xdata         0x00000001400f288c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-ldexp.o)
- .xdata         0x00000001400f2894       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-dmisc.o)
- .xdata         0x00000001400f28c4       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-gdtoa.o)
- .xdata         0x00000001400f28dc       0x14 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-gmisc.o)
- .xdata         0x00000001400f28f0       0xb0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-misc.o)
- .xdata         0x00000001400f29a0       0x60 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtodg.o)
- .xdata         0x00000001400f2a00       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sum.o)
- .xdata         0x00000001400f2a18        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strnlen.o)
- .xdata         0x00000001400f2a1c        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-wcsnlen.o)
- .xdata         0x00000001400f2a20       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-gethex.o)
- .xdata         0x00000001400f2a38        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-hd_init.o)
- .xdata         0x00000001400f2a3c       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-hexnan.o)
- .xdata         0x00000001400f2a54       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-smisc.o)
- .xdata         0x00000001400f2a84        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_vfprintf.o)
- .xdata         0x00000001400f2a8c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_fprintf.o)
- .xdata         0x00000001400f2a94       0x50 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrtbase_compat.o)
- .xdata         0x00000001400f2ae4        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_sprintf.o)
- .xdata         0x00000001400f2aec        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_printf.o)
+                0x00000001400ec254        0xc C:\Users\Erik\AppData\Local\Temp\ccMICnwf.ltrans0.ltrans.o
+ .xdata         0x00000001400ec260     0x1f28 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rcore.o)
+ .xdata         0x00000001400ee188      0x80c C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rshapes.o)
+ .xdata         0x00000001400ee994     0x24e8 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rtextures.o)
+ .xdata         0x00000001400f0e7c      0x604 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rtext.o)
+ .xdata         0x00000001400f1480       0xb8 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(utils.o)
+ .xdata         0x00000001400f1538      0xf84 C:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib/libraylib.a(rglfw.o)
+ .xdata         0x00000001400f24bc       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-gccmain.o)
+ .xdata         0x00000001400f24d4        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-dllargv.o)
+ .xdata         0x00000001400f24d8       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-tlssup.o)
+ .xdata         0x00000001400f24f0       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-merr.o)
+ .xdata         0x00000001400f2508        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-CRT_fp10.o)
+ .xdata         0x00000001400f250c       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-pseudo-reloc.o)
+ .xdata         0x00000001400f253c        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-usermatherr.o)
+ .xdata         0x00000001400f2548        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-crt_handler.o)
+ .xdata         0x00000001400f2550       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-tlsthrd.o)
+ .xdata         0x00000001400f2580       0x2c C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-pesect.o)
+ .xdata         0x00000001400f25ac        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmax.o)
+ .xdata         0x00000001400f25b0        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmaxf.o)
+ .xdata         0x00000001400f25b4        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmin.o)
+ .xdata         0x00000001400f25b8        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fminf.o)
+ .xdata         0x00000001400f25bc        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-hypot.o)
+ .xdata         0x00000001400f25c4        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-logf.o)
+ .xdata         0x00000001400f25cc        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-roundf.o)
+ .xdata         0x00000001400f25d8        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sqrt.o)
+ .xdata         0x00000001400f25e4        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sqrtf.o)
+ .xdata         0x00000001400f25f0       0x48 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-dirent.o)
+ .xdata         0x00000001400f2638        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
+ .xdata         0x00000001400f2644       0x70 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o)
+ .xdata         0x00000001400f26b4        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
+ .xdata         0x00000001400f26c0        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
+ .xdata         0x00000001400f26c8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
+ .xdata         0x00000001400f26d0        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
+ .xdata         0x00000001400f26d8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-atan2f.o)
+ .xdata         0x00000001400f26e0        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-ceilf.o)
+ .xdata         0x00000001400f26e8        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cos.o)
+ .xdata         0x00000001400f26f4        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
+ .xdata         0x00000001400f26fc       0x14 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cossin.o)
+ .xdata         0x00000001400f2710        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-floor.o)
+ .xdata         0x00000001400f2718        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-floorf.o)
+ .xdata         0x00000001400f2720        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmod.o)
+ .xdata         0x00000001400f2728        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmodf.o)
+ .xdata         0x00000001400f2730        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-log.o)
+ .xdata         0x00000001400f273c       0x1c C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o)
+ .xdata         0x00000001400f2758        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sin.o)
+ .xdata         0x00000001400f2764        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
+ .xdata         0x00000001400f276c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtof.o)
+ .xdata         0x00000001400f2774        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtopx.o)
+ .xdata         0x00000001400f277c        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-powi.o)
+ .xdata         0x00000001400f2788       0xf8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_pformat.o)
+ .xdata         0x00000001400f2880        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-ldexp.o)
+ .xdata         0x00000001400f2888       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-dmisc.o)
+ .xdata         0x00000001400f28b8       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-gdtoa.o)
+ .xdata         0x00000001400f28d0       0x14 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-gmisc.o)
+ .xdata         0x00000001400f28e4       0xb0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-misc.o)
+ .xdata         0x00000001400f2994       0x60 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtodg.o)
+ .xdata         0x00000001400f29f4       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sum.o)
+ .xdata         0x00000001400f2a0c        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strnlen.o)
+ .xdata         0x00000001400f2a10        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-wcsnlen.o)
+ .xdata         0x00000001400f2a14       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-gethex.o)
+ .xdata         0x00000001400f2a2c        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-hd_init.o)
+ .xdata         0x00000001400f2a30       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-hexnan.o)
+ .xdata         0x00000001400f2a48       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-smisc.o)
+ .xdata         0x00000001400f2a78        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_vfprintf.o)
+ .xdata         0x00000001400f2a80        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_fprintf.o)
+ .xdata         0x00000001400f2a88       0x50 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrtbase_compat.o)
+ .xdata         0x00000001400f2ad8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_sprintf.o)
+ .xdata         0x00000001400f2ae0        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_printf.o)
  .xdata.startup
-                0x00000001400f2af8        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
+                0x00000001400f2aec        0x4 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/crtend.o
 
 .bss            0x00000001400f3000     0xfc50
                 0x00000001400f3000                __bss_start__ = .

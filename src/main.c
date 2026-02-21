@@ -64,6 +64,12 @@ void* my_malloc(long long unsigned int bytes, char* for_str) {
 }
 
 
+float running_time = 0.0f;
+
+float get_running_time() {
+    return running_time;
+}
+
 
 long long int rseed = 0x853c49e6748fea9bULL;
 
@@ -205,7 +211,7 @@ int collides(float px, float py, level this_level) {
     return 0;
 }
 
-int timer_running = 0;
+int door_timer_running = 0;
 int timer_door = 0; // the map idx of the door we're opening
 float start_open_time; // one second to open, one second open, one second to close?
 void update_player(float frame_time, Vector2 mouse_delta) {
@@ -220,8 +226,8 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     float r = PLAYER_RADIUS;
 
     int door_closing = 0;
-    if(timer_running) {
-        float cur_time = GetTime();
+    if(door_timer_running) {
+        float cur_time = get_running_time();
         float open_time = cur_time-start_open_time;
         int int_open_amount = 0;
         if(open_time <= 1.0f) {
@@ -233,7 +239,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
             int_open_amount = (1.0f-(open_time-2.0f))*255.0f;
         } else {
             door_closing = 1;
-            timer_running = 0;
+            door_timer_running = 0;
         }
         levels[cur_level_idx].parameter[timer_door] = int_open_amount;
         int pmx = player_x;
@@ -269,20 +275,22 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         }
     }
 
-    if(IsKeyDown(KEY_O)) {
-        int map_x = player_x;
-        int map_y = player_y;
-        int start_x = MAX(0, map_x-1);
-        int end_x = MIN(MAP_SIZE-1, map_x+1);
-        int start_y = MAX(0, map_y-1);
-        int end_y = MIN(MAP_SIZE-1, map_y+1);
-        for(int y = start_y; y <= end_y; y++) {
-            for(int x = start_x; x <= end_x; x++) {
-                int map_idx = y*MAP_SIZE+x;
-                if(levels[cur_level_idx].lower_cell_types[map_idx] == DOOR_Y) {
-                        timer_running = 1;
-                        timer_door = map_idx;
-                        start_open_time = GetTime();
+    if(IsKeyDown(KEY_ENTER)) {
+        if(!door_timer_running) {
+            int map_x = player_x;
+            int map_y = player_y;
+            int start_x = MAX(0, map_x-1);
+            int end_x = MIN(MAP_SIZE-1, map_x+1);
+            int start_y = MAX(0, map_y-1);
+            int end_y = MIN(MAP_SIZE-1, map_y+1);
+            for(int y = start_y; y <= end_y; y++) {
+                for(int x = start_x; x <= end_x; x++) {
+                    int map_idx = y*MAP_SIZE+x;
+                    if(levels[cur_level_idx].lower_cell_types[map_idx] == DOOR_Y) {
+                            door_timer_running = 1;
+                            timer_door = map_idx;
+                            start_open_time = get_running_time();
+                    }
                 }
             }
         }
@@ -962,9 +970,15 @@ draw_mode render_mode = PIXEL_BUFFER;
 
 float skybox_u_offset;
 
- 
 
 void run_game() {
+    if(!IsWindowFocused()) {
+        BeginDrawing();
+        EndDrawing();
+        return;
+    }
+    float frame_start_time = GetTime();
+
     Vector2 mouse_delta = GetMouseDelta();
 
 #ifdef PLATFORM_WEB
@@ -1005,6 +1019,7 @@ void run_game() {
         
         handle_editor();
     } else if (IsKeyPressed(KEY_R)) {
+        
         if(IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
             requested_render_scale <<= 1;
             if(requested_render_scale > 4) {
@@ -1030,7 +1045,7 @@ void run_game() {
         update_player(frame_time_ms, mouse_delta);
     }
 
-    float seconds = GetTime();
+    float seconds = get_running_time();
     float quarter_seconds = seconds*4;
     int iquarter_seconds = quarter_seconds;
 
@@ -1100,6 +1115,8 @@ void run_game() {
         DrawTextEx(font, buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
     } EndDrawing();
     frame++;
+    float frame_end_time = GetTime();
+    running_time += (frame_end_time - frame_start_time);
 }
 
 

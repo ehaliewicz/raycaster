@@ -68,7 +68,7 @@ extern int cur_render_scale;
 
 #define NUM_LIGHT_LEVELS 4
 
-#define DARK_DIST 64.0f
+#define DARK_DIST 40.0f
 #define DARK_DIST_FIXED (32<<16)
 #define RECIP_DARK_DIST ((int)(65536.0f/32.0f))
 
