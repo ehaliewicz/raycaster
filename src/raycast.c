@@ -416,7 +416,7 @@ void draw_lit_fogged_clipped_textured_wall(
     u8 *tex_column, u8* decal_column, u8 uses_decal,
     int x,
     float y0, float y1, 
-    float world_y0, float world_y1, pegging_type peg_type,
+    int world_y0, int world_y1, pegging_type peg_type,
     int prev_drawn_top, int prev_drawn_bot,
     float world_z, float light_factor, u32 fog_col) {
 
@@ -430,7 +430,7 @@ void draw_lit_fogged_clipped_textured_wall(
         return;
     }
 
-    int units = fabsf(world_y1 - world_y0);
+    int units = abs(world_y1 - world_y0);
     float depth_scale = CLAMP(world_z / DARK_DIST, 0.0f, 1.0f);
     float inv_depth_scale = (1.0f - depth_scale);
     float mult = light_factor; //depth_scale * light_factor;

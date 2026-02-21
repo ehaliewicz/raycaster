@@ -929,7 +929,7 @@ void change_resolution() {
     } else {
         printf("opening window without vsync\n");
         ClearWindowState(FLAG_VSYNC_HINT);
-        SetTargetFPS(6000);
+        SetTargetFPS(12000);
         //SetTargetFPS(6000);
     }
 
@@ -1006,8 +1006,8 @@ void run_game() {
         handle_editor();
     } else if (IsKeyPressed(KEY_R)) {
         if(IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
-            requested_render_scale++;
-            if(requested_render_scale > 2) {
+            requested_render_scale <<= 1;
+            if(requested_render_scale > 4) {
                 requested_render_scale = 1;
             }
         } else {
