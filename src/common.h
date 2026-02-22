@@ -77,6 +77,8 @@ extern int cur_render_scale;
 
 #ifdef DEBUG
     #define NUM_THREADS 1
+#elif PLATFORM_WEB
+    #define NUM_THREADS 1
 #else
     #define NUM_THREADS 4
 #endif 
@@ -101,21 +103,19 @@ typedef struct {
 
 typedef struct {
     int start_x, start_y, start_z; // map position on load
-    u8 upper_cell_types[MAP_SIZE*MAP_SIZE]; // cell types: BLOCK, NE_TO_SW_DIAG, NW_TO_SE_DIAG, X_SLOPE, Y_SLOPE, THIN_WALL_X, THIN_WALL_Y
+    u8 upper_cell_types[MAP_SIZE*MAP_SIZE]; // cell types: BLOCK, NE_TO_SW_DIAG, NW_TO_SE_DIAG, X_SLOPE, Y_SLOPE, DOOR.  half size walls?
     u8 lower_cell_types[MAP_SIZE*MAP_SIZE];
 
     // base floor/ceil height, for cells with two heights, this is the height of the y+ portion of the cell
-    u8 floor[MAP_SIZE*MAP_SIZE];
-    u8 ceil[MAP_SIZE*MAP_SIZE]; 
+    u8 floor[MAP_SIZE*MAP_SIZE], ceil[MAP_SIZE*MAP_SIZE];
     // secondary floor/ceil height, for cells with two heights, the y-1 portion of the cell
-    u8 upper_floor[MAP_SIZE*MAP_SIZE]; 
-    u8 upper_ceil[MAP_SIZE*MAP_SIZE];
+    u8 upper_floor[MAP_SIZE*MAP_SIZE], upper_ceil[MAP_SIZE*MAP_SIZE];
 
     // upper north, east, south, and west face textures (the vertical walls of the extruded ceiling)
     u8 untex[MAP_SIZE*MAP_SIZE];
     u8 uetex[MAP_SIZE*MAP_SIZE];
     u8 ustex[MAP_SIZE*MAP_SIZE];
-    u8 uwtex[MAP_SIZE*MAP_SIZE];
+    u8 uwtex[MAP_SIZE*MAP_SIZE]; 
 
     // lower north, east, south, and west face textures (vertical walls of the extruded floor)
     u8 lntex[MAP_SIZE*MAP_SIZE];
@@ -123,24 +123,47 @@ typedef struct {
     u8 lstex[MAP_SIZE*MAP_SIZE];
     u8 lwtex[MAP_SIZE*MAP_SIZE];
 
-    // base floor texture
-    u8 ftex[MAP_SIZE*MAP_SIZE];
-    // 'upper' floor texture.  used for diagonals.  The NW side of NW_TO_SE diag, and the NE side of a NE_TO_SW diag
-    u8 uftex[MAP_SIZE*MAP_SIZE];
-    // base ceiling texture
-    u8 ctex[MAP_SIZE*MAP_SIZE];
-    // 'upper' ceil texture.  used for diagonals.  The NW side of NW_TO_SE diag, and the NE side of a NE_TO_SW diag
-    u8 uctex[MAP_SIZE*MAP_SIZE];
+    // floor/ceiling texuters
+    // floor, upper_floor texture
+    // 'upper'  texture.  used for diagonals.  The NW side of NW_TO_SE diag, and the NE side of a NE_TO_SW diag
+    u8 ftex[MAP_SIZE*MAP_SIZE], uftex[MAP_SIZE*MAP_SIZE];
+    // base, upper ceiling texture
+    u8 ctex[MAP_SIZE*MAP_SIZE], uctex[MAP_SIZE*MAP_SIZE];
 
-    // upper diagonal face texture, for the visible diagonal wall of a ceiling cell
-    u8 udtex[MAP_SIZE*MAP_SIZE];
-    // lower diagonal face texture, for the visible diagonal wall of a floor cell
-    u8 ldtex[MAP_SIZE*MAP_SIZE];
-    // cell light level
+    // upper/lower diagonal face texture, for the visible diagonal wall of a ceiling/floor cell
+    u8 udtex[MAP_SIZE*MAP_SIZE], ldtex[MAP_SIZE*MAP_SIZE];
+
+    // cell light level (currently unused, "volumetric lighting"?)
     u8 light[MAP_SIZE*MAP_SIZE];
+    // used for timers/etc
     u8 parameter[MAP_SIZE*MAP_SIZE];
 
-    sprite_info sprite_index[MAP_SIZE*MAP_SIZE]; // sprite in this block, if -1, no sprite 
+    // center sprite (billboard) + fixed orientation sprites
+    u8 sprite_index[MAP_SIZE*MAP_SIZE]; 
+    u8 n_sprite_index[MAP_SIZE*MAP_SIZE];
+    u8 e_sprite_index[MAP_SIZE*MAP_SIZE];
+    u8 s_sprite_index[MAP_SIZE*MAP_SIZE];
+    u8 w_sprite_index[MAP_SIZE*MAP_SIZE];
+
+    // light levels per face
+    u8 ln_light[MAP_SIZE*MAP_SIZE];
+    u8 le_light[MAP_SIZE*MAP_SIZE];
+    u8 ls_light[MAP_SIZE*MAP_SIZE];
+    u8 lw_light[MAP_SIZE*MAP_SIZE];
+
+    u8 un_light[MAP_SIZE*MAP_SIZE];
+    u8 ue_light[MAP_SIZE*MAP_SIZE];
+    u8 us_light[MAP_SIZE*MAP_SIZE];
+    u8 uw_light[MAP_SIZE*MAP_SIZE];
+
+    u8 f_light[MAP_SIZE*MAP_SIZE];
+    u8 uf_light[MAP_SIZE*MAP_SIZE];
+    u8 c_light[MAP_SIZE*MAP_SIZE];
+    u8 uc_light[MAP_SIZE*MAP_SIZE];
+    u8 ud_light[MAP_SIZE*MAP_SIZE];
+    u8 ld_light[MAP_SIZE*MAP_SIZE];
+
+    float start_ang;
 } level;
 
 
@@ -159,7 +182,8 @@ typedef enum {
     WALL_SIDE_LOWER_WEST,
     WALL_SIDE_UPPER_DIAG,
     WALL_SIDE_LOWER_DIAG,
-    CELL_SPRITE
+    CELL_SPRITE,
+    N_SPRITE, E_SPRITE, S_SPRITE, W_SPRITE
 } editor_selected_thing;
 
 #define MIN(x,y) ((x)<(y)?(x):(y))
@@ -181,17 +205,7 @@ extern u8* textures[16];
 extern u8* decals[NUM_DECALS];
 extern u8* sprites[NUM_SPRITES];
 
-
-typedef struct {
-    union {
-        u16 raw_val;
-        struct {
-        //u32 alpha:8;
-        u16 cell_idx:12; // up to 64x64 maps
-        u16 side:4;
-        };
-    };
-} edit_wall_id;
+typedef u32 edit_wall_id;
 
 extern float player_ang;
 extern float pitch;

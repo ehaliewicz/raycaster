@@ -77,6 +77,9 @@ void thread_pool_destroy(thread_pool* tp)
 }
 #endif 
 
+const float light_level_mults[4] = {1.0f, 0.50f, 1.5f, 1.5f};
+
+
 
 // MAX_HEIGHT/8
 #define FOCAL_LENGTH (FP_SCREEN_WIDTH / (2.0f * tanf(1.57f/2.0f)))
@@ -191,7 +194,8 @@ void draw_lit_fogged_tex_flat(
     float cur_z = 1.0f / cur_inv_z;
     float cur_u = CLAMP((u_over_z+d_u_over_z*(clipped_y0-y0)) * cur_z * 32.0f, 0.0f, 31.0f);
     float cur_v = CLAMP((v_over_z+d_v_over_z*(clipped_y0-y0)) * cur_z * 32.0f, 0.0f, 31.0f);
-    float mult = light_factor;
+    float mult = light_factor * light_level_mults[face_light_level_idx];
+
 
     for(int y = clipped_y0; y < clipped_y1; y++) {
         
@@ -248,14 +252,17 @@ void draw_lit_fogged_tex_flat(
 
 
 void draw_edit_vline(edit_wall_id* edit_id_buffer, int x, float y0, float y1, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side) {
-    edit_wall_id id = {.cell_idx = cell_idx, .side = side};
+    //edit_wall_id id = 0xFF000000 | (cell_idx << 8) | side; //{.alpha = 0xFF, .cell_idx = cell_idx, .side = side};
     
+    edit_wall_id id = 0xFF000000 | (side<<16) | (cell_idx << 0); 
+
     for(int y = CLAMP(y0, prev_drawn_top, prev_drawn_bot); y < CLAMP(y1, prev_drawn_top, prev_drawn_bot); y++) {
         edit_id_buffer[x*FP_SCREEN_HEIGHT+y] = id;
     }
 }
 void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buffer, u8 *tex_column, int x, float y0, float y1, float z, int cell_idx, editor_selected_thing side) {
-    edit_wall_id id = {.cell_idx = cell_idx, .side = side};
+    //edit_wall_id id = {.alpha = 0xFF, .cell_idx = cell_idx, .side = side};
+    edit_wall_id id = 0xFF000000 | (side<<16) | (cell_idx << 0); 
     float tex_per_pix = 32.0f / (y1-y0);
     for(int y = CLAMP(y0, 0, FP_SCREEN_HEIGHT-1); y < CLAMP(y1, 0, FP_SCREEN_HEIGHT-1); y++) {
         int dy = y-y0;
@@ -276,7 +283,8 @@ void draw_alpha_edit_vline(
     edit_wall_id* edit_id_buffer, u8 *tex_column, 
     int x, float y0, float y1, int prev_drawn_top, int prev_drawn_bot,
     int cell_idx, editor_selected_thing side) {
-    edit_wall_id id = {.cell_idx = cell_idx, .side = side};
+    //edit_wall_id id = {.alpha = 0xFF, .cell_idx = cell_idx, .side = side};
+    edit_wall_id id = 0xFF000000 | (side<<16) | (cell_idx << 0); 
     float tex_per_pix = 32.0f / (y1-y0);
     for(int y = MAX(y0, prev_drawn_top); y < MIN(y1, prev_drawn_bot); y++) {
         int dy = y-y0;
@@ -436,7 +444,7 @@ void draw_lit_fogged_clipped_textured_wall(
     int units = abs(world_y1 - world_y0);
     float depth_scale = CLAMP(world_z / DARK_DIST, 0.0f, 1.0f);
     float inv_depth_scale = (1.0f - depth_scale);
-    float mult = light_factor; //depth_scale * light_factor;
+    float mult = light_factor * light_level_mults[face_light_level_idx]; //depth_scale * light_factor;
 
     float start_v = 0.0f;
     float tex_per_pix = units * 4.0f / (y1-y0);
@@ -687,8 +695,6 @@ int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
                 
 }
 
-float light_level_mults[4] = {1.0f, 0.25f, 1.5f, 1.5f};
-
 
 void draw_normal_cell_first_step() {
 
@@ -733,7 +739,8 @@ typedef struct {
     int sprite_idx; // which sprite?
     float z; // the depth of this column, written directly to framebuffer without testing
     float u; // the texture column, 0 <= u < 1
-    int map_idx;
+    int map_idx; 
+    editor_selected_thing sprite_thg;
 } sprite_cache_entry;
 
 /*
@@ -748,7 +755,7 @@ typedef struct {
     No depth testing is performed, it is not necessary, but each pixel that writes a color also writes depth.
 
 */
-sprite_cache_entry per_thread_sprite_cache[NUM_THREADS][MAX_STEPS];
+sprite_cache_entry per_thread_sprite_cache[NUM_THREADS][MAX_STEPS*2];
 
 
 typedef struct {
@@ -812,8 +819,8 @@ void draw_first_person_level_inner(
 
             float u = 1024.0f* (0.5f + ray_ang / (2.0f * 3.14159));
             float flt_u = (u+skybox_u_offset);
-            float subtex_u = flt_u - floorf(flt_u);
-            int int_u = ((int)(u+skybox_u_offset))&(SKYBOX_TEX_WIDTH-1);
+            //float subtex_u = flt_u - floorf(flt_u);
+            int int_u = ((int)(flt_u))&(SKYBOX_TEX_WIDTH-1);
             for(int y = 0; y < FP_SCREEN_HEIGHT-1; y++) {
                 int v = (SKYBOX_TEX_HEIGHT/4+(int)(SKYBOX_V_PER_PIX*(y+(-pitch*(float)FP_SCREEN_HEIGHT))))&(SKYBOX_TEX_HEIGHT-1);
                 u32 texell = *(u32*)(&skybox[(int_u*SKYBOX_TEX_HEIGHT+v)*4]);
@@ -936,7 +943,7 @@ void draw_first_person_level_inner(
 
             u8 upper_wall_tex, lower_wall_tex;
             editor_selected_thing upper_intersect_wall_side, lower_intersect_wall_side;
-
+            u8 lower_intersect_wall_light_level, upper_intersect_wall_light_level;
             if(side == VERTICAL_SIDE) {
                 wall_u = hit_y - floorf(hit_y);
                 flat_u = in_start_cell ? (ray_origin_x - floorf(ray_origin_x)) : def_start_u;
@@ -948,11 +955,15 @@ void draw_first_person_level_inner(
                     wall_u = 1.0f - wall_u;
                     upper_wall_tex = this_level->uwtex[map_idx];
                     lower_wall_tex = this_level->lwtex[map_idx];
+                    upper_intersect_wall_light_level = this_level->uw_light[map_idx];
+                    lower_intersect_wall_light_level = this_level->lw_light[map_idx];
                 } else {
                     upper_intersect_wall_side = WALL_SIDE_UPPER_EAST;
                     lower_intersect_wall_side = WALL_SIDE_LOWER_EAST;
                     upper_wall_tex = this_level->uetex[map_idx];
                     lower_wall_tex = this_level->letex[map_idx];
+                    upper_intersect_wall_light_level = this_level->ue_light[map_idx];
+                    lower_intersect_wall_light_level = this_level->le_light[map_idx];
                 }
             } else {
                 wall_u = hit_x - floorf(hit_x);
@@ -964,11 +975,15 @@ void draw_first_person_level_inner(
                     wall_u = 1.0f - wall_u;
                     upper_wall_tex = this_level->ustex[map_idx];
                     lower_wall_tex = this_level->lstex[map_idx];
+                    upper_intersect_wall_light_level = this_level->us_light[map_idx];
+                    lower_intersect_wall_light_level = this_level->ls_light[map_idx];
                 } else {
                     upper_intersect_wall_side = WALL_SIDE_UPPER_NORTH;
                     lower_intersect_wall_side = WALL_SIDE_LOWER_NORTH;
                     upper_wall_tex = this_level->untex[map_idx];
                     lower_wall_tex = this_level->lntex[map_idx];
+                    upper_intersect_wall_light_level = this_level->un_light[map_idx];
+                    lower_intersect_wall_light_level = this_level->ln_light[map_idx];
                 }
             }
             if(next_side == VERTICAL_SIDE) {
@@ -978,97 +993,118 @@ void draw_first_person_level_inner(
             } else {
                 exit_flat_u = next_hit_x - floorf(next_hit_x);
                 exit_flat_v = def_exit_v;
-
             }
-            int hit_exit_sprite = 0;
 
-                sprite_info spr = this_level->sprite_index[map_idx];
-                int spr_idx = spr.index;
-                
-
-            if(spr_idx != EMPTY_SPRITE_INDEX && spr.is_fixed_rotation) {
+            int hit_enter_sprite = EMPTY_SPRITE_INDEX;
+            int hit_exit_sprite = EMPTY_SPRITE_INDEX;
+            float enter_sprite_wall_u = wall_u;
+            float exit_sprite_wall_u = 0.0f;
+            editor_selected_thing enter_sprite_thg, exit_sprite_thg;
+            
+            if(side == HORIZONTAL_SIDE) {
+                if(ray_dir_y >= 0) {
+                    hit_enter_sprite = this_level->n_sprite_index[map_idx];
+                    enter_sprite_thg = N_SPRITE;
+                } else {
+                    hit_enter_sprite = this_level->s_sprite_index[map_idx];
+                    enter_sprite_thg = S_SPRITE;
+                }
+            } else {
+                if(ray_dir_x >= 0) {
+                    hit_enter_sprite = this_level->w_sprite_index[map_idx];
+                    enter_sprite_thg = W_SPRITE;
+                } else {
+                    hit_enter_sprite = this_level->e_sprite_index[map_idx];
+                    enter_sprite_thg = E_SPRITE;
+                }
+            }
+            
+            if(next_side == HORIZONTAL_SIDE) {
+                exit_sprite_wall_u = (next_hit_x - floorf(next_hit_x));   
+                if(ray_dir_y >= 0) {
+                    hit_exit_sprite = this_level->s_sprite_index[map_idx];
+                    exit_sprite_thg = S_SPRITE;
+                } else {
+                    hit_exit_sprite = this_level->n_sprite_index[map_idx];
+                    exit_sprite_thg = N_SPRITE;
+                }
+            } else {          
+                exit_sprite_wall_u = (next_hit_y - floorf(next_hit_y));   
+                if(ray_dir_x >= 0) {
+                    hit_exit_sprite = this_level->e_sprite_index[map_idx];
+                    exit_sprite_thg = E_SPRITE;
+                } else {
+                    hit_exit_sprite = this_level->w_sprite_index[map_idx];
+                    exit_sprite_thg = W_SPRITE;
+                }
+            }
+            if(hit_enter_sprite != EMPTY_SPRITE_INDEX && num_sprites_hit < MAX_STEPS) {
                 float sprite_top_y = floor_height+8.0f;
                 float sprite_bot_y = floor_height;
-                float sprite_dist = 0.0f; float spr_u = 0.0f;
-                int hit_sprite = 0;
-                if(spr.loc == WEST) {
-                    if (ray_dir_x < 0 && next_side == VERTICAL_SIDE) {
-                        sprite_dist = next_perp_dist;
-                        hit_sprite = 1; 
-                        hit_exit_sprite = 1;
-                        spr_u = next_hit_y-floor(next_hit_y);
-                    } else if (ray_dir_x >= 0 && side == VERTICAL_SIDE && !in_start_cell) {
-                        sprite_dist = perp_dist;
-                        hit_sprite = 1;
-                        spr_u = wall_u;
-                    }
-                } else if(spr.loc == NORTH) {
-                    if(ray_dir_y < 0 && next_side == HORIZONTAL_SIDE) {
-                        sprite_dist = next_perp_dist;
-                        hit_exit_sprite = 1;
-                        hit_sprite = 1;
-                        spr_u = next_hit_x-floor(next_hit_x);
-                    } else if (ray_dir_y >= 0 && side == HORIZONTAL_SIDE && !in_start_cell) {
-                        sprite_dist = perp_dist;
-                        hit_sprite = 1;
-                        spr_u = wall_u;
-                    }
-                } else if (spr.loc == EAST) {
-                    if(ray_dir_x >= 0 && next_side == VERTICAL_SIDE) {
-                        sprite_dist = next_perp_dist;
-                        hit_exit_sprite = 1;
-                        hit_sprite = 1;
-                        spr_u = next_hit_y-floor(next_hit_y);
-                    } else if (ray_dir_x < 0 && side == VERTICAL_SIDE && !in_start_cell) {
-                        sprite_dist = perp_dist;
-                        hit_sprite = 1;
-                        spr_u = wall_u;
-                    }
-                } else if (spr.loc == SOUTH) {
-                    if(ray_dir_y >= 0 && next_side == HORIZONTAL_SIDE) {
-                        sprite_dist = next_perp_dist;
-                        hit_exit_sprite = 1;
-                        hit_sprite = 1;
-                        spr_u = next_hit_x-floor(next_hit_x);
-                    } else if (ray_dir_y < 0 && side == HORIZONTAL_SIDE && !in_start_cell) {
-                        sprite_dist = perp_dist;
-                        hit_sprite = 1;
-                        spr_u = wall_u;
-                    }
-                }
 
-                if(hit_sprite && num_sprites_hit < MAX_STEPS) {
-                    float unclipped_y0 = project_to_screen(
-                        sprite_top_y, sprite_dist, pitch, ray_origin_z
-                    );
-                    float unclipped_y1 = project_to_screen(
-                        sprite_bot_y, sprite_dist, pitch, ray_origin_z
-                    );
-                    sprite_cache[num_sprites_hit].unclipped_y0 = unclipped_y0;
-                    sprite_cache[num_sprites_hit].unclipped_y1 = unclipped_y1;
-                    sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
-                    sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
-                    sprite_cache[num_sprites_hit].sprite_idx = spr_idx;
-                    sprite_cache[num_sprites_hit].u = spr_u;
-                    sprite_cache[num_sprites_hit].map_idx = map_idx;
-                    sprite_cache[num_sprites_hit++].z = sprite_dist;
-                }
+                float unclipped_y0 = project_to_screen(
+                    sprite_top_y, perp_dist, pitch, ray_origin_z
+                );
+                float unclipped_y1 = project_to_screen(
+                    sprite_bot_y, perp_dist, pitch, ray_origin_z
+                );
+                sprite_cache[num_sprites_hit].unclipped_y0 = unclipped_y0;
+                sprite_cache[num_sprites_hit].unclipped_y1 = unclipped_y1;
+                sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
+                sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
+                sprite_cache[num_sprites_hit].sprite_idx = hit_enter_sprite;
+                sprite_cache[num_sprites_hit].u = enter_sprite_wall_u;
+                sprite_cache[num_sprites_hit].map_idx = map_idx;
+                sprite_cache[num_sprites_hit].sprite_thg = enter_sprite_thg;
+                sprite_cache[num_sprites_hit++].z = perp_dist;
+            }
+
+            if(hit_exit_sprite != EMPTY_SPRITE_INDEX && num_sprites_hit < MAX_STEPS) {
+                float sprite_top_y = floor_height+8.0f;
+                float sprite_bot_y = floor_height;
+
+                float unclipped_y0 = project_to_screen(
+                    sprite_top_y, next_perp_dist, pitch, ray_origin_z
+                );
+                float unclipped_y1 = project_to_screen(
+                    sprite_bot_y, next_perp_dist, pitch, ray_origin_z
+                );
+                sprite_cache[num_sprites_hit].unclipped_y0 = unclipped_y0;
+                sprite_cache[num_sprites_hit].unclipped_y1 = unclipped_y1;
+                //sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
+                //sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
+                sprite_cache[num_sprites_hit].sprite_idx = hit_exit_sprite;
+                sprite_cache[num_sprites_hit].u = exit_sprite_wall_u;
+                sprite_cache[num_sprites_hit].map_idx = map_idx;
+                sprite_cache[num_sprites_hit].sprite_thg = exit_sprite_thg;
+                sprite_cache[num_sprites_hit++].z = next_perp_dist;
             }
 
             u8 lower_diag_wall_tex = this_level->ldtex[map_idx];
-            u8 floor_texture = this_level->ftex[map_idx];
-            u8 upper_floor_texture = this_level->uftex[map_idx];
-            u8 upper_diag_wall_tex = this_level->udtex[map_idx];
-            u8 ceil_texture = this_level->ctex[map_idx];
-            u8 upper_ceil_texture = this_level->uctex[map_idx];
+            u8 lower_diag_light_level = this_level->ld_light[map_idx];
 
-            int cell_light_level = this_level->light[map_idx]; //light_level_mults[this_level->light[map_idx]];
+            u8 floor_texture = this_level->ftex[map_idx];
+            u8 floor_light_level = this_level->f_light[map_idx];
+
+            u8 upper_floor_texture = this_level->uftex[map_idx];
+            u8 upper_floor_light_level = this_level->uf_light[map_idx];
+
+            u8 upper_diag_wall_tex = this_level->udtex[map_idx];
+            u8 upper_diag_light_level = this_level->ud_light[map_idx];
+
+            u8 ceil_texture = this_level->ctex[map_idx];
+            u8 ceil_light_level = this_level->c_light[map_idx];
+
+            u8 upper_ceil_texture = this_level->uctex[map_idx];
+            u8 upper_ceil_light_level = this_level->uc_light[map_idx];
 
             {
                 int first_floor_height = floor_height;
                 int second_floor_height = upper_floor_height;
                 u8 first_floor_texture = floor_texture;
                 u8 second_floor_texture = upper_floor_texture;
+                u8 first_floor_light_level = floor_light_level;
+                u8 second_floor_light_level = upper_floor_light_level;
                 editor_selected_thing first_floor_side = WALL_SIDE_TOP;
                 editor_selected_thing second_floor_side = WALL_SIDE_UPPER_TOP;
 
@@ -1076,6 +1112,8 @@ void draw_first_person_level_inner(
                 int second_ceil_height = upper_ceil_height;
                 u8 first_ceil_texture = ceil_texture;
                 u8 second_ceil_texture = upper_ceil_texture;
+                u8 first_ceil_light_level = ceil_light_level;
+                u8 second_ceil_light_level = upper_ceil_light_level;
                 editor_selected_thing first_ceil_side = WALL_SIDE_BOTTOM;
                 editor_selected_thing second_ceil_side = WALL_SIDE_UPPER_BOTTOM;
 
@@ -1109,6 +1147,8 @@ void draw_first_person_level_inner(
                         second_floor_height = floor_height;
                         first_floor_texture = upper_floor_texture;
                         second_floor_texture = floor_texture;
+                        first_floor_light_level = upper_floor_light_level;
+                        second_floor_light_level = floor_light_level;
                         first_floor_side = WALL_SIDE_UPPER_TOP;
                         second_floor_side = WALL_SIDE_TOP;
                     }
@@ -1128,6 +1168,8 @@ void draw_first_person_level_inner(
                         second_ceil_height = ceil_height;
                         first_ceil_texture = upper_ceil_texture;
                         second_ceil_texture = ceil_texture;
+                        first_ceil_light_level = upper_ceil_light_level;
+                        second_ceil_light_level = ceil_light_level;
                         first_ceil_side = WALL_SIDE_UPPER_BOTTOM;
                         second_ceil_side = WALL_SIDE_BOTTOM;
                     }
@@ -1151,7 +1193,7 @@ void draw_first_person_level_inner(
                         ((lower_wall_tex>>4) != BLANK_DECAL_IDX),
                         screen_x, proj_floor_first_step_height, proj_zero_height,
                         first_floor_height, 0, BOTTOM_PEGGED,
-                        prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, cell_light_level, 
+                        prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, lower_intersect_wall_light_level, 
                         FOG_COL
                     );
 
@@ -1173,7 +1215,7 @@ void draw_first_person_level_inner(
 
                     prev_drawn_bot = proj_floor_first_step_height;
                 } else if (!in_start_cell && lower_step_slope) {
-                    float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-floorf(next_hit_y);
+                    //float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-floorf(next_hit_y);
                     float y_start = in_start_cell ? (ray_origin_y - floorf(ray_origin_y)) : hit_y - floorf(hit_y);
                     if(!in_start_cell && side == HORIZONTAL_SIDE) {
                         if(step_y == -1) {
@@ -1182,7 +1224,7 @@ void draw_first_person_level_inner(
                             y_start = 0.0f;
                         }
                     }
-                    float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-floorf(next_hit_x);
+                    //float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-floorf(next_hit_x);
                     float x_start = in_start_cell ? (ray_origin_x - floorf(ray_origin_x)) : hit_x - floorf(hit_x);
                     if(!in_start_cell && side == VERTICAL_SIDE) {
                         if(step_x == -1) {
@@ -1192,9 +1234,9 @@ void draw_first_person_level_inner(
                         }
                     }
                     float start = (lower_cell_type == SLOPE_Y) ? y_start : x_start;
-                    float exit = (lower_cell_type == SLOPE_Y) ? y_exit : x_exit;
+                    //float exit = (lower_cell_type == SLOPE_Y) ? y_exit : x_exit;
                     float slope_start_height = (float)first_floor_height + start*(float)((float)second_floor_height - (float)first_floor_height);
-                    float slope_end_height = (float)first_floor_height + exit*(float)((float)second_floor_height - (float)first_floor_height);
+                    //float slope_end_height = (float)first_floor_height + exit*(float)((float)second_floor_height - (float)first_floor_height);
 
                     int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
 
@@ -1209,7 +1251,7 @@ void draw_first_person_level_inner(
                             get_texture_column(decals[lower_wall_tex>>4], wall_u), ((lower_wall_tex>>4) != BLANK_DECAL_IDX),
                             screen_x, proj_slope_start_height, proj_zero_height,
                             slope_start_height, 0, BOTTOM_PEGGED,
-                            prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, cell_light_level, 
+                            prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, lower_intersect_wall_light_level, 
                             FOG_COL
                         );
                         
@@ -1242,7 +1284,7 @@ void draw_first_person_level_inner(
                         get_texture_column(decals[upper_wall_tex>>4], wall_u),((lower_wall_tex>>4) != BLANK_DECAL_IDX),
                         screen_x, proj_max_height, proj_ceil_first_step_height,
                         MAX_WALL_HEIGHT, first_ceil_height, TOP_PEGGED,
-                        prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, cell_light_level, 
+                        prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, upper_intersect_wall_light_level, 
                         FOG_COL
                     );
 
@@ -1264,7 +1306,7 @@ void draw_first_person_level_inner(
                     }
                     prev_drawn_top = proj_ceil_first_step_height;
                 } else if (!in_start_cell && upper_step_slope) {
-                     float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-floorf(next_hit_y);
+                    //float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-floorf(next_hit_y);
                     float y_start = in_start_cell ? (ray_origin_y - floorf(ray_origin_y)) : hit_y - floorf(hit_y);
                     if(!in_start_cell && side == HORIZONTAL_SIDE) {
                         if(step_y == -1) {
@@ -1273,7 +1315,7 @@ void draw_first_person_level_inner(
                             y_start = 0.0f;
                         }
                     }
-                    float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-floorf(next_hit_x);
+                    //float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-floorf(next_hit_x);
                     float x_start = in_start_cell ? (ray_origin_x - floorf(ray_origin_x)) : hit_x - floorf(hit_x);
                     if(!in_start_cell && side == VERTICAL_SIDE) {
                         if(step_x == -1) {
@@ -1282,11 +1324,11 @@ void draw_first_person_level_inner(
                             x_start = 0.0f;
                         }
                     }
-                    float exit = (upper_cell_type == SLOPE_X) ? x_exit : y_exit;
+                    //float exit = (upper_cell_type == SLOPE_X) ? x_exit : y_exit;
                     float start = (upper_cell_type == SLOPE_X) ? x_start : y_start;
 
                     float slope_start_height = (float)first_ceil_height + start*(float)((float)second_ceil_height - (float)first_ceil_height);
-                    float slope_end_height = (float)first_ceil_height + exit*(float)((float)second_ceil_height - (float)first_ceil_height);
+                    //float slope_end_height = (float)first_ceil_height + exit*(float)((float)second_ceil_height - (float)first_ceil_height);
 
                     int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
 
@@ -1301,7 +1343,7 @@ void draw_first_person_level_inner(
                             screen_x, 
                             proj_max_height, proj_slope_start_height,
                             MAX_WALL_HEIGHT, slope_start_height, TOP_PEGGED,
-                            prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, cell_light_level,
+                            prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, upper_intersect_wall_light_level,
                             FOG_COL
                         );
                         
@@ -1360,7 +1402,7 @@ void draw_first_person_level_inner(
                             screen_x, proj_slope_end_height, proj_slope_start_height, 
                             next_perp_dist, perp_dist, 
                             exit_flat_u, exit_flat_v, flat_u, flat_v,
-                            prev_drawn_top, prev_drawn_bot, FLOOR_LIGHT_FACTOR, cell_light_level, FOG_COL
+                            prev_drawn_top, prev_drawn_bot, FLOOR_LIGHT_FACTOR, upper_floor_light_level, FOG_COL
                         );
                             if(editor_mode_enabled) {
                                 draw_edit_vline(
@@ -1388,7 +1430,7 @@ void draw_first_person_level_inner(
                         draw_lit_fogged_tex_flat(
                             output, z_buffer, textures[first_floor_texture&0xF], decals[first_floor_texture>>4],
                             screen_x, proj_step_next_height, proj_floor_first_step_height, next_perp_dist, perp_dist,
-                            exit_flat_u, exit_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, cell_light_level,
+                            exit_flat_u, exit_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, first_floor_light_level,
                             FOG_COL
                         );
                         if(editor_mode_enabled) {
@@ -1430,7 +1472,7 @@ void draw_first_person_level_inner(
                             draw_lit_fogged_tex_flat(
                                 output, z_buffer, textures[first_floor_texture&0xF], decals[first_floor_texture>>4],
                                 screen_x, proj_first_height_diag, proj_floor_first_step_height, lower_diag_intersect.diag_perp_dist, perp_dist,
-                                lower_diag_intersect.mid_flat_u, lower_diag_intersect.mid_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, cell_light_level,
+                                lower_diag_intersect.mid_flat_u, lower_diag_intersect.mid_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, first_floor_light_level,
                                 FOG_COL
                             );
                             if(editor_mode_enabled) {
@@ -1463,7 +1505,7 @@ void draw_first_person_level_inner(
                                 ((lower_diag_wall_tex>>4) != BLANK_DECAL_IDX),
                                 screen_x, proj_second_height_diag, proj_zero_height_diag,
                                 second_floor_height, 0, BOTTOM_PEGGED,
-                                prev_drawn_top, prev_drawn_bot, lower_diag_intersect.diag_perp_dist, DIAG_LIGHT_FACTOR, cell_light_level, 
+                                prev_drawn_top, prev_drawn_bot, lower_diag_intersect.diag_perp_dist, DIAG_LIGHT_FACTOR, lower_diag_light_level, 
                                 FOG_COL
                             );
                             if(editor_mode_enabled) {
@@ -1490,7 +1532,7 @@ void draw_first_person_level_inner(
                                 output, z_buffer, textures[second_floor_texture&0xF], decals[second_floor_texture>>4],
                                 screen_x, proj_second_height_next, proj_second_height_diag, next_perp_dist, lower_diag_intersect.diag_perp_dist,
                                 exit_flat_u, exit_flat_v, lower_diag_intersect.mid_flat_u, lower_diag_intersect.mid_flat_v, prev_drawn_top, prev_drawn_bot,  
-                                FLOOR_LIGHT_FACTOR, cell_light_level,
+                                FLOOR_LIGHT_FACTOR, second_floor_light_level,
                                 FOG_COL
                             );
                             if(editor_mode_enabled) {
@@ -1521,7 +1563,7 @@ void draw_first_person_level_inner(
                             draw_lit_fogged_tex_flat(
                                 output, z_buffer, textures[first_floor_texture&0xF], decals[first_floor_texture>>4],
                                 screen_x, proj_step_next_height, proj_floor_first_step_height, next_perp_dist, perp_dist,
-                                exit_flat_u, exit_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, cell_light_level,
+                                exit_flat_u, exit_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, first_floor_light_level,
                                 FOG_COL
                             );
                             if(editor_mode_enabled) {
@@ -1583,7 +1625,7 @@ void draw_first_person_level_inner(
                             screen_x, proj_slope_start_height, proj_slope_end_height, 
                             perp_dist, next_perp_dist, 
                             flat_u, flat_v, exit_flat_u, exit_flat_v, 
-                            prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, cell_light_level, FOG_COL
+                            prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, upper_ceil_light_level, FOG_COL
                         );
                             if(editor_mode_enabled) {
                                 draw_edit_vline(
@@ -1609,7 +1651,7 @@ void draw_first_person_level_inner(
                         draw_lit_fogged_tex_flat(
                             output, z_buffer, textures[first_ceil_texture&0xF], decals[first_ceil_texture>>4],
                             screen_x, proj_ceil_first_step_height, proj_step_next_height, perp_dist, next_perp_dist,
-                            flat_u, flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot,  CEIL_LIGHT_FACTOR, cell_light_level,
+                            flat_u, flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot,  CEIL_LIGHT_FACTOR, first_ceil_light_level,
                             FOG_COL
                         );
                         if(editor_mode_enabled) {
@@ -1640,7 +1682,7 @@ void draw_first_person_level_inner(
                             draw_lit_fogged_tex_flat(
                                 output, z_buffer, textures[first_ceil_texture&0xF], decals[first_ceil_texture>>4],
                                 screen_x, proj_ceil_first_step_height, proj_first_height_diag, perp_dist, upper_diag_intersect.diag_perp_dist,
-                                flat_u, flat_v,  upper_diag_intersect.mid_flat_u, upper_diag_intersect.mid_flat_v, prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, cell_light_level,
+                                flat_u, flat_v,  upper_diag_intersect.mid_flat_u, upper_diag_intersect.mid_flat_v, prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, first_ceil_light_level,
                                 FOG_COL
                             );
                             if(editor_mode_enabled) {
@@ -1673,7 +1715,7 @@ void draw_first_person_level_inner(
                                 ((upper_diag_wall_tex>>4) != BLANK_DECAL_IDX),
                                 screen_x, proj_max_height_diag, proj_second_height_diag,
                                 MAX_WALL_HEIGHT, second_ceil_height, TOP_PEGGED,
-                                prev_drawn_top, prev_drawn_bot, upper_diag_intersect.diag_perp_dist, DIAG_LIGHT_FACTOR, cell_light_level, 
+                                prev_drawn_top, prev_drawn_bot, upper_diag_intersect.diag_perp_dist, DIAG_LIGHT_FACTOR, upper_diag_light_level, 
                                 FOG_COL
                             );
 
@@ -1702,7 +1744,7 @@ void draw_first_person_level_inner(
                                 output, z_buffer, textures[second_ceil_texture&0xF], decals[second_ceil_texture>>4],
                                 screen_x, proj_second_height_diag, proj_second_height_next, upper_diag_intersect.diag_perp_dist, next_perp_dist, 
                                 upper_diag_intersect.mid_flat_u, upper_diag_intersect.mid_flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot,  
-                                CEIL_LIGHT_FACTOR, cell_light_level,
+                                CEIL_LIGHT_FACTOR, second_ceil_light_level,
                                 FOG_COL
                             );
                             if(editor_mode_enabled) {
@@ -1733,7 +1775,7 @@ void draw_first_person_level_inner(
                             draw_lit_fogged_tex_flat(
                                 output, z_buffer, textures[first_ceil_texture&0xF], decals[first_ceil_texture>>4],
                                 screen_x, proj_ceil_first_step_height, proj_step_next_height, perp_dist, next_perp_dist,
-                                flat_u, flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, cell_light_level,
+                                flat_u, flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, first_ceil_light_level,
                                 FOG_COL
                             );
                             if(editor_mode_enabled) {
@@ -1761,7 +1803,8 @@ void draw_first_person_level_inner(
 
             }
 
-            if(hit_exit_sprite) {
+            // adjust clipping for sprites we hit on exit of this cell
+            if(hit_exit_sprite != EMPTY_SPRITE_INDEX) {
                 sprite_cache[num_sprites_hit-1].prev_drawn_bot = prev_drawn_bot;
                 sprite_cache[num_sprites_hit-1].prev_drawn_top = prev_drawn_top;
             }
@@ -1770,7 +1813,6 @@ void draw_first_person_level_inner(
         }
     
         if(num_sprites_hit > 0) {
-            //printf("raycasted %i sprites!!!\n", num_sprites_hit);
             for(int i = num_sprites_hit-1; i >= 0; i--) {
                 sprite_cache_entry spr = sprite_cache[i];
                 
@@ -1782,15 +1824,15 @@ void draw_first_person_level_inner(
                     TOP_PEGGED, spr.z, 1.0f, FOG_COL
                 );
                 if(editor_mode_enabled) {
-                    int clipped_y0 = CLAMP(spr.unclipped_y0, spr.prev_drawn_top, spr.prev_drawn_bot);
-                    int clipped_y1 = CLAMP(spr.unclipped_y1, spr.prev_drawn_top, spr.prev_drawn_bot);
+                    //int clipped_y0 = CLAMP(spr.unclipped_y0, spr.prev_drawn_top, spr.prev_drawn_bot);
+                    //int clipped_y1 = CLAMP(spr.unclipped_y1, spr.prev_drawn_top, spr.prev_drawn_bot);
                     draw_alpha_edit_vline(
                         edit_id_buffer, tex_col, screen_x, 
                         spr.unclipped_y0, spr.unclipped_y1,
                         spr.prev_drawn_top, spr.prev_drawn_bot,
-                        spr.map_idx, CELL_SPRITE
+                        spr.map_idx, spr.sprite_thg
                     );
-                    if(flash_frame && editor_selected_map_idx == spr.map_idx && editor_selected_side == CELL_SPRITE) {
+                    if(flash_frame && editor_selected_map_idx == spr.map_idx && editor_selected_side == spr.sprite_thg) {
                         draw_alpha_tint_vline(
                             output, tex_col, screen_x, 
                             spr.unclipped_y0, spr.unclipped_y1,
@@ -1812,7 +1854,6 @@ typedef struct {
     float y0, y1;
     float z;
     int map_idx;
-    int fixed_rotation;
     int image_idx;
 } transformed_sprite;
 // tranformed into camera space: x, y0, y1, z (y0 and y1 are not actually transformed)
@@ -1918,8 +1959,12 @@ void draw_first_person_level(
         tp = thread_pool_create(NUM_THREADS);
     }
 #endif
-
-    memset(visited_cells, 0, sizeof(NUM_THREADS*MAP_SIZE*MAP_SIZE/8));
+    for(int thd = 0; thd < NUM_THREADS; thd++) {
+        for(int i = 0; i < MAP_SIZE*MAP_SIZE/8; i++) {
+            visited_cells[thd][i] = 0;
+        }
+    }
+    //memset(visited_cells, 0, sizeof(NUM_THREADS*MAP_SIZE*MAP_SIZE/8));
     thread_params parms[NUM_THREADS];
     for(int i = 0; i < NUM_THREADS; i++) {
         parms[i].output = output;
@@ -1967,20 +2012,11 @@ void draw_first_person_level(
         start_x, end_x,
         flash_frame, this_level, player_x, player_y, player_z,
         player_ang, pitch, 
-        editor_mode_enabled, editor_selected_map_idx, editor_selected_side, visited_cell_bitmap[0]
+        editor_mode_enabled, editor_selected_map_idx, editor_selected_side, visited_cells[0], per_thread_sprite_cache[0]
 
     );
 #endif 
-    // x and y offsets for sprite locations
-    // relative to top left of map cell
-    // ONLY for fixed rotation sprites
-    float offsets[4][4] = {
-         // x0,x1, y0,y1
-         {0.0f, 1.0f, 0.0f, 0.0f}, // N 
-         {1.0f, 1.0f, 0.0f, 1.0f}, // E
-         {0.0f, 1.0f, 1.0f, 1.0f}, // S
-         {0.0f, 0.0f, 0.0f, 1.0f}, // W
-    };
+
 
     {
         num_trans_sprites = 0;
@@ -2007,25 +2043,23 @@ void draw_first_person_level(
                 int sector = j*8+b;
                 int map_y = sector/32;
                 int map_x = sector - (map_y*32);
-                u8 idx = this_level->sprite_index[sector].index;
-                if(idx == EMPTY_SPRITE_INDEX) {
+                //u8 idx = this_level->sprite_index[sector].index;
+                int image_idx = this_level->sprite_index[sector];
+                if(image_idx == EMPTY_SPRITE_INDEX) {
                     continue;
                 }
 
-                int is_fixed_rotation = this_level->sprite_index[sector].is_fixed_rotation;
-                if(is_fixed_rotation) {
+                //int is_fixed_rotation = this_level->sprite_index[sector].is_fixed_rotation;
+                //if(is_fixed_rotation) {
                     // FIXED POSITION/ROTATION sprites are handled via the raycast process
-                    continue;
-                }
-                int image_idx = this_level->sprite_index[sector].index;
+                //    continue;
+                //}
 
                 float sprite_world_x = map_x+0.5f;
                 float sprite_world_y = map_y+0.5f;
                 float sprite_world_z1 = get_height_at_point(map_x+0.5f, map_y+0.5f, 0);
                 float sprite_world_z0 = sprite_world_z1+10.0f;
                 
-                int loc = this_level->sprite_index[sector].loc;
-
                 float rel_x = sprite_world_x - player_x;
                 float rel_y = sprite_world_y - player_y; // 2d y axis
 
@@ -2063,13 +2097,11 @@ void draw_first_person_level(
                 transformed_sprites[i].y1 = screen_y1;
                 transformed_sprites[i].z = rot_z;
                 transformed_sprites[i].map_idx = (map_y*MAP_SIZE+map_x);
-                transformed_sprites[i].fixed_rotation = is_fixed_rotation;
                 transformed_sprites[i].image_idx = image_idx;
 
             }
         }
     }
-    //printf("%i sprites: \n", num_trans_sprites);
 
 
 #ifndef PLATFORM_WEB
@@ -2091,7 +2123,7 @@ void draw_first_person_level(
     }
 
 #else 
-    draw_transformed_sprites(output, edit_id_buffer, z_buffer, flash_frame, player_z, start_x, end_x, per_thread_sprite_cache[0]);
+    draw_transformed_sprites(output, edit_id_buffer, z_buffer, flash_frame, player_z, start_x, end_x, editor_mode_enabled, editor_selected_map_idx, editor_selected_side);
 #endif
 
 

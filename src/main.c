@@ -47,6 +47,8 @@ int cur_render_width;
 int cur_render_height;
 int use_vsync = 1;
 int requested_use_vsync = 1;
+int requested_fullscreen = 0;
+int fullscreen = 0;
 float cur_fov = 85.0f;
 
 
@@ -54,12 +56,13 @@ edit_wall_id *edit_id_buffer = NULL; //[FP_SCREEN_WIDTH*FP_SCREEN_HEIGHT];
 
 void handle_click(int render_x, int render_y) {
     edit_wall_id id = edit_id_buffer[(FP_SCREEN_WIDTH-1-render_x)*FP_SCREEN_HEIGHT+(render_y)];
-    editor_selected_map_idx = id.cell_idx;
-    editor_selected_side = id.side;
+    editor_selected_map_idx = (id) & 0xFFFF; //id.cell_idx;
+
+    editor_selected_side = (id>>16)&0xFF;// id.side;
 }
 
 void* my_malloc(long long unsigned int bytes, char* for_str) {
-    printf("Allocating %i bytes for %s\n", bytes, for_str);
+    printf("Allocating %llu bytes for %s\n", bytes, for_str);
     return malloc(bytes);
 }
 
@@ -115,6 +118,7 @@ level levels[1] = {
     }
 };
 
+level levels[1];
 
 float player_x;
 float player_y;
@@ -187,10 +191,9 @@ float get_height_at_point(float px, float py, int return_ceil) {
 int collides(float px, float py, level this_level) {
     if (disable_collision) { return 0; }
     if(editor_mode_enabled) { return 0; }
-    int x = px;
-    int y = py;
-    int idx = y*MAP_SIZE+x;
-    int floor = this_level.floor[idx];
+    //int x = px;
+    //int y = py;
+    //int idx = y*MAP_SIZE+x;
 
     float floor_height = get_height_at_point(px, py, 0);
     float ceil_height = get_height_at_point(px, py, 1);
@@ -375,24 +378,24 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     float tp_height = get_height_at_point(player_x, player_y-PLAYER_RADIUS, 0);
     float bt_height = get_height_at_point(player_x, player_y+PLAYER_RADIUS, 0);
 
-    float exact_height = get_height_at_point(player_x, player_y, 0);
+    //float exact_height = get_height_at_point(player_x, player_y, 0);
     float player_contact_height = player_z-PLAYER_HEIGHT;
     float max_takeable_step = MAX(lf_height, MAX(rt_height, MAX(tp_height, bt_height)));
-    int got_takeable_step = 0;
+    //int got_takeable_step = 0;
     if(lf_height <= (player_contact_height+2)) {
-        got_takeable_step = 1;
+        //got_takeable_step = 1;
         max_takeable_step = MAX(max_takeable_step, lf_height);
     }
     if(rt_height <= (player_contact_height+2)) {
-        got_takeable_step = 1;
+        //got_takeable_step = 1;
         max_takeable_step = MAX(max_takeable_step, rt_height);
     }
     if(tp_height <= (player_contact_height+2)) {
-        got_takeable_step = 1;
+        //got_takeable_step = 1;
         max_takeable_step = MAX(max_takeable_step, tp_height);
     }
     if(bt_height <= (player_contact_height+2)) {
-        got_takeable_step = 1;
+        //got_takeable_step = 1;
         max_takeable_step = MAX(max_takeable_step, bt_height);
     }
 
@@ -468,9 +471,10 @@ int wall_mip_scales[6] = {
 };
 
 void init_level(int fresh_map) {
-    player_ang =  1.5707963f;
+    player_ang =  levels[cur_level_idx].start_ang;
     player_x = levels[cur_level_idx].start_x;
     player_y = levels[cur_level_idx].start_y;
+    player_z = levels[cur_level_idx].start_z;
     if(fresh_map) {  
         player_x = 16;
         player_y = 16;
@@ -491,7 +495,11 @@ void init_level(int fresh_map) {
 
                     levels[cur_level_idx].ctex[idx] = SKYBOX_TEX_IDX;
                 }
-                levels[cur_level_idx].sprite_index[idx].index = EMPTY_SPRITE_INDEX;
+                levels[cur_level_idx].sprite_index[idx] = EMPTY_SPRITE_INDEX;
+                levels[cur_level_idx].n_sprite_index[idx] = EMPTY_SPRITE_INDEX;
+                levels[cur_level_idx].e_sprite_index[idx] = EMPTY_SPRITE_INDEX;
+                levels[cur_level_idx].s_sprite_index[idx] = EMPTY_SPRITE_INDEX;
+                levels[cur_level_idx].w_sprite_index[idx] = EMPTY_SPRITE_INDEX;
             }
         }
         levels[cur_level_idx].start_x = 16;
@@ -499,6 +507,27 @@ void init_level(int fresh_map) {
     }
     memset(levels[cur_level_idx].parameter, 0, sizeof(levels[cur_level_idx].parameter));
     for(int i = 0; i < MAP_SIZE*MAP_SIZE; i++) {
+        //levels[cur_level_idx].c_light[i] = BRIGHT;
+        //levels[cur_level_idx].f_light[i] = BRIGHT;
+        //levels[cur_level_idx].uc_light[i] = BRIGHT;
+        //levels[cur_level_idx].uf_light[i] = BRIGHT;
+        //levels[cur_level_idx].un_light[i] = BRIGHT;
+        //levels[cur_level_idx].ue_light[i] = BRIGHT;
+        //levels[cur_level_idx].us_light[i] = BRIGHT;
+        //levels[cur_level_idx].uw_light[i] = BRIGHT;
+        //levels[cur_level_idx].ln_light[i] = BRIGHT;
+        //levels[cur_level_idx].le_light[i] = BRIGHT;
+        //levels[cur_level_idx].ls_light[i] = BRIGHT;
+        //levels[cur_level_idx].lw_light[i] = BRIGHT;
+        //levels[cur_level_idx].ud_light[i] = BRIGHT;
+        //levels[cur_level_idx].ld_light[i] = BRIGHT;
+
+        //levels[cur_level_idx].sprite_index[i] = EMPTY_SPRITE_INDEX;
+        //levels[cur_level_idx].n_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        //levels[cur_level_idx].e_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        //levels[cur_level_idx].s_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        //levels[cur_level_idx].w_sprite_index[i] = EMPTY_SPRITE_INDEX;
+
         //levels[cur_level_idx].sprite_index[i].loc = 0;
         //levels[cur_level_idx].sprite_index[i].index = EMPTY_SPRITE_INDEX; //MIN(levels[cur_level_idx].sprite_index[i].index, NUM_SPRITES-1);
     }
@@ -611,28 +640,14 @@ void load_resources() {
     UnloadImage(height_tex);
 }
 
-sprite_world_position world_sprite_positions[128] = {
-    { 6, 3, 0, 0 },
-    { 8, 2, 0, 0  },
-    { 9, 4, 0, 0  },
-    { 29, 30, 0, 0   },
-    { 25, 29, 0, 0   },
-    { 19, 21, 0, 0  },
-    { 2, 25, 0, 0  },
-    { 4, 29, 0, 0  }
-};
-int num_world_sprites = 8;
 
 void recalculate_world_sprites() {
-    const float spr_height = 10.0f;
-    for(int i = 0; i < num_world_sprites; i++) {
-        world_sprite_positions[i].height = get_height_at_point(world_sprite_positions[i].x, world_sprite_positions[i].y, 0);
-        world_sprite_positions[i].top_height = world_sprite_positions[i].height+spr_height;
-    }
+
 }
 
 void handle_editor() {
-    int dy = 0;    
+    int dy = 0;
+    int dx = 0;
     if (IsKeyDown(KEY_X)) {
         player_z -= 0.1f;
     } else if (IsKeyDown(KEY_C)) {
@@ -647,9 +662,14 @@ void handle_editor() {
     } else if (key == KEY_UP) {
         dy = 1;
     }
-    if(dy != 0) {
+    if(key == KEY_LEFT) {
+        dx = -1;
+    } else if (key == KEY_RIGHT) {
+        dx = 1;
+    }
+    if(dy != 0 || dx != 0) {
         u8* height_ptr = NULL;
-        sprite_info* spr_ptr = NULL;
+        u8* spr_ptr = NULL;
         cell_types lower_cell_type = levels[cur_level_idx].lower_cell_types[editor_selected_map_idx];
         cell_types upper_cell_type = levels[cur_level_idx].upper_cell_types[editor_selected_map_idx];
             switch(editor_selected_side) {
@@ -729,6 +749,18 @@ void handle_editor() {
             case CELL_SPRITE:
                 spr_ptr = &levels[cur_level_idx].sprite_index[editor_selected_map_idx];
                 break;
+            case N_SPRITE:
+                spr_ptr = &levels[cur_level_idx].n_sprite_index[editor_selected_map_idx];
+                break;
+            case E_SPRITE:
+                spr_ptr = &levels[cur_level_idx].e_sprite_index[editor_selected_map_idx];
+                break;
+            case S_SPRITE:
+                spr_ptr = &levels[cur_level_idx].s_sprite_index[editor_selected_map_idx];
+                break;
+            case W_SPRITE:
+                spr_ptr = &levels[cur_level_idx].w_sprite_index[editor_selected_map_idx];
+                break;
         }
         if(height_ptr != NULL) {
             int nval = *height_ptr+dy;
@@ -736,25 +768,57 @@ void handle_editor() {
             *height_ptr = nval;
         }
         if(spr_ptr != NULL) {
-            spr_ptr->loc++;
-            if(spr_ptr->loc >= 4) {
-                spr_ptr->loc = 0;
+            if(dy == -1 && editor_selected_side != N_SPRITE) {
+                editor_selected_side = N_SPRITE;
+                levels[cur_level_idx].n_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                *spr_ptr = EMPTY_SPRITE_INDEX;
+            } else if (dy == 1 && editor_selected_side != S_SPRITE) {
+                editor_selected_side = S_SPRITE;
+                levels[cur_level_idx].s_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                *spr_ptr = EMPTY_SPRITE_INDEX;
+            } else if (dx == -1 && editor_selected_side != W_SPRITE) {
+                editor_selected_side = W_SPRITE;
+                levels[cur_level_idx].w_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                *spr_ptr = EMPTY_SPRITE_INDEX;
+            } else if (dx == 1 && editor_selected_side != E_SPRITE) {
+                levels[cur_level_idx].e_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                editor_selected_side = E_SPRITE;
+                *spr_ptr = EMPTY_SPRITE_INDEX;
             }
         }
-        recalculate_world_sprites();
+
     } else if (key == KEY_P) {
         int idx = editor_selected_map_idx;
-        int y = idx / 32;
-        int x = (idx- (y*32));
-        if(levels[cur_level_idx].sprite_index[y*MAP_SIZE+x].index == EMPTY_SPRITE_INDEX) {
-            levels[cur_level_idx].sprite_index[y*MAP_SIZE+x].index = 0;
+        //int y = idx / 32;
+        //int x = (idx- (y*32));
+        u8* spr_ptr = NULL;
+        switch(editor_selected_side) {
+            case CELL_SPRITE:
+            default:
+                spr_ptr = &levels[cur_level_idx].sprite_index[idx];
+                break;
+            case N_SPRITE:
+                spr_ptr = &levels[cur_level_idx].n_sprite_index[idx];
+                break;
+            case E_SPRITE:
+                spr_ptr = &levels[cur_level_idx].e_sprite_index[idx];
+                break;
+            case S_SPRITE:
+                spr_ptr = &levels[cur_level_idx].s_sprite_index[idx];
+                break;
+            case W_SPRITE:
+                spr_ptr = &levels[cur_level_idx].w_sprite_index[idx];
+                break;
+        }
+
+        if(*spr_ptr == EMPTY_SPRITE_INDEX) {
+            *spr_ptr = 0;
         } else {
-            levels[cur_level_idx].sprite_index[y*MAP_SIZE+x].index = EMPTY_SPRITE_INDEX;
+            *spr_ptr = EMPTY_SPRITE_INDEX;
         }
 
     } else if (key == KEY_T) {
         u8* type_ptr = NULL;
-        sprite_info* spr_ptr = NULL;
         switch(editor_selected_side) {
             case WALL_SIDE_BOTTOM:
             case WALL_SIDE_UPPER_NORTH:
@@ -774,8 +838,8 @@ void handle_editor() {
             case WALL_SIDE_LOWER_DIAG:
                 type_ptr = &levels[cur_level_idx].lower_cell_types[editor_selected_map_idx];
                 break;
-            case CELL_SPRITE:
-                spr_ptr = &levels[cur_level_idx].sprite_index[editor_selected_map_idx];
+            default:
+                break;
         }
         if(type_ptr != NULL) {
             u8 nval = *type_ptr + 1;
@@ -784,21 +848,63 @@ void handle_editor() {
             }
             *type_ptr = nval;
         }
-        if(spr_ptr != NULL) {
-            if(spr_ptr->is_fixed_rotation) {
-                spr_ptr->is_fixed_rotation = 0;
-            } else {
-                spr_ptr->is_fixed_rotation = 1;
-            }
-        }
     } else if (key == KEY_L) {
-        levels[cur_level_idx].light[editor_selected_map_idx] += 1;
-        if(levels[cur_level_idx].light[editor_selected_map_idx] >= NUM_LIGHT_LEVELS) {
-            levels[cur_level_idx].light[editor_selected_map_idx] = 0;
+        u8* light_ptr = NULL;
+        switch(editor_selected_side) { 
+            case WALL_SIDE_BOTTOM:
+                light_ptr = &levels[cur_level_idx].c_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_UPPER_BOTTOM:
+                light_ptr = &levels[cur_level_idx].uc_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_TOP:
+                light_ptr = &levels[cur_level_idx].f_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_UPPER_TOP:
+                light_ptr = &levels[cur_level_idx].uf_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_LOWER_NORTH:
+                light_ptr = &levels[cur_level_idx].ln_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_UPPER_NORTH:
+                light_ptr = &levels[cur_level_idx].un_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_LOWER_EAST:
+                light_ptr = &levels[cur_level_idx].le_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_UPPER_EAST:
+                light_ptr = &levels[cur_level_idx].ue_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_LOWER_SOUTH:
+                light_ptr = &levels[cur_level_idx].ls_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_UPPER_SOUTH:
+                light_ptr = &levels[cur_level_idx].us_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_LOWER_WEST:
+                light_ptr = &levels[cur_level_idx].lw_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_UPPER_WEST:
+                light_ptr = &levels[cur_level_idx].uw_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_UPPER_DIAG:
+                light_ptr = &levels[cur_level_idx].ud_light[editor_selected_map_idx];
+                break;
+            case WALL_SIDE_LOWER_DIAG:
+                light_ptr = &levels[cur_level_idx].ld_light[editor_selected_map_idx];
+                break;
+            default:
+                break;
+        }
+        if(light_ptr != NULL) {
+            *light_ptr = *light_ptr+1;
+            if(*light_ptr >= NUM_LIGHT_LEVELS) {
+                *light_ptr = 0;
+            }
         }
     } else if ((key == KEY_R) || (key == KEY_F) || (key >= KEY_KP_0 && key <= KEY_KP_9) || (key >= '0' && key <= '9')) {
         u8* tex_ptr = NULL;
-        sprite_info* spr_ptr = NULL;
+        u8* spr_ptr = NULL;
         switch(editor_selected_side) {
             case WALL_SIDE_BOTTOM:
                 tex_ptr = &levels[cur_level_idx].ctex[editor_selected_map_idx];
@@ -845,9 +951,21 @@ void handle_editor() {
             case CELL_SPRITE:
                 spr_ptr = &levels[cur_level_idx].sprite_index[editor_selected_map_idx];
                 break;
+            case N_SPRITE:
+                spr_ptr = &levels[cur_level_idx].n_sprite_index[editor_selected_map_idx];
+                break;
+            case E_SPRITE:
+                spr_ptr = &levels[cur_level_idx].e_sprite_index[editor_selected_map_idx];
+                break;
+            case S_SPRITE:
+                spr_ptr = &levels[cur_level_idx].s_sprite_index[editor_selected_map_idx];
+                break;
+            case W_SPRITE:
+                spr_ptr = &levels[cur_level_idx].w_sprite_index[editor_selected_map_idx];
+                break;
         }
         if(tex_ptr != NULL) {
-            if((key == KEY_R)) {
+            if (key == KEY_R) {
                 u8 ntex_idx = ((*tex_ptr)&0xF)+1;
                 if(ntex_idx > SKYBOX_TEX_IDX) {
                     ntex_idx = 0;
@@ -857,7 +975,7 @@ void handle_editor() {
                 }
                 *tex_ptr &= 0xF0;
                 *tex_ptr |= ntex_idx;
-            } else if ((key == KEY_F)) {
+            } else if (key == KEY_F) {
                 u8 ndec_idx = ((*tex_ptr)>>4) + 1;
                 if(ndec_idx >= NUM_DECALS) {
                     ndec_idx = 0;
@@ -867,7 +985,7 @@ void handle_editor() {
             } else {
                 u8 ntex_idx = ((*tex_ptr)&0xF);
                 for(int i = 0; i < NUM_TEXTURES; i++) {
-                    if((key == KEY_KP_0+i) || (key == ('0'+i))) {
+                    if ((key == KEY_KP_0+i) || (key == ('0'+i))) {
                         ntex_idx = i;
                         *tex_ptr &= 0xF0;
                         *tex_ptr |= ntex_idx;
@@ -876,13 +994,13 @@ void handle_editor() {
                 }
             }
         }
-        if(spr_ptr != NULL) {
-            if(spr_ptr->index == NUM_SPRITES-1) {
-                spr_ptr->index = EMPTY_SPRITE_INDEX;
-            } else if (spr_ptr->index == EMPTY_SPRITE_INDEX) {
-                spr_ptr->index = 0;
+        if(spr_ptr != NULL && key == KEY_R) {
+            if(*spr_ptr == NUM_SPRITES-1) {
+                *spr_ptr = EMPTY_SPRITE_INDEX;
+            } else if (*spr_ptr == EMPTY_SPRITE_INDEX) {
+                *spr_ptr = 0;
             } else {
-                spr_ptr->index++;
+                *spr_ptr = *spr_ptr+1;
             }
         }
     }
@@ -907,8 +1025,10 @@ void change_resolution() {
     cur_fov = res_is_wide[cur_render_res_idx] ? 100.0f : 85.0f;
     
     int prev_use_vsync = use_vsync;
+    int prev_fullscreen = fullscreen;
     use_vsync = requested_use_vsync;
-    if(prev_use_vsync != use_vsync) {
+    fullscreen = requested_fullscreen;
+    if(prev_use_vsync != use_vsync || prev_fullscreen != fullscreen) {
         CloseWindow();
         needs_window = 1;
     }
@@ -922,6 +1042,7 @@ void change_resolution() {
         //    SetConfigFlags(FLAG_VSYNC_HINT);
         //}
         //pitch = 0.0f;
+
         InitWindow(OUTPUT_WIDTH, OUTPUT_HEIGHT, "raycast");
 
         
@@ -930,6 +1051,7 @@ void change_resolution() {
     } else {
         SetWindowSize(OUTPUT_WIDTH, OUTPUT_HEIGHT);
     }   
+    
     if(use_vsync) {
         printf("opening window with vsync\n");
         SetWindowState(FLAG_VSYNC_HINT);
@@ -939,6 +1061,11 @@ void change_resolution() {
         ClearWindowState(FLAG_VSYNC_HINT);
         SetTargetFPS(12000);
         //SetTargetFPS(6000);
+    }        
+    if(fullscreen) {
+        SetWindowState(FLAG_FULLSCREEN_MODE);  
+    } else  {
+        SetWindowState(0);
     }
 
 
@@ -970,14 +1097,23 @@ draw_mode render_mode = PIXEL_BUFFER;
 
 float skybox_u_offset;
 
+float get_abs_time() {
+#ifdef PLATFORM_WEB 
+    return emscripten_get_now()/1000.0f;
+#else
+    return GetTime();
+#endif
+}
 
 void run_game() {
+#ifndef PLATFORM_WEB
     if(!IsWindowFocused()) {
         BeginDrawing();
         EndDrawing();
         return;
     }
-    float frame_start_time = GetTime();
+#endif
+    float frame_start_time = get_abs_time();
 
     Vector2 mouse_delta = GetMouseDelta();
 
@@ -1034,10 +1170,12 @@ void run_game() {
         
     } else if (IsKeyPressed(KEY_V)) {
         requested_use_vsync = !requested_use_vsync;
+    } else if (IsKeyPressed(KEY_F)) {
+        requested_fullscreen = !requested_fullscreen;
     }
 
     float frame_time_ms = GetFrameTime()*1000.0f;
-    if(requested_render_res != cur_render_res_idx || requested_render_scale != cur_render_scale || requested_use_vsync != use_vsync) {
+    if(requested_render_res != cur_render_res_idx || requested_render_scale != cur_render_scale || requested_use_vsync != use_vsync || requested_fullscreen != fullscreen) {
         float prev_pitch = pitch;
         change_resolution();
         pitch = prev_pitch;
@@ -1061,7 +1199,7 @@ void run_game() {
         for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
             z_buffer[i] = DARK_DIST;
         }
-        memset(draw_img.data, 0xFFFFFFFF, FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH*4);
+        //memset(draw_img.data, 0xFFFFFFFF, FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH*4);
         //z_buffer[(screen_x*FP_SCREEN_HEIGHT+y)] = 1024.0f;
         draw_first_person_level(draw_img.data, edit_id_buffer, z_buffer,
             0, FP_SCREEN_WIDTH, flash_frame, 
@@ -1072,23 +1210,16 @@ void run_game() {
         switch(render_mode) {
             case EDITOR_BUFFER:
                 //ClearBackground(BLACK);                
-                for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
-                    edit_wall_id w = edit_id_buffer[i];
-                    u32 r = (w.cell_idx>>5)<<3;
-                    u32 g = (w.cell_idx&0b11111)<<3;
-                    u32 b = w.side << 4;
 
-                    ((u32*)draw_img.data)[i] = (0xFF000000 | (b << 16) | (g << 8) | r);
-                }
-                UpdateTexture(draw_tex, (u32*)draw_img.data);
+                UpdateTexture(draw_tex, (u32*)edit_id_buffer); //draw_img.data);
                 break;
             case PIXEL_BUFFER:
                 UpdateTexture(draw_tex, (u32*)draw_img.data);
                 break;
             case Z_BUFFER:
                 ClearBackground(BLACK);
-                float recip_far = 1.0f/DARK_DIST;
-                float recip_near = 1.0f/NEAR_PLANE_DIST;
+                //float recip_far = 1.0f/DARK_DIST;
+                //float recip_near = 1.0f/NEAR_PLANE_DIST;
 
                 for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
                     float z = z_buffer[i];
@@ -1115,7 +1246,7 @@ void run_game() {
         DrawTextEx(font, buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
     } EndDrawing();
     frame++;
-    float frame_end_time = GetTime();
+    float frame_end_time = get_abs_time();
     running_time += (frame_end_time - frame_start_time);
 }
 
@@ -1138,7 +1269,7 @@ void init_game() {
 }
 
 int main(void) {
-    printf("SIZEOF LEVELS %llu\n", sizeof(levels));
+    printf("SIZEOF LEVELS %zu\n", sizeof(levels));
 
     init_game();
     change_resolution();
@@ -1156,6 +1287,8 @@ int main(void) {
 
     levels[cur_level_idx].start_x = player_x;
     levels[cur_level_idx].start_y = player_y;
+    levels[cur_level_idx].start_z = player_z;
+    levels[cur_level_idx].start_ang = player_ang;
     if(!SaveFileData(MAP_SAVE_FILE, levels, sizeof(levels))) {
         printf("Error saving file :(\n");
     }
