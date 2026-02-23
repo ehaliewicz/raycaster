@@ -16,4 +16,6 @@ void draw_first_person_level(
     int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side
 );
 
+void init_raycast_module();
+
 #endif 

@@ -32,11 +32,12 @@ typedef enum {
 extern u8 heightmap[32*32];
 
 #define NUM_CELL_TYPES 6
-#define NUM_TEXTURES 6
-#define NUM_DECALS 4
-#define BLANK_DECAL_IDX 0
-#define NUM_SPRITES 7
+#define NUM_TEXTURES 8
+#define NUM_SPRITES 19
+//#define NUM_DECALS 4
+//#define BLANK_DECAL_IDX 0
 
+#define EMPTY_SPRITE_INDEX 64
 #define SKYBOX_TEX_IDX 15
 
 #define MAP_SIZE 32
@@ -83,23 +84,9 @@ extern int cur_render_scale;
     #define NUM_THREADS 4
 #endif 
 
-#define EMPTY_SPRITE_INDEX 15
 
-typedef enum {
-    //CENTER=0,
-    NORTH=0,
-    EAST=1,
-    SOUTH=2,
-    WEST=3
-} sprite_location;
 
-typedef struct {
-    u8 index:4;
-    u8 is_fixed_rotation:1;
-    u8 loc:3;
-    //u8 sprite_is_fixed_to_top:1; // otherwise fixed to bottom
-    //u8 sprite_y_offset:7;
-} sprite_info;
+#define NUM_LEVELS 1
 
 typedef struct {
     int start_x, start_y, start_z; // map position on load
@@ -164,6 +151,11 @@ typedef struct {
     u8 ld_light[MAP_SIZE*MAP_SIZE];
 
     float start_ang;
+
+    u8 f_sprite_index[MAP_SIZE*MAP_SIZE];
+    u8 c_sprite_index[MAP_SIZE*MAP_SIZE];
+    u8 m_sprite_index[MAP_SIZE*MAP_SIZE];
+    u8 m_sprite_offset[MAP_SIZE*MAP_SIZE];
 } level;
 
 
@@ -183,7 +175,10 @@ typedef enum {
     WALL_SIDE_UPPER_DIAG,
     WALL_SIDE_LOWER_DIAG,
     CELL_SPRITE,
-    N_SPRITE, E_SPRITE, S_SPRITE, W_SPRITE
+    N_SPRITE, E_SPRITE, S_SPRITE, W_SPRITE,
+    FLOOR_SPRITE,
+    CEIL_SPRITE,
+    MIDDLE_SPRITE
 } editor_selected_thing;
 
 #define MIN(x,y) ((x)<(y)?(x):(y))
@@ -202,7 +197,6 @@ typedef enum {
 
 
 extern u8* textures[16];
-extern u8* decals[NUM_DECALS];
 extern u8* sprites[NUM_SPRITES];
 
 typedef u32 edit_wall_id;
@@ -239,6 +233,7 @@ typedef struct {
 extern int num_world_sprites;
 extern sprite_world_position world_sprite_positions[];
 
-float get_height_at_point(float px, float py, int return_ceil);
+float get_height_at_point_for_sprites(float px, float py, int return_ceil);
+float get_height_at_point(float px, float py, float pz, int return_ceil);
 
 #endif
