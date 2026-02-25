@@ -8,10 +8,9 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "time.h"
 
 #include "common.h"
-
+#include "entity.h"
 #include "raycast.h"
 
 typedef enum {
@@ -100,9 +99,9 @@ u32 urand() {
 
 
 
-u8* textures[16];
-u8* skybox;
-u8* sprites[NUM_SPRITES];
+u32* textures[16];
+u32* skybox;
+u32* sprites[NUM_SPRITES];
 
 
 
@@ -123,7 +122,7 @@ int disable_collision = 0;
 
 #define DOOR_FULLY_OPEN  200
 
-float get_height_at_point(float px, float py, float pz, int return_ceil) {
+float get_height_at_point(float px, float py, float pz, int return_ceil, int check_middle_sprite) {
     int map_x = px;
     int map_y = py;
     float subx = px - floorf(px);
@@ -171,10 +170,16 @@ float get_height_at_point(float px, float py, float pz, int return_ceil) {
         } else {
             ret_val = return_ceil ? upper_ceil : upper_floor;
         }
+    } else if (check_cell_type == DOOR_X) {
+        if(this_level->parameter[map_idx] >= DOOR_FULLY_OPEN || subx >= 0.25f) {
+            ret_val = return_ceil ? ceil : floor;
+        } else {
+            ret_val = return_ceil ? upper_ceil : upper_floor;
+        }
     } else {
         ret_val = return_ceil ? ceil : floor;
     }
-    if(this_level->m_sprite_index[map_idx] != EMPTY_SPRITE_INDEX) {
+    if(check_middle_sprite && this_level->m_sprite_index[map_idx] != EMPTY_SPRITE_INDEX) {
         int mid_sprite_height = floor + this_level->m_sprite_offset[map_idx];
         if(mid_sprite_height > ret_val && mid_sprite_height <= pz) {
             ret_val = mid_sprite_height;
@@ -244,8 +249,8 @@ int collides(float px, float py, float pz, level this_level) {
     //int y = py;
     //int idx = y*MAP_SIZE+x;
 
-    float floor_height = get_height_at_point(px, py, pz, 0);
-    float ceil_height = get_height_at_point(px, py, pz, 1);
+    float floor_height = get_height_at_point(px, py, pz, 0, 1);
+    float ceil_height = get_height_at_point(px, py, pz, 1, 1);
 
     //if(this_level.lower_cell_types[idx] == NE_TO_SW_DIAG || this_level.lower_cell_types[idx] == NW_TO_SE_DIAG) {
     //    floor = MAX(floor, this_level.upper_floor[idx]);
@@ -338,7 +343,8 @@ void update_player(float frame_time, Vector2 mouse_delta) {
             for(int y = start_y; y <= end_y; y++) {
                 for(int x = start_x; x <= end_x; x++) {
                     int map_idx = y*MAP_SIZE+x;
-                    if(levels[cur_level_idx].lower_cell_types[map_idx] == DOOR_Y) {
+                    int lower_cell_type = levels[cur_level_idx].lower_cell_types[map_idx];
+                    if(lower_cell_type == DOOR_Y || lower_cell_type == DOOR_X) {
                             door_timer_running = 1;
                             timer_door = map_idx;
                             start_open_time = get_running_time();
@@ -422,10 +428,10 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         floor = MAX(floor, levels[cur_level_idx].upper_floor[map_y*MAP_SIZE + map_x]);
     }
     
-    float lf_height = get_height_at_point(player_x-PLAYER_RADIUS, player_y, player_z, 0);
-    float rt_height = get_height_at_point(player_x+PLAYER_RADIUS, player_y, player_z, 0);
-    float tp_height = get_height_at_point(player_x, player_y-PLAYER_RADIUS, player_z, 0);
-    float bt_height = get_height_at_point(player_x, player_y+PLAYER_RADIUS, player_z, 0);
+    float lf_height = get_height_at_point(player_x-PLAYER_RADIUS, player_y, player_z, 0, 1);
+    float rt_height = get_height_at_point(player_x+PLAYER_RADIUS, player_y, player_z, 0, 1);
+    float tp_height = get_height_at_point(player_x, player_y-PLAYER_RADIUS, player_z, 0, 1);
+    float bt_height = get_height_at_point(player_x, player_y+PLAYER_RADIUS, player_z, 0, 1);
 
     //float exact_height = get_height_at_point(player_x, player_y, 0);
     float player_contact_height = player_z-PLAYER_HEIGHT;
@@ -510,6 +516,7 @@ void init_level(int fresh_map) {
     player_x = levels[cur_level_idx].start_x;
     player_y = levels[cur_level_idx].start_y;
     player_z = levels[cur_level_idx].start_z;
+
     if(fresh_map) {  
         player_x = 16;
         player_y = 16;
@@ -544,10 +551,49 @@ void init_level(int fresh_map) {
         }
     }
     for(int i = 0; i < MAP_SIZE*MAP_SIZE; i++) {
-       
+        if(levels[cur_level_idx].sprite_index[i] >= NUM_SPRITES) {
+            levels[cur_level_idx].sprite_index[i] = EMPTY_SPRITE_INDEX;
+        }
+        if(levels[cur_level_idx].n_sprite_index[i] >= NUM_SPRITES) {
+            levels[cur_level_idx].n_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        }
+        if(levels[cur_level_idx].e_sprite_index[i] >= NUM_SPRITES) {
+            levels[cur_level_idx].e_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        }
+        if(levels[cur_level_idx].s_sprite_index[i] >= NUM_SPRITES) {
+            levels[cur_level_idx].s_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        }
+        if(levels[cur_level_idx].w_sprite_index[i] >= NUM_SPRITES) {
+            levels[cur_level_idx].w_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        }
+        if(levels[cur_level_idx].f_sprite_index[i] >= NUM_SPRITES) {
+            levels[cur_level_idx].f_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        }
+        if(levels[cur_level_idx].c_sprite_index[i] >= NUM_SPRITES) {
+            levels[cur_level_idx].c_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        }
+        if(levels[cur_level_idx].m_sprite_index[i] >= NUM_SPRITES) {
+            levels[cur_level_idx].m_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        }
+        //levels[cur_level_idx].lntex[i] &= 0xF;
+        //levels[cur_level_idx].letex[i] &= 0xF;
+        //levels[cur_level_idx].lstex[i] &= 0xF;
+        //levels[cur_level_idx].lwtex[i] &= 0xF;
+        //levels[cur_level_idx].untex[i] &= 0xF;
+        //levels[cur_level_idx].uetex[i] &= 0xF;
+        //levels[cur_level_idx].ustex[i] &= 0xF;
+        //levels[cur_level_idx].uwtex[i] &= 0xF;
+        //levels[cur_level_idx].udtex[i] &= 0xF;
+        //levels[cur_level_idx].ldtex[i] &= 0xF;
+        //levels[cur_level_idx].ftex[i] &= 0xF;
+        //levels[cur_level_idx].uftex[i] &= 0xF;
+        //levels[cur_level_idx].ctex[i] &= 0xF;
+        //levels[cur_level_idx].uctex[i] &= 0xF;
+
+        //levels[cur_level_idx].m_sprite_index[i] = EMPTY_SPRITE_INDEX;
         
     }
-    player_z = get_height_at_point(player_x, player_y, player_z, 0) + PLAYER_HEIGHT;
+    player_z = get_height_at_point(player_x, player_y, player_z, 0, 1) + PLAYER_HEIGHT;
 
 }
 
@@ -572,7 +618,7 @@ typedef struct {
     const asset_type type;
 } asset;
 
-u8* camera_texture = NULL;
+u32* camera_texture = NULL;
 
 void load_resources() {
     font = LoadFont("C:/Windows/Fonts/courbd.ttf");
@@ -603,6 +649,8 @@ void load_resources() {
         {"GATO8.png", SPRITE},
         {"GATO9.png", SPRITE},
         {"GATO10.png", SPRITE},
+        {"fox1.png", SPRITE},
+        {"fox2.png", SPRITE},
     }; 
     const int num_assets = sizeof(assets) / sizeof(assets[0]);
 
@@ -610,7 +658,8 @@ void load_resources() {
     int tex_idx = 0;
     int sprite_idx = 0;
     size_t tex_num_bytes = sizeof(u8)*4*TEX_SIZE*TEX_SIZE;
-    u8* backing_texture_data = my_calloc(tex_num_bytes*(NUM_TEXTURES+NUM_SPRITES), "assets");
+    size_t tex_num_pixels = sizeof(u32)*TEX_SIZE*TEX_SIZE;
+    u32* backing_texture_data = my_calloc(sizeof(u32)*tex_num_pixels*(NUM_TEXTURES+NUM_SPRITES), "assets");
     for(int asset_idx = 0; asset_idx < num_assets; asset_idx++) {
         sprintf(buf, "resources/%s", assets[asset_idx].name);
         Image tex = LoadImage(buf);
@@ -619,9 +668,9 @@ void load_resources() {
             exit(1);
         }
 
-        u8* data_ptr = backing_texture_data+(tex_num_bytes*asset_idx);
-        //memcpy(data_ptr, tex.data, tex_num_bytes);
-        
+        u32* data_ptr = backing_texture_data+(tex_num_pixels*asset_idx);
+        memcpy(data_ptr, tex.data, tex_num_bytes);
+        /*
         int empty_rows = 0;
         int empty_cols_on_each_side = 0;
         if(tex.height < 32) {
@@ -635,7 +684,7 @@ void load_resources() {
         for(int x = empty_cols_on_each_side; x < 32-empty_cols_on_each_side; x++) {
             for(int y = empty_rows; y < 32; y++) {
 
-                u32 pix = ((u32*)tex.data)[idx++];
+                u32 pix = ((u32*)(tex.data))[idx++];
                 u32 a = (pix>>24)&0xFF;
                 u32 r = (pix>>16)&0xFF;
                 u32 g = (pix>>8)&0xFF;
@@ -644,9 +693,10 @@ void load_resources() {
                 r *= alpha;
                 g *= alpha;
                 b *= alpha;
-                ((u32*)data_ptr)[x*32+y] = (a<<24)|(r<<16)|(g<<8)|b;
+                data_ptr[x*32+y] = (a<<24)|(r<<16)|(g<<8)|b;
             }
         }
+        */
         
         UnloadImage(tex);
         switch(assets[asset_idx].type) {
@@ -659,7 +709,7 @@ void load_resources() {
         }
 
     }
-    camera_texture = my_calloc(32*32*sizeof(32), "camera texture");
+    camera_texture = my_calloc(32*32*sizeof(u32), "camera texture");
     textures[tex_idx++] = camera_texture;
 
 
@@ -1057,7 +1107,7 @@ Image draw_img;
 Texture2D draw_tex;
 int frame;
 
-u8* draw_pix = NULL;
+u32* draw_pix = NULL;
 float* z_buffer = NULL;
 int needs_window = 1;
 void change_resolution() {
@@ -1120,7 +1170,7 @@ void change_resolution() {
         //UnloadImage(draw_img);
         UnloadTexture(draw_tex);
     }
-    draw_pix = my_malloc(sizeof(u8)*4*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
+    draw_pix = my_malloc(sizeof(u32)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
     edit_id_buffer = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
     z_buffer = my_malloc(sizeof(float)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
 
@@ -1134,7 +1184,7 @@ void change_resolution() {
 
     draw_tex = LoadTextureFromImage(draw_img);
     // janky framebuffer texture :)
-    textures[NUM_TEXTURES-1] = draw_img.data;
+    textures[NUM_TEXTURES-1] = draw_pix;
 }
 
 
@@ -1229,6 +1279,7 @@ void run_game() {
     } else {
         update_player(frame_time_ms, mouse_delta);
     }
+    step_entities(player_x, player_y, player_z);
 
     float seconds = get_running_time();
     float quarter_seconds = seconds*4;
@@ -1248,7 +1299,7 @@ void run_game() {
         }
         //memset(draw_img.data, 0xFFFFFFFF, FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH*4);
         //z_buffer[(screen_x*FP_SCREEN_HEIGHT+y)] = 1024.0f;
-        draw_first_person_level(draw_img.data, edit_id_buffer, z_buffer,
+        draw_first_person_level(draw_pix, edit_id_buffer, z_buffer,
             0, FP_SCREEN_WIDTH, flash_frame, 
             &levels[cur_level_idx], player_x, player_y, player_z, -player_ang, pitch,
             editor_mode_enabled, editor_selected_map_idx, editor_selected_side
@@ -1260,7 +1311,7 @@ void run_game() {
                 UpdateTexture(draw_tex, (u32*)edit_id_buffer);
                 break;
             case PIXEL_BUFFER:
-                UpdateTexture(draw_tex, (u32*)draw_img.data);
+                UpdateTexture(draw_tex, (u32*)draw_pix);
                 break;
             case Z_BUFFER:
 
@@ -1290,36 +1341,42 @@ void run_game() {
 
     int scale_y = FP_SCREEN_HEIGHT/32;
     int scale_x = FP_SCREEN_WIDTH/32;
-    /*
-    for(int y = 0; y < 32; y++) {
-        for(int x = 0; x < 32; x++) {
-            float cr = 0;
-            float cg = 0;
-            float cb = 0;
-            for(int sy = 0; sy < scale_y; sy++) {
-                for(int sx = 0; sx < scale_x; sx++) {
-                    int fb_y = y*scale_y+sy;
-                    int fb_x = x*scale_x+sx;
-                    u32 sample = ((u32*)(draw_img.data))[fb_x*FP_SCREEN_HEIGHT+fb_y];
-                    float r = ((sample>>16)&0xFF)/255.0f;
-                    float g = ((sample>>8)&0xFF)/255.0f;
-                    float b = ((sample>>0)&0xFF)/255.0f;
-                    cr += r;
-                    cg += g;
-                    cb += b;
-                }
-            }
-            cr /= (scale_y*scale_x);
-            cg /= (scale_y*scale_x);
-            cb /= (scale_y*scale_x);
-            u32 intr = cr*255.0f;
-            u32 intg = cg*255.0f;
-            u32 intb = cb*255.0f;
+    
 
-            //((u32*)camera_texture)[((31-x)*32)+y] = (intr<<16)|(intg<<8)|(intb<<0);
+
+    if(0) {
+        for(int y = 0; y < 32; y++) {
+            for(int x = 0; x < 32; x++) {
+                int cr = 0;
+                int cg = 0;
+                int cb = 0;
+                for(int sy = 0; sy < scale_y; sy++) {
+                    for(int sx = 0; sx < scale_x; sx++) {
+                        int fb_y = y*scale_y+sy;
+                        int fb_x = x*scale_x+sx;
+                        u32 sample = draw_pix[fb_x*FP_SCREEN_HEIGHT+fb_y];
+                        float r = ((sample>>16)&0xFF);
+                        float g = ((sample>>8)&0xFF);
+                        float b = ((sample>>0)&0xFF);
+                        cr += r;
+                        cg += g;
+                        cb += b;
+                    }
+                }
+                cr /= (scale_y*scale_x);
+                cg /= (scale_y*scale_x);
+                cb /= (scale_y*scale_x);
+                u32 intr = CLAMP(cr, 0, 255);
+                u32 intg = CLAMP(cg, 0, 255);
+                u32 intb = CLAMP(cb, 0, 255);
+
+                camera_texture[((31-x)*32)+y] = (intr<<16)|(intg<<8)|(intb<<0);
+            }
         }
     }
-    */
+    
+    
+    
 
     frame++;
     float frame_end_time = get_abs_time();
@@ -1358,7 +1415,22 @@ int main(void) {
     emscripten_set_main_loop(run_game, 0, 1);
 #else 
     while(!WindowShouldClose()) {
-
+        if(IsKeyPressed(KEY_B)) {
+            spawn_entity(FOX, player_x, player_y, player_z, 0);
+        }
+        if(frame == 0) {
+            //spawn_entity(GATO, 12, 12, 13.5, 0);
+            //spawn_entity(FOX, 12, 13, 13.5, 0);
+        } else if (frame == 10) {
+            //spawn_entity(FOX, 3, 14, 15.5, 0);
+            //spawn_entity(GATO, 3, 13, 13.5, 0);
+        } else if (frame == 20) {
+            //spawn_entity(GATO, 3, 24, 15.5, 0);
+            //spawn_entity(FOX, 3, 23, 15.5, 0);
+        }else if (frame == 30) {
+            //spawn_entity(FOX, 14, 14, 15.5, 0);
+            //spawn_entity(GATO, 13, 14, 15.5, 0);
+        }
         run_game();
     }
 #endif

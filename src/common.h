@@ -24,21 +24,21 @@ typedef enum {
     SLOPE_Y=3,
     SLOPE_X=4,
     DOOR_Y=5,
-    //THIN_WALL_X=5,
-    //THIN_WALL_Y=6,
+    DOOR_X=6
+    //THIN_WALL_X=7,
+    //THIN_WALL_Y=8,
     //HEIGHTMAP=6
 } cell_types;
 
-extern u8 heightmap[32*32];
 
-#define NUM_CELL_TYPES 6
+#define NUM_CELL_TYPES 7
 #define NUM_TEXTURES 8
-#define NUM_SPRITES 19
+#define SKYBOX_TEX_IDX 15
+#define NUM_SPRITES 21
 //#define NUM_DECALS 4
 //#define BLANK_DECAL_IDX 0
 
 #define EMPTY_SPRITE_INDEX 64
-#define SKYBOX_TEX_IDX 15
 
 #define MAP_SIZE 32
 
@@ -196,8 +196,8 @@ typedef enum {
 
 
 
-extern u8* textures[16];
-extern u8* sprites[NUM_SPRITES];
+extern u32* textures[16];
+extern u32* sprites[NUM_SPRITES];
 
 typedef u32 edit_wall_id;
 
@@ -234,6 +234,6 @@ extern int num_world_sprites;
 extern sprite_world_position world_sprite_positions[];
 
 float get_height_at_point_for_sprites(float px, float py, int return_ceil);
-float get_height_at_point(float px, float py, float pz, int return_ceil);
+float get_height_at_point(float px, float py, float pz, int return_ceil, int check_middle_sprite);
 
 #endif
