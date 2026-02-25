@@ -328,6 +328,14 @@ typedef struct {
     sprite_cache_entry* sprite_cache;
 } thread_params;
 
+
+typedef struct {
+    int prev_drawn_top, prev_drawn_bot;
+    float proj_first_floor_near, proj_first_floor_far;
+    float proj_second_floor_near, proj_second_floor_far;
+    float proj_diag_low, proj_diag_high;
+} sector_draw_params;
+
 void draw_first_person_level_inner(
     u32* output, edit_wall_id* edit_id_buffer, float* z_buffer,
     int start_x, int end_x, 
@@ -349,7 +357,6 @@ void draw_first_person_level_inner(
     float start_cam_dir_x = cosf(cam_ang);
     float start_cam_dir_y = sinf(cam_ang);
 
-    
     for(int ix = start_x; ix < end_x; ix++) {
 
         float cam_dir_x = start_cam_dir_x;
@@ -401,10 +408,14 @@ void draw_first_person_level_inner(
         int map_y = floorf(ray_origin_y);
         
 
+        // these define where we exit a flat if we don't hit the corresponding side
+        // e.g. if we leave via a VERTICAL SIDE, then the U coord will be either 0 or 1
+        // if we leave via a HORIZONTAL side, the U coord will be either 0 or 1
         float def_exit_u = (ray_dir_x >= 0) ? 1.0f : 0.0f;
         float def_exit_v = (ray_dir_y >= 0) ? 1.0f : 0.0f;
-        float def_start_u = (ray_dir_x >= 0) ? 0.0f : 1.0f;
-        float def_start_v = (ray_dir_y >= 0) ? 0.0f : 1.0f;
+
+        float def_start_u = 1.0f - def_exit_u;//(ray_dir_x >= 0) ? 0.0f : 1.0f;
+        float def_start_v = 1.0f - def_exit_v; //(ray_dir_y >= 0) ? 0.0f : 1.0f;
         
         float flat_u = ray_origin_x - floorf(ray_origin_x);
         float flat_v = ray_origin_y - floorf(ray_origin_y);           // the u,v position of where we enter the next cell (which we use on the next iteration)
@@ -443,7 +454,6 @@ void draw_first_person_level_inner(
             float hit_x;
             float hit_y;
 
-            
             if(side_dist_x < side_dist_y) {
                 side_dist_x += delta_dist_x;
                 next_map_x = map_x + step_x;
@@ -1002,7 +1012,7 @@ void draw_first_person_level_inner(
                     }
 
 
-                } else if(lower_cell_type == NORMAL_CELL) {
+                } else if(lower_cell_type == NORMAL_CELL && !(ix == 256 && in_start_cell)) {
                 // draw normal no-diagonal floor
                     int proj_step_next_height = project_to_screen(first_floor_height, next_perp_dist, pitch, ray_origin_z);
                     if(proj_step_next_height < prev_drawn_bot) {

@@ -512,7 +512,7 @@ void draw_topdown_level() {
 
 
 void init_level(int fresh_map) {
-    player_ang =  levels[cur_level_idx].start_ang;
+    //player_ang =  levels[cur_level_idx].start_ang;
     player_x = levels[cur_level_idx].start_x;
     player_y = levels[cur_level_idx].start_y;
     player_z = levels[cur_level_idx].start_z;
@@ -575,6 +575,7 @@ void init_level(int fresh_map) {
         if(levels[cur_level_idx].m_sprite_index[i] >= NUM_SPRITES) {
             levels[cur_level_idx].m_sprite_index[i] = EMPTY_SPRITE_INDEX;
         }
+
         //levels[cur_level_idx].lntex[i] &= 0xF;
         //levels[cur_level_idx].letex[i] &= 0xF;
         //levels[cur_level_idx].lstex[i] &= 0xF;
@@ -1299,6 +1300,10 @@ void run_game() {
         }
         //memset(draw_img.data, 0xFFFFFFFF, FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH*4);
         //z_buffer[(screen_x*FP_SCREEN_HEIGHT+y)] = 1024.0f;
+        if(fabsf(player_ang) < 0.01f) {
+            player_ang = 0.01f;
+        }
+
         draw_first_person_level(draw_pix, edit_id_buffer, z_buffer,
             0, FP_SCREEN_WIDTH, flash_frame, 
             &levels[cur_level_idx], player_x, player_y, player_z, -player_ang, pitch,
