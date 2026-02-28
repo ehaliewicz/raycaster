@@ -34,9 +34,11 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite_no_depth_test(
     u32* output, float* z_buffer,
     u32 *tex_column,
     int x,
-    float y0, float y1, int prev_drawn_top, int prev_drawn_bot,
+    float y0, float y1, 
+    float v0, float v1,
+    int prev_drawn_top, int prev_drawn_bot,
     pegging_type peg_type,
-    float z, float light_factor, u32 fog_col);
+    float z, float light_factor, u32 fog_col); 
 
 void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
     u32* output, float* z_buffer, u32* texture, int x, int y0, int y1, float z0, float z1, float start_u, 

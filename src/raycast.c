@@ -1,84 +1,15 @@
 //author https://github.com/autergame
 
 #include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
 
 #include "common.h"
 #include "draw.h"
-#include "math.h"
-
-
-
-#ifndef PLATFORM_WEB 
-#include <windows.h>
-#include <synchapi.h>
-#include <winternl.h>
-
-#pragma comment(lib, "ntdll")
-
-
-typedef struct thread_pool_
-{
-    TP_CALLBACK_ENVIRON callback_environ;
-    PTP_CLEANUP_GROUP cleanup_group;
-    PTP_POOL pool;
-} thread_pool;
-
-#define thread_pool_function(function_name, arg_var_name) \
-    void CALLBACK function_name(PTP_CALLBACK_INSTANCE instance, PVOID arg_var_name, PTP_WORK work)
-
-
-
-thread_pool* thread_pool_create(int cpu_threads)
-{
-    assert(cpu_threads > 0);
-    thread_pool* tp = (thread_pool*)calloc(1, sizeof(thread_pool));
-
-    if (tp) {
-
-
-        InitializeThreadpoolEnvironment(&tp->callback_environ);
-
-        tp->pool = CreateThreadpool(NULL);
-
-        SetThreadpoolThreadMinimum(tp->pool, cpu_threads);
-        SetThreadpoolThreadMaximum(tp->pool, cpu_threads);
-
-        tp->cleanup_group = CreateThreadpoolCleanupGroup();
-
-        SetThreadpoolCallbackPool(&tp->callback_environ, tp->pool);
-        SetThreadpoolCallbackCleanupGroup(&tp->callback_environ, tp->cleanup_group, NULL);
-    }
-
-    return tp;
-}
-
-void thread_pool_add_work(thread_pool* tp, PTP_WORK_CALLBACK function, void* arg_var)
-{
-    if (tp)
-    {
-        PTP_WORK work = CreateThreadpoolWork(function, arg_var, &tp->callback_environ);
-        SubmitThreadpoolWork(work);
-    }
-}
-
-void thread_pool_destroy(thread_pool* tp)
-{
-    if (tp)
-    {
-        CloseThreadpoolCleanupGroupMembers(tp->cleanup_group, FALSE, NULL);
-        CloseThreadpoolCleanupGroup(tp->cleanup_group);
-
-        DestroyThreadpoolEnvironment(&tp->callback_environ);
-
-        CloseThreadpool(tp->pool);
-
-        free(tp);
-    }
-}
-#endif 
+#include "raycast.h"
+#include "thread.h"
 
 
 
@@ -88,8 +19,7 @@ void thread_pool_destroy(thread_pool* tp)
 //(4)
 #define HALF_SCREEN_HEIGHT (FP_SCREEN_HEIGHT/2)
 
-#define FOG_COL 0xFF000000
-//((255<<24)|(196<<16)|(162<<8)|(103<<0))
+#define FOG_COL ((255<<24)|(196<<16)|(162<<8)|(103<<0))
 
 int project_to_screen(float height, float dist, float pitch, float player_z) {
     return (pitch*(float)cur_render_height) + HALF_SCREEN_HEIGHT - (HEIGHT_SCALE * (((height- player_z) * FOCAL_LENGTH / dist) / MAX_WALL_HEIGHT)); 
@@ -106,10 +36,26 @@ typedef struct {
     float mid_flat_v;
 } diag_intersect;
 
-const float diag_dy[3] = {
+const float diag_dy[NUM_CELL_TYPES] = {
     1.0f, // dummy entry for normal walls
     -1.0f, // NE_TO_SW_DIAG
     1.0f,  // NW_TO_SE_DIAG
+    0.0f,// SLOPE_Y=3,
+    0.0f,// SLOPE_X=4,
+    0.0f,// DOOR_Y=5,
+    0.0f,// DOOR_X=6
+
+};
+
+const float diag_offsets[NUM_CELL_TYPES] = {
+    // normal walls
+    0.5f,// NE_TO_SW_DIAG
+    0.5f,// NW_TO_SE_DIAG
+    0.0f,// SLOPE_Y=3,
+    0.0f,// SLOPE_X=4,
+    0.0f,// DOOR_Y=5,
+    0.0f,// DOOR_X=6
+
 };
 
 float lerp(float start, float end, float amount)
@@ -125,9 +71,6 @@ float lerp(float start, float end, float amount)
 #define DIAG_LIGHT_FACTOR (0.87f)
 #define HORIZONTAL_LIGHT_FACTOR (0.75f)
 #define VERTICAL_LIGHT_FACTOR (1.0f)
-
-//int ray_vs_segment(diag_intersect *result, float ray_dir_x, float ray_dir_y, float cam_dir_x, float cam_dir_y, float player_x, float ray_origin_x, float ray_origin_y, int map_x, int map_y,
-//    float perp_dist)    
 
 
 #define EPSILON 1e-6f
@@ -249,7 +192,6 @@ int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
 }
 
 
-
 void set_byte_in_bitmap(u8* bitmap, int bit_idx) {
     int byte_idx = bit_idx>>3;
     int bit = bit_idx&0b111;
@@ -289,7 +231,8 @@ typedef struct {
     //u8 double_sided:1;
     u8 flat_sprite:1; // if it's a floor/ceiling/middle sprite or not
     u8 sprite_idx; // which sprite?
-    u8 bottom_height;
+    float bottom_height;
+    float top_height;
 } sprite_cache_entry;
 
 /*
@@ -329,13 +272,6 @@ typedef struct {
 } thread_params;
 
 
-typedef struct {
-    int prev_drawn_top, prev_drawn_bot;
-    float proj_first_floor_near, proj_first_floor_far;
-    float proj_second_floor_near, proj_second_floor_far;
-    float proj_diag_low, proj_diag_high;
-} sector_draw_params;
-
 void draw_first_person_level_inner(
     u32* output, edit_wall_id* edit_id_buffer, float* z_buffer,
     int start_x, int end_x, 
@@ -346,7 +282,8 @@ void draw_first_person_level_inner(
     u8* visited_cell_bitmap, sprite_cache_entry* sprite_cache
 ) {
     
-
+    ray_origin_x += 1e-6f;
+    cam_ang += 1e-4f;
 
     //u8* cur_level = this_level;
     u8* cur_level_floor = this_level->floor;
@@ -606,10 +543,13 @@ void draw_first_person_level_inner(
                 float sprite_bot_y = floor_height;
 
                 sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
+                sprite_cache[num_sprites_hit].top_height = sprite_bot_y+8.0f;
                 sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
                 sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
                 sprite_cache[num_sprites_hit].sprite_idx = hit_enter_sprite;
                 sprite_cache[num_sprites_hit].u0 = enter_sprite_wall_u;
+                sprite_cache[num_sprites_hit].v0 = 0.0f;
+                sprite_cache[num_sprites_hit].v1 = 1.0f;
                 sprite_cache[num_sprites_hit].map_idx = map_idx;
                 sprite_cache[num_sprites_hit].sprite_thg = enter_sprite_thg;
                 sprite_cache[num_sprites_hit].flat_sprite = 0;
@@ -618,12 +558,30 @@ void draw_first_person_level_inner(
             }
 
             if(hit_middle_sprite != EMPTY_SPRITE_INDEX) {
-                
-                float sprite_bot_y = floor_height + this_level->m_sprite_offset[map_idx];
+                float sprite_top_y = floor_height + this_level->m_sprite_offset[map_idx];
+                float sprite_bot_y = floor_height + this_level->m_sprite_offset[map_idx]-1.0f;
                 int screen_y_near = project_to_screen(sprite_bot_y, perp_dist, pitch, ray_origin_z);
+
+                // draw front "wall" of middle sprite
+                sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
+                sprite_cache[num_sprites_hit].top_height = sprite_top_y;
+                //sprite_cache[num_sprites_hit].top_height = sprite_top_y+32.0f;
+                sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
+                sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
+                sprite_cache[num_sprites_hit].sprite_idx = hit_middle_sprite;
+                sprite_cache[num_sprites_hit].u0 = wall_u;
+                sprite_cache[num_sprites_hit].v0 = 0.0f;
+                sprite_cache[num_sprites_hit].v1 = 4.0f/32.0f;
+
+                sprite_cache[num_sprites_hit].map_idx = map_idx;
+                sprite_cache[num_sprites_hit].sprite_thg = MIDDLE_SPRITE;
+                sprite_cache[num_sprites_hit].flat_sprite = 0;
+                sprite_cache[num_sprites_hit].light_factor = FLOOR_LIGHT_FACTOR;
+                sprite_cache[num_sprites_hit++].z0 = perp_dist;
+
                 if(sprite_bot_y < ray_origin_z) {
                     // bottom half
-                    sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
+                    sprite_cache[num_sprites_hit].bottom_height = sprite_top_y;
                     sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
                     sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
                     sprite_cache[num_sprites_hit].sprite_idx = hit_middle_sprite;
@@ -637,6 +595,7 @@ void draw_first_person_level_inner(
                     sprite_cache[num_sprites_hit].light_factor = FLOOR_LIGHT_FACTOR;
                     sprite_cache[num_sprites_hit].z0 = next_perp_dist;
                     sprite_cache[num_sprites_hit++].z1 = perp_dist;
+                    
                 } else {
                     // upper half
                     sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
@@ -653,7 +612,6 @@ void draw_first_person_level_inner(
                     sprite_cache[num_sprites_hit].light_factor = CEIL_LIGHT_FACTOR;
                     sprite_cache[num_sprites_hit].z0 = perp_dist;
                     sprite_cache[num_sprites_hit++].z1 = next_perp_dist;
-
                 }
             }
 
@@ -662,10 +620,13 @@ void draw_first_person_level_inner(
                 float sprite_bot_y = floor_height;
 
                 sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
+                sprite_cache[num_sprites_hit].top_height = sprite_bot_y+8.0f;
                 //sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
                 //sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
                 sprite_cache[num_sprites_hit].sprite_idx = hit_exit_sprite;
                 sprite_cache[num_sprites_hit].u0 = exit_sprite_wall_u;
+                sprite_cache[num_sprites_hit].v0 = 0.0f;
+                sprite_cache[num_sprites_hit].v1 = 1.0f;
                 sprite_cache[num_sprites_hit].map_idx = map_idx;
                 sprite_cache[num_sprites_hit].sprite_thg = exit_sprite_thg;
                 sprite_cache[num_sprites_hit].flat_sprite = 0;
@@ -781,7 +742,7 @@ void draw_first_person_level_inner(
                 if(!in_start_cell && !lower_step_slope && proj_floor_first_step_height < prev_drawn_bot) {
                     draw_lit_fogged_clipped_textured_wall(
                         output, z_buffer,
-                        ((lower_wall_tex) == SKYBOX_TEX_IDX),
+                        (lower_wall_tex == SKYBOX_TEX_IDX),
                         get_texture_column(textures[lower_wall_tex], wall_u),
                         screen_x, proj_floor_first_step_height, proj_zero_height,
                         first_floor_height, 0, BOTTOM_PEGGED,
@@ -1012,7 +973,7 @@ void draw_first_person_level_inner(
                     }
 
 
-                } else if(lower_cell_type == NORMAL_CELL && !(ix == 256 && in_start_cell)) {
+                } else if(lower_cell_type == NORMAL_CELL) {
                 // draw normal no-diagonal floor
                     int proj_step_next_height = project_to_screen(first_floor_height, next_perp_dist, pitch, ray_origin_z);
                     if(proj_step_next_height < prev_drawn_bot) {
@@ -1479,8 +1440,8 @@ void draw_first_person_level_inner(
 
                 } else {
                     
-                    int bot_height = sprite_cache[i].bottom_height;
-                    int top_height = bot_height + 8;
+                    float bot_height = sprite_cache[i].bottom_height;
+                    float top_height = sprite_cache[i].top_height;
                     float z = sprite_cache[i].z0;
                     float unclipped_y0 = project_to_screen(top_height, z, pitch, ray_origin_z);
                     float unclipped_y1 = project_to_screen(bot_height, z, pitch, ray_origin_z);
@@ -1488,6 +1449,7 @@ void draw_first_person_level_inner(
                     draw_lit_fogged_textured_z_buffered_blended_sprite_no_depth_test(
                         output, z_buffer, tex_col, screen_x, 
                         unclipped_y0, unclipped_y1, 
+                        spr.v0, spr.v1,
                         spr.prev_drawn_top, spr.prev_drawn_bot,
                         TOP_PEGGED, z, spr.light_factor, FOG_COL
                     );
@@ -1655,6 +1617,7 @@ thread_pool_function(raycast_wrapper, arg_var)
     );
     InterlockedIncrement64(&tp->finished);
 }
+
 thread_pool_function(draw_sprites_wrapper, arg_var)
 {
     thread_params* tp = (thread_params*)arg_var;
@@ -1663,7 +1626,7 @@ thread_pool_function(draw_sprites_wrapper, arg_var)
 }
 #endif
 
-#define MAX_REQUESTED_SPRITES 256
+#define MAX_REQUESTED_SPRITES 2048
 
 typedef struct { 
     float x, y, z;
@@ -1671,7 +1634,7 @@ typedef struct {
 } requested_sprite;
 
 int num_requested_sprites = 0;
-requested_sprite requested_sprites[MAX_REQUESTED_SPRITES];
+requested_sprite *requested_sprites;//[MAX_REQUESTED_SPRITES];
 
 void request_draw_sprite(float x, float y, float z, u8 image_idx) {
     if(num_requested_sprites < MAX_REQUESTED_SPRITES) {
@@ -1690,9 +1653,6 @@ void draw_first_person_level(
     level* this_level, 
     float player_x, float player_y, float player_z, float player_ang, float pitch,
     int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side) {
-
-
-
 
 
 #ifndef PLATFORM_WEB
@@ -1797,6 +1757,7 @@ void draw_first_person_level(
                 
             }
         }
+
         for(int i = 0; i < num_requested_sprites; i++) {
             transform_and_submit_sprite(player_x, player_y, player_z, right_x, right_y, forward_x, forward_y, requested_sprites[i].image_idx, requested_sprites[i].x, requested_sprites[i].y, requested_sprites[i].z, 0, 0);
         }
@@ -1832,13 +1793,14 @@ void draw_first_person_level(
 }
 
 void init_raycast_module() {
-    sprite_cache_entry *sprite_cache_block = malloc(sizeof(sprite_cache_entry)*NUM_THREADS*MAX_SPRITE_HITS);
-    u8* visited_cells_block = malloc(sizeof(u8)*NUM_THREADS*MAP_SIZE*MAP_SIZE/8);
+    sprite_cache_entry *sprite_cache_block = my_malloc(sizeof(sprite_cache_entry)*NUM_THREADS*MAX_SPRITE_HITS, "raycast sprite cache");
+    u8* visited_cells_block = my_malloc(sizeof(u8)*NUM_THREADS*MAP_SIZE*MAP_SIZE/8, "raycast visited cells bitmap");
     for(int i = 0; i < NUM_THREADS; i++) {
         per_thread_sprite_cache[i] = sprite_cache_block + (i*MAX_SPRITE_HITS);
         visited_cells[i] = visited_cells_block + (MAP_SIZE*MAP_SIZE/8);
     }
-    transformed_sprites = malloc(sizeof(transformed_sprite)*((MAP_SIZE*MAP_SIZE) + MAX_REQUESTED_SPRITES));
+    transformed_sprites = my_malloc(sizeof(transformed_sprite)*((MAP_SIZE*MAP_SIZE) + MAX_REQUESTED_SPRITES), "transformed billboard sprite buffer");
+    requested_sprites = my_malloc(sizeof(requested_sprite)*MAX_REQUESTED_SPRITES, "requested sprite buffer");
 }
 
 void downsample_framebuffer() {

@@ -10,7 +10,7 @@ typedef signed short s16;
 typedef signed long s32;
 typedef signed long long int s64;
 
-#define PLAYER_HEIGHT 5.5f
+#define PLAYER_HEIGHT 1.5f
 
 typedef enum {
     VERTICAL_SIDE = 0,
@@ -42,7 +42,7 @@ typedef enum {
 
 #define MAP_SIZE 32
 
-#define MAX_WALL_HEIGHT 32
+#define MAX_WALL_HEIGHT 64
 #define FOV (cur_fov*0.0174533f)
 #define VFOV (45.0f*0.0174533f)
 
@@ -99,9 +99,9 @@ typedef struct {
     u8 upper_floor[MAP_SIZE*MAP_SIZE], upper_ceil[MAP_SIZE*MAP_SIZE];
 
     // upper north, east, south, and west face textures (the vertical walls of the extruded ceiling)
-    u8 untex[MAP_SIZE*MAP_SIZE];
-    u8 uetex[MAP_SIZE*MAP_SIZE];
-    u8 ustex[MAP_SIZE*MAP_SIZE];
+    u8 untex[MAP_SIZE*MAP_SIZE]; // 3 bits!
+    u8 uetex[MAP_SIZE*MAP_SIZE]; // 3 bits!
+    u8 ustex[MAP_SIZE*MAP_SIZE]; // 3 bits
     u8 uwtex[MAP_SIZE*MAP_SIZE]; 
 
     // lower north, east, south, and west face textures (vertical walls of the extruded floor)
@@ -196,11 +196,12 @@ typedef enum {
 
 
 
-extern u32* textures[16];
-extern u32* sprites[NUM_SPRITES];
+extern u32** textures;//[16];
+extern u32** sprites;//[NUM_SPRITES];
 
 typedef u32 edit_wall_id;
 
+extern float player_x, player_y, player_z;
 extern float player_ang;
 extern float pitch;
 extern float skybox_u_offset;
@@ -235,5 +236,6 @@ extern sprite_world_position world_sprite_positions[];
 
 float get_height_at_point_for_sprites(float px, float py, int return_ceil);
 float get_height_at_point(float px, float py, float pz, int return_ceil, int check_middle_sprite);
-
+void* my_malloc(long long unsigned int bytes, char* for_str);
+void* my_calloc(long long unsigned int bytes, char* for_str);
 #endif

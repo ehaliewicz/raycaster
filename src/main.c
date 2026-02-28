@@ -11,6 +11,8 @@
 
 #include "common.h"
 #include "entity.h"
+#include "lz.h"
+#include "network.h"
 #include "raycast.h"
 
 typedef enum {
@@ -60,6 +62,20 @@ void handle_click(int render_x, int render_y) {
     editor_selected_side = (id>>16)&0xFF;// id.side;
 }
 
+
+//void log(char* )
+const char buf[80];
+void console_log(const char *format, ...) {
+    va_list arg;
+    int cnt;
+
+    //va_start(arg, format);
+    //vsprintf((char * __restrict__)buf, format, arg);
+    //va_end(arg);
+    // Analyze cnt and check for stream errors here
+    return; //(uintmax_t)cnt;
+}
+
 void* my_malloc(long long unsigned int bytes, char* for_str) {
     printf("Allocating %llu bytes for %s\n", bytes, for_str);
     return malloc(bytes);
@@ -99,9 +115,9 @@ u32 urand() {
 
 
 
-u32* textures[16];
+u32** textures;
 u32* skybox;
-u32* sprites[NUM_SPRITES];
+u32** sprites;//[NUM_SPRITES];
 
 
 
@@ -309,7 +325,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
                     player_y = floorf(player_y+1.0f)+PLAYER_RADIUS+0.1f;
                 } else if(int_open_amount >= DOOR_FULLY_OPEN) {
                     float max_y_in_cell = (((float)int_open_amount-DOOR_FULLY_OPEN)/(255-DOOR_FULLY_OPEN));
-                    printf("open %i max y %f\n", int_open_amount, max_y_in_cell);
+                    //printf("open %i max y %f\n", int_open_amount, max_y_in_cell);
                     if(suby > max_y_in_cell) {
                         player_y = floorf(player_y) + max_y_in_cell;
 
@@ -457,6 +473,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     float target_height = max_takeable_step+PLAYER_HEIGHT;
     if(editor_mode_enabled) {
         if(target_height > player_z) {
+            float dh = target_height-player_z;
             player_z += (target_height - player_z)*0.15;
         }
     } else {
@@ -512,7 +529,7 @@ void draw_topdown_level() {
 
 
 void init_level(int fresh_map) {
-    //player_ang =  levels[cur_level_idx].start_ang;
+    player_ang =  levels[cur_level_idx].start_ang;
     player_x = levels[cur_level_idx].start_x;
     player_y = levels[cur_level_idx].start_y;
     player_z = levels[cur_level_idx].start_z;
@@ -660,6 +677,10 @@ void load_resources() {
     int sprite_idx = 0;
     size_t tex_num_bytes = sizeof(u8)*4*TEX_SIZE*TEX_SIZE;
     size_t tex_num_pixels = sizeof(u32)*TEX_SIZE*TEX_SIZE;
+    
+    textures = my_malloc(sizeof(u32*)*16, "texture pointer array");
+    sprites = my_malloc(sizeof(u32*)*NUM_SPRITES, "sprite pointer array");
+
     u32* backing_texture_data = my_calloc(sizeof(u32)*tex_num_pixels*(NUM_TEXTURES+NUM_SPRITES), "assets");
     for(int asset_idx = 0; asset_idx < num_assets; asset_idx++) {
         sprintf(buf, "resources/%s", assets[asset_idx].name);
@@ -1189,6 +1210,8 @@ void change_resolution() {
 }
 
 
+void* udp_conn = NULL;
+
 float prev_frame_time = 0;
 draw_mode render_mode = PIXEL_BUFFER;
 
@@ -1280,7 +1303,26 @@ void run_game() {
     } else {
         update_player(frame_time_ms, mouse_delta);
     }
+
+    static float last_other_player_x, last_other_player_y, last_other_player_z;
+    static int got_other_player_pos;
+    // send and receive every 30 frames
+    float position[4] = {player_x, player_y, player_z, player_ang};
+    float other_position[4];
+    if(udp_frame(udp_conn, position, other_position, 1, ((frame&0b11)==0))) {
+        got_other_player_pos = 1;
+        last_other_player_x = other_position[0];
+        last_other_player_y = other_position[1];
+        last_other_player_z = other_position[2];
+        // we got a packet baybee
+    }
+
+    
+
     step_entities(player_x, player_y, player_z);
+    if(got_other_player_pos) {
+        request_draw_sprite(last_other_player_x, last_other_player_y, last_other_player_z-PLAYER_HEIGHT, 20);
+    }
 
     float seconds = get_running_time();
     float quarter_seconds = seconds*4;
@@ -1300,9 +1342,14 @@ void run_game() {
         }
         //memset(draw_img.data, 0xFFFFFFFF, FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH*4);
         //z_buffer[(screen_x*FP_SCREEN_HEIGHT+y)] = 1024.0f;
-        if(fabsf(player_ang) < 0.01f) {
-            player_ang = 0.01f;
-        }
+
+        // fixes a bug at angle zero
+        // the DDA algorithm had equal distance for both x and y steps
+        // and picking one by the normal rules causes a bug in certain places
+        // this removes any need for special casing inside the raycast function
+        //if(fabsf(player_ang) < 0.01f) {
+        //    player_ang = 0.01f;
+        //}
 
         draw_first_person_level(draw_pix, edit_id_buffer, z_buffer,
             0, FP_SCREEN_WIDTH, flash_frame, 
@@ -1393,35 +1440,89 @@ void run_game() {
 void init_game() {
 
     load_resources();
-    init_raycast_module();
+    
+    //int num_loaded_bytes;
+    //u8* loaded_bytes = LoadFileData(MAP_SAVE_FILE, &num_loaded_bytes);
     int num_loaded_bytes;
     u8* loaded_bytes = LoadFileData(MAP_SAVE_FILE, &num_loaded_bytes);
-    levels = malloc(sizeof(level)*NUM_LEVELS);
+    if(num_loaded_bytes == sizeof(level)*NUM_LEVELS) {
+        levels = (level*)loaded_bytes;
+    } else {
+        compressed* comp = (compressed*)loaded_bytes;
+
+        if(comp->uncompressed_size != sizeof(level)*NUM_LEVELS) {
+            //printf("error loading map!!!!!\n");
+            if(num_loaded_bytes == sizeof(level)*NUM_LEVELS) {
+
+            }
+            //exit(1);
+        }
+        u8* decompressed = decompress(comp);
+        levels = my_malloc(sizeof(level)*NUM_LEVELS, "level data");
+        memcpy(levels, decompressed, comp->uncompressed_size);
+        free(decompressed);
+        //levels = (level*)decompress(comp);
+    }
+    //levels = my_malloc(sizeof(level)*NUM_LEVELS, "levels");
+
 
     //init_level(1);
-    if(num_loaded_bytes == sizeof(level)*NUM_LEVELS) {
-        memcpy(levels, loaded_bytes, num_loaded_bytes); //sizeof(level)*NUM_LEVELS);
+    //if(num_loaded_bytes == sizeof(level)*NUM_LEVELS) {
+        //memcpy(levels, loaded_bytes, num_loaded_bytes); //sizeof(level)*NUM_LEVELS);
         printf("Loaded map data\n");
         init_level(0);
-    } else {
-        printf("Initializing new map data\n");
-        init_level(1);
-    }     
+    //} else {
+    //    printf("Initializing new map data\n");
+    //    init_level(1);
+    //}     
 }
 
-int main(void) {
-    printf("SIZEOF LEVELS %zu\n", sizeof(levels));
 
+
+int main(int argc, char** argv) {
+    if(argc > 1) {
+        if(strcmp(argv[1], "--client") == 0) {
+            if(argc != 3) {
+                printf("wtf bro, it's `--client [ip]\n");
+                exit(1);
+            }
+            udp_conn = setup_udp(argv[2], 0);
+        } else if (strcmp(argv[1], "--server") ==0) {
+            udp_conn = setup_udp("", 1);;
+        }
+    }
+    //printf("SIZEOF LEVELS %zu\n", sizeof(levels));
+
+    init_raycast_module();
+    init_entities_module();
     init_game();
     change_resolution();
     frame = 0;
+    int entities_woke = 0;
 
 #ifdef PLATFORM_WEB
     emscripten_set_main_loop(run_game, 0, 1);
 #else 
+
+    if(0) {
+        int ticks = 1;
+        for(int x = 1; x < 16; x++) {
+            for(int y = 1; y < 31; y++) {
+                spawn_entity(FOX, x, y, 8.5f, 0.0f, ticks++);
+                spawn_entity(FOX, x+0.5f, y, 8.5f, 0.0f, ticks++);
+                spawn_entity(FOX, x, y+0.5f, 8.5f, 0.0f, ticks++);
+                spawn_entity(FOX, x+0.5f, y+0.5f, 8.5f, 0.0f, ticks++);
+            }
+        }
+    }
+
     while(!WindowShouldClose()) {
         if(IsKeyPressed(KEY_B)) {
-            spawn_entity(FOX, player_x, player_y, player_z, 0);
+            //spawn_entity(FOX, player_x, player_y, player_z, 0, 2);
+        }
+        if(IsKeyPressed(KEY_ENTER) && !entities_woke) {
+            wakeup_entities(player_x, player_y, player_z);
+            entities_woke = 1;
         }
         if(frame == 0) {
             //spawn_entity(GATO, 12, 12, 13.5, 0);
@@ -1445,7 +1546,36 @@ int main(void) {
     levels[cur_level_idx].start_y = player_y;
     levels[cur_level_idx].start_z = player_z;
     levels[cur_level_idx].start_ang = player_ang;
-    if(!SaveFileData(MAP_SAVE_FILE, levels, sizeof(level)*NUM_LEVELS)) {
+
+
+
+    size_t level_size = sizeof(level)*NUM_LEVELS;
+    u8* level_data = (u8*)levels;
+    compressed* comp = compress(level_data, sizeof(level)*NUM_LEVELS);
+    size_t comp_size_bytes = ((comp->num_opcodes+7)>>3)+comp->num_operand_bytes;
+    printf("Compressed %llu down to %llu bytes\n", comp->uncompressed_size, sizeof(compressed)+comp_size_bytes);
+    u8* decomp = decompress(comp);
+
+    for(size_t i = 0; i < level_size; i++) {
+        if(level_data[i] != decomp[i]) {
+            printf("miscompare at %i\n", i);
+            exit(1);
+        }
+    }
+
+    if(!SaveFileData(MAP_SAVE_FILE, comp, sizeof(compressed)+comp_size_bytes)) {
+    //if(!SaveFileData(MAP_SAVE_FILE, levels, sizeof(level)*NUM_LEVELS)) {
         printf("Error saving file :(\n");
     }
+
+    u8 data[] = {
+        1,2,3,4,
+        2,3,4,
+        2,3,5,
+        5,6,7,
+    };
+    //compressed* comp = compress((u8*)data, sizeof(data));
+
+    //u8* decompressed = decompress(comp);
+
 }

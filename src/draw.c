@@ -281,15 +281,18 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite_no_depth_test(
     u32* output, float* z_buffer,
     u32 *tex_column,
     int x,
-    float y0, float y1, int prev_drawn_top, int prev_drawn_bot,
+    float y0, float y1, 
+    float v0, float v1,
+    int prev_drawn_top, int prev_drawn_bot,
     pegging_type peg_type,
     float z, float light_factor, u32 fog_col) {
     //return;
     float depth_scale = CLAMP(z / DARK_DIST, 0.0f, 1.0f);
     float inv_depth_scale = (1.0f - depth_scale);
     float mult = inv_depth_scale * light_factor;
-
-    float tex_per_pix = 32.0f / (y1-y0);
+    
+    float dv = (32.0f * (v1-v0));
+    float tex_per_pix = dv / (y1-y0);
 
     u32 fog_r = (fog_col >> 16)&0xFF;
     u32 fog_g = (fog_col >> 8)&0xFF;
@@ -302,7 +305,7 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite_no_depth_test(
             float old_z = z_buffer[x*FP_SCREEN_HEIGHT+y];
             u32 old_pix = output[x*FP_SCREEN_HEIGHT+y];
             int dy = y-y0;
-            int idx = (int)(dy*tex_per_pix)&31;
+            int idx = (int)(v0+dy*tex_per_pix)&31;
             u32 texel = tex_column[idx];
             u32 texel_a = ((texel >> 24) & 0xFF);
             float a = texel_a/255.0f;

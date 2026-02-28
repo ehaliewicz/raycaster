@@ -1,5 +1,5 @@
-#ifndef THREAD_H
-#define THREAD_H
+#ifndef RAYCAST_H
+#define RAYCAST_H
 
 #include "common.h"
 
@@ -19,5 +19,14 @@ void draw_first_person_level(
 void request_draw_sprite(float x, float y, float z, u8 image_idx);
 
 void init_raycast_module();
+
+
+typedef struct {
+    float x,y,z;
+} player_pos;
+
+
+extern player_pos pos0, pos1;
+extern player_pos *cur_other_player_pos;
 
 #endif 
