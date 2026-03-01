@@ -10,7 +10,7 @@ typedef signed short s16;
 typedef signed long s32;
 typedef signed long long int s64;
 
-#define PLAYER_HEIGHT 1.5f
+#define PLAYER_HEIGHT 5.5f
 
 typedef enum {
     VERTICAL_SIDE = 0,
@@ -24,14 +24,14 @@ typedef enum {
     SLOPE_Y=3,
     SLOPE_X=4,
     DOOR_Y=5,
-    DOOR_X=6
-    //THIN_WALL_X=7,
-    //THIN_WALL_Y=8,
+    DOOR_X=6,
+    THIN_WALL_X=7,
+    THIN_WALL_Y=8,
     //HEIGHTMAP=6
 } cell_types;
 
 
-#define NUM_CELL_TYPES 7
+#define NUM_CELL_TYPES 9
 #define NUM_TEXTURES 8
 #define SKYBOX_TEX_IDX 15
 #define NUM_SPRITES 21

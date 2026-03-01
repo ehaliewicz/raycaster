@@ -22,6 +22,7 @@ typedef struct {
 
 void* setup_udp(const char* peer_ip, int server_mode);
 
-int udp_frame(void* vconn, msg *send_msg, msg *recv_msg, int recv, int send);
+//int udp_frame(void* vconn, msg *send_msg, msg *recv_msg, int recv, int send);
+int udp_frame(void* vconn, float my_pos[4], float other_pos[4], int recv, int send);
 
 #endif 

@@ -107,22 +107,14 @@ compressed* compress(u8* data, int data_len) {
             output_byte(best_match_len-1);
             previous_was_copy_literal = 0;
         } else {
-            if(0) { //previous_was_copy_literal && previous_copy_literal_len < 256) {
-                //printf("incrementing previous literal with %i\n", data[idx]);
-                output_byte(data[idx]);
-                idx += 1;
-                operand_output_buf[previous_copy_len_idx]++;
-                previous_copy_literal_len++;
-            } else {
-                //printf("outputting literal %i\n", data[idx]);
-                output_bit(LITERAL_BIT);
-                previous_copy_len_idx = num_bytes;
-                //output_byte(0);
-                output_byte(data[idx]);
-                idx += 1;
-                previous_was_copy_literal = 1;
-                previous_copy_literal_len = 1;
-            }
+            //printf("outputting literal %i\n", data[idx]);
+            output_bit(LITERAL_BIT);
+            previous_copy_len_idx = num_bytes;
+            //output_byte(0);
+            output_byte(data[idx]);
+            idx += 1;
+            previous_was_copy_literal = 1;
+            previous_copy_literal_len = 1;
         }
     }
     int num_opcode_bytes = (num_bits+7)>>3;
@@ -152,22 +144,15 @@ u8* decompress(compressed* comp) {
         u8 opcode = (opcode_bytes[op>>3] >> (op&0b111)) & 0b1;
         if(opcode == COPY_BIT) {
             // copy
-
             int offset = operand_bytes[operand_idx++]+1;
             int copy_len = operand_bytes[operand_idx++]+1;
-            //printf("got match from %llu of len %llu\n", offset, copy_len);
             for(int i = 0; i < copy_len; i++) {
                 output[output_idx] = output[output_idx-offset];
                 output_idx++;
             }
         } else {
             // literal
-            //int literal_len = operand_bytes[operand_idx++]+1;
-            //printf("got literal of len %llu\n", literal_len);
-            //for(int i = 0; i < literal_len; i++) {
-                output[output_idx++] = operand_bytes[operand_idx++];
-            //}
-
+            output[output_idx++] = operand_bytes[operand_idx++];
         }
     }
 

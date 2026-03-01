@@ -3,8 +3,9 @@
 #include "emscripten.h"
 #include <emscripten/html5.h>
 #endif
-#include "math.h"   
-#include "raylib.h"
+#include "math.h"
+#include "platform_win.h"
+//#include "raylib.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -287,6 +288,7 @@ int collides(float px, float py, float pz, level this_level) {
 int door_timer_running = 0;
 int timer_door = 0; // the map idx of the door we're opening
 float start_open_time; // one second to open, one second open, one second to close?
+
 void update_player(float frame_time, Vector2 mouse_delta) {
     float y = sin(-player_ang);
     float x = cos(-player_ang);
@@ -302,6 +304,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     if(door_timer_running) {
         float cur_time = get_running_time();
         float open_time = cur_time-start_open_time;
+
         int int_open_amount = 0;
         if(open_time <= 1.0f) {
             int_open_amount = open_time*255.0f;
@@ -314,6 +317,10 @@ void update_player(float frame_time, Vector2 mouse_delta) {
             door_closing = 1;
             door_timer_running = 0;
         }
+
+
+        int_open_amount = CLAMP(int_open_amount, 0, 255);
+
         levels[cur_level_idx].parameter[timer_door] = int_open_amount;
         int pmx = player_x;
         int pmy = player_y;
@@ -1121,9 +1128,62 @@ void handle_editor() {
             }
         }
     }
-
-    
 }
+
+#ifdef CRT
+float row_lum_buf1[1921], row_lum_buf2[1921];
+
+void crt_shader(u32* fb) {
+    float *prev_row_buf = row_lum_buf1;
+    float *cur_row_buf = row_lum_buf2;
+
+    for(int x = 0; x < FP_SCREEN_WIDTH; x++) {
+        prev_row_buf[x] = 1.0f;
+    }
+
+    for(int y = 0; y < FP_SCREEN_HEIGHT; y++) {
+        if((y&1) == 0) {
+            for(int x = 0; x < FP_SCREEN_WIDTH; x++) {
+                fb[x*FP_SCREEN_HEIGHT+y] = 0xFF000000;
+            }
+        } else {
+            cur_row_buf[0] = 1.0f;
+            for(int x = 0; x < FP_SCREEN_WIDTH; x++) {
+                u32 pix = fb[x*FP_SCREEN_HEIGHT+y];
+                u32 up_pix = fb[x*FP_SCREEN_HEIGHT+y-1];
+                float r = ((pix>>16)&0xFF)/255.0f;
+                float g = ((pix>>8)&0xFF)/255.0f;
+                float b = ((pix>>0)&0xFF)/255.0f;
+                float up_r = ((up_pix>>16)&0xFF)/255.0f;
+                float up_g = ((up_pix>>8)&0xFF)/255.0f;
+                float up_b = ((up_pix>>0)&0xFF)/255.0f;
+                float quarter_up_lum = prev_row_buf[x+1];
+                float quarter_ul_lum = prev_row_buf[x];
+                float quarter_l_lum = cur_row_buf[x];
+                r = (r*0.75f) + (up_r*0.75f);
+                g = (g*0.75f) + (up_g*0.75f);
+                b = (b*0.75f) + (up_b*0.75f);
+
+                float cur_lum = (0.2126*r + 0.7152*g + 0.0722*b)*1.50f;
+                float quarter_cur_lum = cur_lum * 0.25f;
+                float actual_lum = CLAMP((quarter_up_lum + quarter_ul_lum + quarter_l_lum + quarter_cur_lum)/cur_lum, 0.0f, 1.0f);
+                r *= actual_lum;
+                g *= actual_lum;
+                b *= actual_lum;
+                u32 intr = (r*255.0f);
+                u32 intg = (g*255.0f);
+                u32 intb = (b*255.0f);
+
+                cur_row_buf[x+1] = quarter_cur_lum;
+                fb[x*FP_SCREEN_HEIGHT+y] = 0xFF000000 | (intr<<16) | (intg << 8) | (intb << 0);
+            }
+            float* tmp = cur_row_buf;
+            prev_row_buf = cur_row_buf;
+            cur_row_buf = tmp;
+        }
+    }
+}
+#endif
 
 Image draw_img;
 Texture2D draw_tex;
@@ -1309,13 +1369,13 @@ void run_game() {
     // send and receive every 30 frames
     float position[4] = {player_x, player_y, player_z, player_ang};
     float other_position[4];
-    if(udp_frame(udp_conn, position, other_position, 1, ((frame&0b11)==0))) {
-        got_other_player_pos = 1;
-        last_other_player_x = other_position[0];
-        last_other_player_y = other_position[1];
-        last_other_player_z = other_position[2];
-        // we got a packet baybee
-    }
+    //if(udp_frame(udp_conn, position, other_position, 1, ((frame&0b11)==0))) {
+    //    got_other_player_pos = 1;
+    //    last_other_player_x = other_position[0];
+    //    last_other_player_y = other_position[1];
+    //    last_other_player_z = other_position[2];
+    //    // we got a packet baybee
+    //}
 
     
 
@@ -1363,6 +1423,9 @@ void run_game() {
                 UpdateTexture(draw_tex, (u32*)edit_id_buffer);
                 break;
             case PIXEL_BUFFER:
+                //if(IsKeyDown(KEY_X)) {
+                //    crt_shader(draw_pix);
+                //}
                 UpdateTexture(draw_tex, (u32*)draw_pix);
                 break;
             case Z_BUFFER:
@@ -1483,7 +1546,7 @@ int main(int argc, char** argv) {
     if(argc > 1) {
         if(strcmp(argv[1], "--client") == 0) {
             if(argc != 3) {
-                printf("wtf bro, it's `--client [ip]\n");
+                printf("use `raycast.exe --client [ip]`\n");
                 exit(1);
             }
             udp_conn = setup_udp(argv[2], 0);
