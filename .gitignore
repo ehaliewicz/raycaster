@@ -1,4 +1,3 @@
-.vscode/
 out/*.exe
 src/save.dat
 out/release/*

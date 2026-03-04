@@ -1,0 +1,293 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "C/C++: gcc.exe debug build",
+            "command": "C:/msys64/ucrt64/bin/gcc.exe",
+            "args": [
+                "-Wpsabi",
+                //"-nostartfiles",
+                "-mwindows",
+                //"-nostdlib",
+                "-fdiagnostics-color=always",
+                "-IC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/include",
+                "-LC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib",
+                "-DDEBUG",
+                "-g",
+                "-ggdb",
+                "${workspaceFolder}/src/draw.c",
+                "${workspaceFolder}/src/thread.c",
+                "${workspaceFolder}/src/network.c",
+                "${workspaceFolder}/src/entity.c",
+                "${workspaceFolder}/src/lz.c",
+                "${workspaceFolder}/src/raycast.c",
+                "${workspaceFolder}/src/platform_win.c",
+                "${workspaceFolder}/src/my_defs.c",
+                "${workspaceFolder}/src/main.c",
+                "-Wextra",
+                "-Werror",
+                "-std=c2x",
+                "-lmingw32",
+                "-lraylib",
+                "-lopengl32",
+                "-lgcc",
+                "-lkernel32",
+                "-lmsvcrt",
+                "-lgdi32",
+                "-lwinmm",
+                "-lws2_32",
+                "-o",
+                "${workspaceFolder}/out/cl-debug.exe"
+            ],
+            "options": {
+                "cwd": "C:/msys64/ucrt64/bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "compiler: C:/msys64/ucrt64/bin/gcc.exe"
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: gcc.exe build tiny",
+            "command": "C:/msys64/ucrt64/bin/gcc.exe",
+            "args": [
+                "-nostartfiles", 
+                //"-ffreestanding", "-nostdlib",
+                "-mwindows",
+                "-mno-stack-arg-probe",
+                "-ffunction-sections", 
+                "-fdata-sections",
+                "-Os",
+                "-IC:/raylib/raylib/src",
+                "-LC:/raylib/raylib/src",
+                "-s",
+                "${workspaceFolder}/src/tiny2.c",
+                "${workspaceFolder}/src/tiny.c",
+                "-Wl,-Map=${workspaceFolder}/out/tiny.map,--gc-sections",
+                "-Xlinker", "--stack=0x100000,0x100000",
+                "-lkernel32",
+                "-lraylib",
+                "-lgdi32",
+                "-lwinmm",
+                "-lmsvcrt",
+                "-o",
+                "${workspaceFolder}/out/tiny.exe"
+            ],
+            "options": {
+                "cwd": "C:/msys64/ucrt64/bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "compiler: C:/msys64/ucrt64/bin/gcc.exe"
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: gcc.exe build raycaster",
+            "command": "C:/msys64/ucrt64/bin/gcc.exe",
+            "args": [
+                "-nostartfiles",
+                "-mconsole",
+                "-nostdlib",
+                //"-Wpsabi",
+                "-fdiagnostics-color=always",
+                //"-IC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/include",
+                //"-LC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib",
+                "-IC:/raylib/raylib/src",
+                "-LC:/raylib/raylib/src",
+                "-Os",
+                "-fno-builtin",
+                "-fno-trapping-math",
+                "-fno-math-errno",
+                "-ffp-contract=fast",
+                "-fno-inline",
+                "-fno-inline-functions",
+                "-fno-exceptions",
+                "-fno-asynchronous-unwind-tables",
+                "-mno-stack-arg-probe",
+                //"-flto",
+                //"-ffast-math",
+                //"-g",
+                //"-ggdb",
+                "-ftree-vectorize",
+                //"-fopt-info-vec-missed",
+                "-ffunction-sections", 
+                "-fdata-sections",
+                "-s",
+                "-fno-ident",
+                "${workspaceFolder}/src/entity.c",
+                "${workspaceFolder}/src/draw.c",
+                "${workspaceFolder}/src/thread.c",
+                "${workspaceFolder}/src/network.c",
+                "${workspaceFolder}/src/lz.c",
+                "${workspaceFolder}/src/platform_win.c",
+                "${workspaceFolder}/src/my_defs.c",
+                "${workspaceFolder}/src/main.c",
+                "${workspaceFolder}/src/raycast.c",
+                "-Wextra",
+                "-Werror",
+                "-Wl,-Map=${workspaceFolder}/out/raycast.map,--gc-sections",
+                //"-std=c2x",
+                //"-lmingw32",
+                "-lmsvcrt",
+                "-luser32",
+                //"-lraylib",
+                "-lopengl32",
+                "-lgcc",
+                "-lkernel32",
+                "-lgdi32",
+                //"-lwinmm",
+                //"-lws2_32",
+                //"-shared", "-o" ,"${workspaceFolder}/out/raycast.dll",
+                "-o",
+                "${workspaceFolder}/out/raycast.exe"
+            ],
+            "options": {
+                "cwd": "C:/msys64/ucrt64/bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "compiler: C:/msys64/ucrt64/bin/gcc.exe"
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: clang.exe build raycaster",
+            "command": "C:/Users/Erik/code/llvm-mingw-20251216-ucrt-x86_64/bin/clang.exe",
+            "args": [
+                "-Wpsabi",
+                "-fdiagnostics-color=always",
+                "-IC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/include",
+                "-LC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib",
+                "-O3",
+                //"-ffast-math",
+                //"-ggdb",
+                "-ftree-vectorize",
+                "${workspaceFolder}/src/entity.c",
+                "${workspaceFolder}/src/draw.c",
+                "${workspaceFolder}/src/thread.c",
+                "${workspaceFolder}/src/network.c",
+                "${workspaceFolder}/src/lz.c",
+                "${workspaceFolder}/src/raycast.c",
+                "${workspaceFolder}/src/platform_win.c",
+                "${workspaceFolder}/src/my_defs.c",
+                "${workspaceFolder}/src/main.c",
+                "-Wextra",
+                "-std=c2x",
+                "-lmingw32",
+                "-lraylib",
+                "-lopengl32",
+                "-lgdi32",
+                "-lwinmm",
+                "-lws2_32",
+                "-o",
+                "${workspaceFolder}/out/raycast.exe"
+            ],
+            "options": {
+                "cwd": "C:/msys64/ucrt64/bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "compiler: C:/Users/Erik/code/llvm-mingw-20251216-ucrt-x86_64/bin/clang.exe"
+        },
+        
+        {
+            "type": "cppbuild",
+            "label": "C/C++ gcc.exe debug build and run",
+            "dependsOn": [
+                "C/C++: gcc.exe debug build"
+            ],
+            "command": "${workspaceFolder}\\out\\cl-debug.exe",
+            "options": {
+                "cwd": "${workspaceFolder}\\out"
+            },
+            "args": [],
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++ gcc.exe build and run",
+            "dependsOn": [
+                "C/C++: gcc.exe build"
+            ],
+            "command": "${workspaceFolder}\\out\\cl.exe",
+            "options": {
+                "cwd": "${workspaceFolder}\\out"
+            },
+            "args": [],
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "activate emsdk env",
+            "command": [
+                "C:\\Users\\Erik\\code\\emsdk\\emsdk_env.bat"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: emscripten build",
+            "command": "emcc",
+            "args": [
+                "-o",
+                "${workspaceFolder}/out/index.html",
+                "${workspaceFolder}/src/entity.c",
+                "${workspaceFolder}/src/draw.c",
+                "${workspaceFolder}/src/thread.c",
+                "${workspaceFolder}/src/network.c",
+                "${workspaceFolder}/src/lz.c",
+                "${workspaceFolder}/src/raycast.c",
+                "${workspaceFolder}/src/platform_html.c",
+                "${workspaceFolder}/src/my_defs.c",
+                "${workspaceFolder}/src/main.c",
+                "-O2",
+                "-Wall",
+                "-IC:\\Users\\Erik\\code\\emsdk\\upstream\\emscripten\\cache\\sysroot\\include",
+                "-IC:\\Users\\Erik\\code\\raylib-5.5_webassembly\\include",
+                "-L.", "C:\\Users\\Erik\\code\\raylib-5.5_webassembly\\lib\\libraylib.a",
+                "-s","USE_GLFW=3",
+                "-s","ASYNCIFY",
+                "--shell-file","${workspaceFolder}\\shell.html",
+                "--preload-file","${workspaceFolder}\\out\\",
+                "--preload-file","${workspaceFolder}\\out\\map_save@map_save",
+                "-s","TOTAL_STACK=64MB",
+                "-s","INITIAL_MEMORY=600MB",
+                "-s","ASSERTIONS",
+                "-D","PLATFORM_WEB"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/src"
+            },
+            "dependsOn": [
+                "activate emsdk env"
+            ]
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++ gcc.exe build and run",
+            "dependsOn": [
+                "C/C++: gcc.exe build"
+            ],
+            "command": "${workspaceFolder}/out/cl.exe",
+            "options": {
+                "cwd": "${workspaceFolder}/out"
+            },
+            "args": [],
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}
