@@ -8,6 +8,7 @@
 #include <winternl.h>
 
 #include "common.h"
+#include "my_defs.h"
 #include "network.h"
 #include "raycast.h"
 #include "thread.h"
@@ -33,7 +34,7 @@ void* setup_udp(const char* peer_ip, int server_mode) {
     // 1️⃣ create UDP socket
     conn.sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (conn.sock == INVALID_SOCKET) {
-        printf("Failed to create socket\n");
+        debug_printf("Failed to create socket\n");
         return &conn;
     }
 
@@ -48,13 +49,13 @@ void* setup_udp(const char* peer_ip, int server_mode) {
         addr.sin_addr.s_addr = INADDR_ANY;
         bind(conn.sock, (struct sockaddr*)&addr, sizeof(addr));
         conn.peer_known = 0; // we don’t know client yet
-        printf("Server listening on port %d\n", SERVER_PORT);
+        debug_printf("Server listening on port %d\n", SERVER_PORT);
     } else {
         conn.peer_addr.sin_family = AF_INET;
         conn.peer_addr.sin_port = htons(SERVER_PORT);
         conn.peer_addr.sin_addr.s_addr = inet_addr(peer_ip);
         conn.peer_known = 1;
-        printf("Client sending to %s:%d\n", peer_ip, SERVER_PORT);
+        debug_printf("Client sending to %s:%d\n", peer_ip, SERVER_PORT);
     }
     conn.valid = 1;
     return &conn;
@@ -71,7 +72,7 @@ int udp_frame(void* vconn, float my_pos[4], float other_pos[4], int recv, int se
     }
 
     char buf[sizeof(float[4])];
-    memcpy(buf, my_pos, sizeof(float[4]));
+    my_memcpy(buf, my_pos, sizeof(float[4]));
 
     // 1️⃣ send to peer if known
     if (send && conn->peer_known) {
@@ -95,7 +96,7 @@ int udp_frame(void* vconn, float my_pos[4], float other_pos[4], int recv, int se
             }
 
             if (bytes == sizeof(float[4])) {
-                memcpy(other_pos, buf, sizeof(float[4]));
+                my_memcpy(other_pos, buf, sizeof(float[4]));
                 return 1;
             }
         }

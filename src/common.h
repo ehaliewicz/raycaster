@@ -32,7 +32,7 @@ typedef enum {
 
 
 #define NUM_CELL_TYPES 9
-#define NUM_TEXTURES 8
+#define NUM_TEXTURES 9
 #define SKYBOX_TEX_IDX 15
 #define NUM_SPRITES 21
 //#define NUM_DECALS 4
@@ -69,7 +69,7 @@ extern int cur_render_scale;
 
 #define NUM_LIGHT_LEVELS 4
 
-#define DARK_DIST 40.0f
+#define DARK_DIST 80.0f
 #define DARK_DIST_FIXED (32<<16)
 #define RECIP_DARK_DIST ((int)(65536.0f/32.0f))
 
@@ -156,6 +156,8 @@ typedef struct {
     u8 c_sprite_index[MAP_SIZE*MAP_SIZE];
     u8 m_sprite_index[MAP_SIZE*MAP_SIZE];
     u8 m_sprite_offset[MAP_SIZE*MAP_SIZE];
+    u8 floor_anchor[MAP_SIZE*MAP_SIZE];
+    u8 ceil_anchor[MAP_SIZE*MAP_SIZE];
 } level;
 
 
@@ -238,4 +240,15 @@ float get_height_at_point_for_sprites(float px, float py, int return_ceil);
 float get_height_at_point(float px, float py, float pz, int return_ceil, int check_middle_sprite);
 void* my_malloc(long long unsigned int bytes, char* for_str);
 void* my_calloc(long long unsigned int bytes, char* for_str);
+
+
+typedef struct {
+    float x;
+    float y;
+} Vector2;
+
+#define RAD2DEG (57.29577f)
+#define RED (0xFFFF0000)
+#define WHITE (0xFFFFFFFF)
+
 #endif

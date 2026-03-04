@@ -1,10 +1,11 @@
-#include "common.h"
-#include "entity.h"
-#include "raycast.h"
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+//#include <math.h>
+
+#include "common.h"
+#include "entity.h"
+#include "my_defs.h"
+#include "raycast.h"
 
 typedef enum {
     GATO_WANDER1=0,
@@ -111,11 +112,11 @@ int can_raycast_between_points(int start_x, int start_y, int start_z, int end_x,
     float dy = end_y - start_y;
     float dz = end_z - start_z;
 
-    float len = sqrtf(dx*dx+dy*dy+dz*dz);
+    float len = my_sqrtf(dx*dx+dy*dy+dz*dz);
     float vx = dx / len;
     float vy = dy / len;
     float vz = dz / len;
-    int steps = floorf(len)+1;
+    int steps = my_floorf(len)+1;
 
     float x = start_x;
     float y = start_y;
@@ -124,30 +125,30 @@ int can_raycast_between_points(int start_x, int start_y, int start_z, int end_x,
     y += vy;
     z += vz;
     for(int step = 1; step < steps; step++) {
-        //printf("test position %f, %f, %f\n", x, y, z);
+        //debug_printf("test position %f, %f, %f\n", x, y, z);
         float floor_height = get_height_at_point(x, y, z, 0, 0);
         float ceil_height = get_height_at_point(x, y, z, 1, 0);
         if(floor_height >= z) {
-            //printf("floor %f blocked entity line of sight\n", floor_height);
+            //debug_printf("floor %f blocked entity line of sight\n", floor_height);
             return 0;
         } else {
-            //printf("floor %f didn't block entity line of sight\n", floor_height);
+            //debug_printf("floor %f didn't block entity line of sight\n", floor_height);
         }
         if(ceil_height <= z) {
-            //printf("ceil blocked entity line of sight\n", ceil_height);
+            //debug_printf("ceil blocked entity line of sight\n", ceil_height);
             return 0;
         } else {
-            //printf("ceil %f didn't block entity line of sight\n", ceil_height);
+            //debug_printf("ceil %f didn't block entity line of sight\n", ceil_height);
         }
         if((int)(x) == end_x && (int)(y) == end_y && (int)(z) == end_z) {
-            //printf("raycast successfully\n");
+            //debug_printf("raycast successfully\n");
             return 1;
         }
         x += vx;
         y += vy;
         z += vz;
     }   
-    //printf("last position %f, %f, %f\n", x, y, z);
+    //debug_printf("last position %f, %f, %f\n", x, y, z);
     return 1;
 }
 
@@ -172,8 +173,8 @@ int collides_with_other_entity(obj* actor, float test_x, float test_y) {
 void move_random_dir(obj* actor) {
     int rand_ang = rand()%256;
     float rang = 6.28f*((float)rand_ang)/256.0f;
-    float y = sinf(rang)*obj_tmps[actor->type].wander_speed;
-    float x = cosf(rang)*obj_tmps[actor->type].wander_speed;
+    float y = my_sinf(rang)*obj_tmps[actor->type].wander_speed;
+    float x = my_cosf(rang)*obj_tmps[actor->type].wander_speed;
     float floor_height = get_height_at_point(actor->x+x, actor->y+y, actor->z, 0, 1);
     float ceil_height = get_height_at_point(actor->x+x, actor->y+y, actor->z, 1, 1);
 
@@ -200,7 +201,7 @@ void move_towards_last_seen_target_pos(obj* actor) {
     float dx = actor->lstx - actor->x;
     float dy = actor->lsty - actor->y;
     float dz = actor->lstz - actor->z;
-    float len = sqrtf(dx*dx+dy*dy);
+    float len = my_sqrtf(dx*dx+dy*dy);
     if(len < 0.1f) {
         return;
     }
@@ -213,12 +214,12 @@ void move_towards_last_seen_target_pos(obj* actor) {
     float floor_height = get_height_at_point(actor->x+x, actor->y+y, actor->z, 0, 1);
     float ceil_height = get_height_at_point(actor->x+x, actor->y+y, actor->z, 1, 1);
     if(ceil_height < actor->z + 2.0f) {
-        //printf("moving randomly\n");
+        //debug_printf("moving randomly\n");
         move_random_dir(actor);
         return;
     }
     if(floor_height > actor->z+2.0f) {
-        //printf("moving randomly\n");
+        //debug_printf("moving randomly\n");
         move_random_dir(actor);
         return;
     }
@@ -232,16 +233,16 @@ void move_towards_last_seen_target_pos(obj* actor) {
 }
 
 void wakeup_entity(obj* actor, float player_x, float player_y, float player_z) {
-    //printf("wakeup entity!!!!\n");
+    //debug_printf("wakeup entity!!!!\n");
     actor->state_idx = obj_tmps[actor->type].see_state;
-    //printf("going to state %i\n", actor->state_idx);
+    //debug_printf("going to state %i\n", actor->state_idx);
     actor->target = PLAYER_TARGET;
     actor->lstx = player_x;
     actor->lsty = player_y;
     actor->lstz = player_z;
 
     actor->ticks_til_next_state = obj_tmps[actor->type].react_time + rand()&15;
-    //printf("WAKEUP!!!!\n");
+    //debug_printf("WAKEUP!!!!\n");
 }
 
 void look_and_wander(obj* actor, float player_x, float player_y, float player_z) {
@@ -270,7 +271,7 @@ void follow_target(obj* actor, float player_x, float player_y, float player_z) {
 
     move_towards_last_seen_target_pos(actor);
 
-    //printf("follow target!\n");
+    //debug_printf("follow target!\n");
 }
 
 typedef enum {
@@ -400,7 +401,7 @@ void step_entities(float player_x, float player_y, float player_z) {
         }
         request_draw_sprite(entities[i].x, entities[i].y, entities[i].z, state.spr_idx);
     }
-    //printf("stepped %i entities\n", stepped);
+    //debug_printf("stepped %i entities\n", stepped);
 }
 
 void spawn_entity(int entity_type, float x, float y, float z, float ang, int ticks) {

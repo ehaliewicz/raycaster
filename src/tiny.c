@@ -18,7 +18,7 @@ int WinMainCRTStartup(void) {
     const int screenWidth = 800;
     const int screenHeight = 450;
     
-    //printf("is this running wtf\n");
+    //debug_printf("is this running wtf\n");
     
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
 

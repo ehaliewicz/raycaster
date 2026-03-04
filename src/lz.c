@@ -1,5 +1,6 @@
 #include "common.h"
 #include "lz.h"
+#include "my_defs.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,8 +8,8 @@
 #define MATCH_LEN_BITS 8
 #define MATCH_OFFSET_BITS 8
 
-#define MAX_OPCODES (1024*1024)
-#define MAX_OPERANDS (1024*1024)
+#define MAX_OPCODES (1024*1024*4)
+#define MAX_OPERANDS (1024*1024*4)
 int num_opcodes = 0;
 u8* opcode_output_buf = NULL;
 u8* operand_output_buf = NULL;
@@ -17,7 +18,7 @@ int num_bits = 0;
 
 void output_bit(u8 bit) {
     if((num_bits>>3) >= MAX_OPCODES) {
-        printf("error compressing map, too many lz opcodes\n");
+        debug_printf("error compressing map, too many lz opcodes\n");
         exit(1);
     }
     if(bit) {
@@ -31,7 +32,7 @@ void output_bit(u8 bit) {
 int num_bytes = 0;
 void output_byte(u8 byte) {
     if(num_bytes >= MAX_OPERANDS) {
-        printf("error compressing map, too many lz operands\n");
+        debug_printf("error compressing map, too many lz operands\n");
         exit(1);
     }
     operand_output_buf[num_bytes++] = byte;
@@ -99,7 +100,7 @@ compressed* compress(u8* data, int data_len) {
         }
 
         if(best_match_len >= 2) {
-            //printf("outputting match from %llu of len %llu\n", best_match_offset, best_match_len);
+            //debug_printf("outputting match from %llu of len %llu\n", best_match_offset, best_match_len);
             // got a copy that's worth it
             idx += best_match_len;
             output_bit(COPY_BIT);
@@ -107,7 +108,7 @@ compressed* compress(u8* data, int data_len) {
             output_byte(best_match_len-1);
             previous_was_copy_literal = 0;
         } else {
-            //printf("outputting literal %i\n", data[idx]);
+            //debug_printf("outputting literal %i\n", data[idx]);
             output_bit(LITERAL_BIT);
             previous_copy_len_idx = num_bytes;
             //output_byte(0);
@@ -119,12 +120,12 @@ compressed* compress(u8* data, int data_len) {
     }
     int num_opcode_bytes = (num_bits+7)>>3;
     int num_operand_bytes = num_bytes;
-    compressed* res = malloc(sizeof(compressed)+sizeof(u8)+(num_opcode_bytes+num_operand_bytes));
+    compressed* res = my_malloc(sizeof(compressed)+(num_opcode_bytes+num_operand_bytes), "compressed output");
     res->num_opcodes = num_bits;
     res->num_operand_bytes = num_operand_bytes;
     res->uncompressed_size = data_len;
-    memcpy(res->data, opcode_output_buf, num_opcode_bytes);
-    memcpy(res->data+num_opcode_bytes, operand_output_buf, num_operand_bytes);
+    my_memcpy(res->data, opcode_output_buf, num_opcode_bytes);
+    my_memcpy(res->data+num_opcode_bytes, operand_output_buf, num_operand_bytes);
     return res;
 }
 
@@ -132,7 +133,7 @@ compressed* compress(u8* data, int data_len) {
 u8* decompress(compressed* comp) {
     int num_opcodes = comp->num_opcodes;
     int num_operand_bytes = comp->num_operand_bytes;
-    u8* output = malloc(sizeof(u8)*comp->uncompressed_size);
+    u8* output = my_malloc(sizeof(u8)*comp->uncompressed_size, "decompressed output");
 
     int num_opcode_bytes = (num_opcodes+7)>>3;
     u8* opcode_bytes = comp->data;
@@ -157,7 +158,7 @@ u8* decompress(compressed* comp) {
     }
 
     if(output_idx != comp->uncompressed_size){
-        printf("WTF!!!\n");
+        debug_printf("Decompressed size doesn't match!\n");
     }
      return output;
 }

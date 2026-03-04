@@ -7,7 +7,6 @@
 
 #include "thread.h"
 
-#pragma comment(lib, "ntdll")
 
 
 thread_pool* thread_pool_create(int cpu_threads)
@@ -16,7 +15,6 @@ thread_pool* thread_pool_create(int cpu_threads)
     thread_pool* tp = (thread_pool*)calloc(1, sizeof(thread_pool));
 
     if (tp) {
-
 
         InitializeThreadpoolEnvironment(&tp->callback_environ);
 

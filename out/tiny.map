@@ -143,7 +143,7 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsv
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01142.o)
                               C:/raylib/raylib/src/libraylib.a(rtextures.o) (memcmp)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01144.o)
-                              C:/raylib/raylib/src/libraylib.a(rtextures.o) (memmove)
+                              C:/raylib/raylib/src/libraylib.a(rtextures.o) (my_memmove)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01147.o)
                               C:/raylib/raylib/src/libraylib.a(rcore.o) (strchr)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01148.o)
@@ -157,9 +157,9 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsv
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00084.o)
                               C:/raylib/raylib/src/libraylib.a(rtext.o) (acos)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00085.o)
-                              C:/raylib/raylib/src/libraylib.a(rcore.o) (acosf)
+                              C:/raylib/raylib/src/libraylib.a(rcore.o) (amy_cosf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00090.o)
-                              C:/raylib/raylib/src/libraylib.a(rcore.o) (asinf)
+                              C:/raylib/raylib/src/libraylib.a(rcore.o) (amy_sinf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00096.o)
                               C:/raylib/raylib/src/libraylib.a(rcore.o) (atan2f)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00135.o)
@@ -167,7 +167,7 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsv
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00154.o)
                               C:/raylib/raylib/src/libraylib.a(rtext.o) (cos)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00155.o)
-                              C:/raylib/raylib/src/libraylib.a(rcore.o) (cosf)
+                              C:/raylib/raylib/src/libraylib.a(rcore.o) (my_cosf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00200.o)
                               C:/raylib/raylib/src/libraylib.a(rcore.o) (floor)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00201.o)
@@ -197,7 +197,7 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsv
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00276.o)
                               C:/raylib/raylib/src/libraylib.a(rcore.o) (roundf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00285.o)
-                              C:/raylib/raylib/src/libraylib.a(rcore.o) (sinf)
+                              C:/raylib/raylib/src/libraylib.a(rcore.o) (my_sinf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00288.o)
                               C:/raylib/raylib/src/libraylib.a(rtext.o) (sqrt)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00289.o)
@@ -250,30 +250,30 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmin
                               C:/raylib/raylib/src/libraylib.a(rcore.o) (opendir)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-_stat.o)
                               C:/raylib/raylib/src/libraylib.a(rcore.o) (stat)
-C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
-                              C:/raylib/raylib/src/libraylib.a(rtextures.o) (__mingw_vfprintf)
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
+                              C:/raylib/raylib/src/libraylib.a(rtextures.o) (__mingw_vfdebug_printf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o)
                               C:/raylib/raylib/src/libraylib.a(rcore.o) (__mingw_vsscanf)
-C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
-                              C:/raylib/raylib/src/libraylib.a(rcore.o) (__mingw_vsnprintf)
-C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
-                              C:/raylib/raylib/src/libraylib.a(rcore.o) (__mingw_vsprintf)
-C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
-                              C:/raylib/raylib/src/libraylib.a(rcore.o) (acosf)
-C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
-                              C:/raylib/raylib/src/libraylib.a(rcore.o) (asinf)
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+                              C:/raylib/raylib/src/libraylib.a(rcore.o) (__mingw_vsndebug_printf)
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+                              C:/raylib/raylib/src/libraylib.a(rcore.o) (__mingw_vsdebug_printf)
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+                              C:/raylib/raylib/src/libraylib.a(rcore.o) (amy_cosf)
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
+                              C:/raylib/raylib/src/libraylib.a(rcore.o) (amy_sinf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-atan2f.o)
                               C:/raylib/raylib/src/libraylib.a(rcore.o) (atan2f)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-ceilf.o)
                               C:/raylib/raylib/src/libraylib.a(rshapes.o) (ceilf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cos.o)
                               C:/raylib/raylib/src/libraylib.a(rtext.o) (cos)
-C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
-                              C:/raylib/raylib/src/libraylib.a(rcore.o) (cosf)
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
+                              C:/raylib/raylib/src/libraylib.a(rcore.o) (my_cosf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosl_internal.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cos.o) (__cosl_internal)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cossin.o)
-                              C:/raylib/raylib/src/libraylib.a(rcore.o) (sincosf)
+                              C:/raylib/raylib/src/libraylib.a(rcore.o) (sinmy_cosf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-floor.o)
                               C:/raylib/raylib/src/libraylib.a(rcore.o) (floor)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-floorf.o)
@@ -286,8 +286,8 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmin
                               C:/raylib/raylib/src/libraylib.a(rcore.o) (log)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o)
                               C:/raylib/raylib/src/libraylib.a(rshapes.o) (pow)
-C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
-                              C:/raylib/raylib/src/libraylib.a(rcore.o) (sinf)
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
+                              C:/raylib/raylib/src/libraylib.a(rcore.o) (my_sinf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtof.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o) (__mingw_strtof)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtopx.o)
@@ -295,7 +295,7 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmin
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-powi.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o) (__powi)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_pformat.o)
-                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o) (__mingw_pformat)
+                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o) (__mingw_pformat)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-exp2l.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o) (exp2l)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-internal_logl.o)
@@ -305,7 +305,7 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmin
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-log2l.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o) (log2l)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sin.o)
-                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o) (sin)
+                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o) (sin)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinl_internal.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sin.o) (__sinl_internal)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-dmisc.o)
@@ -339,7 +339,7 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsv
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00156.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o) (mbrlen)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00159.o)
-                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_pformat.o) (memset)
+                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_pformat.o) (my_memset)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00178.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o) (tolower)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00190.o)
@@ -353,7 +353,7 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsv
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0s00103.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_pformat.o) (strerror)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01143.o)
-                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-_stat.o) (memcpy)
+                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-_stat.o) (my_memcpy)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-locale-l1-1-0s00019.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o) (localeconv)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-locale-l1-1-0h.o)
@@ -369,11 +369,11 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsv
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-filesystem-l1-1-0s00022.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-dirent.o) (_fullpath)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-filesystem-l1-1-0s00026.o)
-                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o) (_lock_file)
+                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o) (_lock_file)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-filesystem-l1-1-0s00037.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-_stat.o) (_stat64)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-filesystem-l1-1-0s00043.o)
-                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o) (_unlock_file)
+                              C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o) (_unlock_file)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-convert-l1-1-0s00094.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o) (mbrtowc)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-convert-l1-1-0s00104.o)
@@ -469,7 +469,7 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuse
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00887.o)
                               C:/raylib/raylib/src/libraylib.a(rglfw.o) (__imp_ToUnicode)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00880.o)
-                              C:/raylib/raylib/src/libraylib.a(rglfw.o) (__imp_SystemParametersInfoW)
+                              C:/raylib/raylib/src/libraylib.a(rglfw.o) (__imp_SystemParametermy_sinfoW)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00864.o)
                               C:/raylib/raylib/src/libraylib.a(rglfw.o) (__imp_ShowWindow)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00852.o)
@@ -1027,20 +1027,20 @@ Discarded input sections
  .debug_line_str
                 0x0000000000000000      0x129 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-_stat.o)
  .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-_stat.o)
- .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
- .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
- .debug_frame   0x0000000000000000       0x78 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
- .debug_info    0x0000000000000000      0x336 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
- .debug_abbrev  0x0000000000000000      0x10b C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
+ .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
+ .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
+ .debug_frame   0x0000000000000000       0x78 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
+ .debug_info    0x0000000000000000      0x336 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
+ .debug_abbrev  0x0000000000000000      0x10b C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
  .debug_loclists
-                0x0000000000000000       0x6d C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
+                0x0000000000000000       0x6d C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
  .debug_aranges
-                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
- .debug_line    0x0000000000000000       0x89 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
- .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
+                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
+ .debug_line    0x0000000000000000       0x89 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
+ .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
  .debug_line_str
-                0x0000000000000000       0xf1 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
- .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
+                0x0000000000000000       0xf1 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
+ .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
  .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o)
  .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o)
  .debug_frame   0x0000000000000000      0x3a8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o)
@@ -1057,62 +1057,62 @@ Discarded input sections
  .debug_line_str
                 0x0000000000000000      0x11c C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o)
  .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o)
- .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
- .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
- .debug_frame   0x0000000000000000       0x80 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
- .debug_info    0x0000000000000000      0x28e C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
- .debug_abbrev  0x0000000000000000       0xd1 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
+ .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+ .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+ .debug_frame   0x0000000000000000       0x80 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+ .debug_info    0x0000000000000000      0x28e C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+ .debug_abbrev  0x0000000000000000       0xd1 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
  .debug_loclists
-                0x0000000000000000       0xe5 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
+                0x0000000000000000       0xe5 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
  .debug_aranges
-                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
- .debug_line    0x0000000000000000       0xb1 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
- .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
+                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+ .debug_line    0x0000000000000000       0xb1 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+ .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
  .debug_line_str
-                0x0000000000000000       0xfe C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
- .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
- .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
- .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
- .debug_frame   0x0000000000000000       0x50 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
- .debug_info    0x0000000000000000      0x237 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
- .debug_abbrev  0x0000000000000000       0xc7 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
+                0x0000000000000000       0xfe C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+ .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+ .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+ .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+ .debug_frame   0x0000000000000000       0x50 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+ .debug_info    0x0000000000000000      0x237 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+ .debug_abbrev  0x0000000000000000       0xc7 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
  .debug_loclists
-                0x0000000000000000       0x67 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
+                0x0000000000000000       0x67 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
  .debug_aranges
-                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
- .debug_line    0x0000000000000000       0x85 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
- .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
+                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+ .debug_line    0x0000000000000000       0x85 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+ .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
  .debug_line_str
-                0x0000000000000000       0xf1 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
- .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
- .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
- .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
- .debug_frame   0x0000000000000000       0x40 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
- .debug_info    0x0000000000000000      0x174 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
- .debug_abbrev  0x0000000000000000       0x62 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
+                0x0000000000000000       0xf1 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+ .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+ .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+ .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+ .debug_frame   0x0000000000000000       0x40 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+ .debug_info    0x0000000000000000      0x174 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+ .debug_abbrev  0x0000000000000000       0x62 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
  .debug_loclists
-                0x0000000000000000       0x35 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
+                0x0000000000000000       0x35 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
  .debug_aranges
-                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
- .debug_line    0x0000000000000000       0x68 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
- .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
+                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+ .debug_line    0x0000000000000000       0x68 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+ .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
  .debug_line_str
-                0x0000000000000000       0xc2 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
- .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
- .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
- .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
- .debug_frame   0x0000000000000000       0x40 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
- .debug_info    0x0000000000000000       0xc8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
- .debug_abbrev  0x0000000000000000       0x62 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
+                0x0000000000000000       0xc2 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+ .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+ .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
+ .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
+ .debug_frame   0x0000000000000000       0x40 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
+ .debug_info    0x0000000000000000       0xc8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
+ .debug_abbrev  0x0000000000000000       0x62 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
  .debug_loclists
-                0x0000000000000000       0x35 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
+                0x0000000000000000       0x35 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
  .debug_aranges
-                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
- .debug_line    0x0000000000000000       0x5d C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
- .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
+                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
+ .debug_line    0x0000000000000000       0x5d C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
+ .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
  .debug_line_str
-                0x0000000000000000       0xa0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
- .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
+                0x0000000000000000       0xa0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
+ .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
  .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-atan2f.o)
  .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-atan2f.o)
  .debug_frame   0x0000000000000000       0x40 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-atan2f.o)
@@ -1153,20 +1153,20 @@ Discarded input sections
  .debug_line_str
                 0x0000000000000000       0xc8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cos.o)
  .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cos.o)
- .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
- .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
- .debug_frame   0x0000000000000000       0x40 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
- .debug_info    0x0000000000000000      0x190 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
- .debug_abbrev  0x0000000000000000       0x7e C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
+ .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
+ .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
+ .debug_frame   0x0000000000000000       0x40 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
+ .debug_info    0x0000000000000000      0x190 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
+ .debug_abbrev  0x0000000000000000       0x7e C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
  .debug_loclists
-                0x0000000000000000       0x20 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
+                0x0000000000000000       0x20 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
  .debug_aranges
-                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
- .debug_line    0x0000000000000000       0x67 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
- .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
+                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
+ .debug_line    0x0000000000000000       0x67 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
+ .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
  .debug_line_str
-                0x0000000000000000       0xbf C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
- .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
+                0x0000000000000000       0xbf C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
+ .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
  .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosl_internal.o)
  .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosl_internal.o)
  .debug_line    0x0000000000000000       0x5a C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosl_internal.o)
@@ -1271,20 +1271,20 @@ Discarded input sections
  .debug_line_str
                 0x0000000000000000       0xc8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o)
  .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o)
- .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
- .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
- .debug_frame   0x0000000000000000       0x40 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
- .debug_info    0x0000000000000000      0x190 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
- .debug_abbrev  0x0000000000000000       0x7e C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
+ .data          0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
+ .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
+ .debug_frame   0x0000000000000000       0x40 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
+ .debug_info    0x0000000000000000      0x190 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
+ .debug_abbrev  0x0000000000000000       0x7e C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
  .debug_loclists
-                0x0000000000000000       0x20 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
+                0x0000000000000000       0x20 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
  .debug_aranges
-                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
- .debug_line    0x0000000000000000       0x67 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
- .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
+                0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
+ .debug_line    0x0000000000000000       0x67 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
+ .debug_str     0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
  .debug_line_str
-                0x0000000000000000       0xbf C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
- .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
+                0x0000000000000000       0xbf C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
+ .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
  .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtof.o)
  .debug_frame   0x0000000000000000       0x48 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtof.o)
  .debug_info    0x0000000000000000      0x3f1 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtof.o)
@@ -2136,7 +2136,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .text          0x00000001400010e0        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01142.o)
                 0x00000001400010e0                memcmp
  .text          0x00000001400010e8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01144.o)
-                0x00000001400010e8                memmove
+                0x00000001400010e8                my_memmove
  .text          0x00000001400010f0        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01147.o)
                 0x00000001400010f0                strchr
  .text          0x00000001400010f8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01148.o)
@@ -2190,32 +2190,32 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x0000000140001980                seekdir
  .text          0x0000000140001a80      0x1e0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-_stat.o)
                 0x0000000140001a80                stat
- .text          0x0000000140001c60       0x50 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
-                0x0000000140001c60                __mingw_vfprintf
+ .text          0x0000000140001c60       0x50 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
+                0x0000000140001c60                __mingw_vfdebug_printf
  .text          0x0000000140001cb0     0x4030 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o)
                 0x0000000140005c50                __mingw_vfscanf
                 0x0000000140005c90                __mingw_vsscanf
- .text          0x0000000140005ce0       0x60 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
-                0x0000000140005ce0                __mingw_vsnprintf
- .text          0x0000000140005d40       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
-                0x0000000140005d40                __mingw_vsprintf
- .text          0x0000000140005d70       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
-                0x0000000140005d70                acosf
- .text          0x0000000140005da0       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
-                0x0000000140005da0                asinf
+ .text          0x0000000140005ce0       0x60 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+                0x0000000140005ce0                __mingw_vsndebug_printf
+ .text          0x0000000140005d40       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+                0x0000000140005d40                __mingw_vsdebug_printf
+ .text          0x0000000140005d70       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+                0x0000000140005d70                amy_cosf
+ .text          0x0000000140005da0       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
+                0x0000000140005da0                amy_sinf
  .text          0x0000000140005dd0       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-atan2f.o)
                 0x0000000140005dd0                atan2f
  .text          0x0000000140005e00       0xd0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-ceilf.o)
                 0x0000000140005e00                ceilf
  .text          0x0000000140005ed0      0x110 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cos.o)
                 0x0000000140005ed0                cos
- .text          0x0000000140005fe0       0x20 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
-                0x0000000140005fe0                cosf
+ .text          0x0000000140005fe0       0x20 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
+                0x0000000140005fe0                my_cosf
  .text          0x0000000140006000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosl_internal.o)
                 0x0000000140006000                __cosl_internal
  .text          0x0000000140006030       0xb0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cossin.o)
                 0x0000000140006030                sincos
-                0x0000000140006070                sincosf
+                0x0000000140006070                sinmy_cosf
                 0x00000001400060b0                sincosl
  .text          0x00000001400060e0      0x1b0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-floor.o)
                 0x00000001400060e0                floor
@@ -2229,8 +2229,8 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x0000000140006320                log
  .text          0x0000000140006450      0x630 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o)
                 0x00000001400064f0                pow
- .text          0x0000000140006a80       0x20 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
-                0x0000000140006a80                sinf
+ .text          0x0000000140006a80       0x20 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
+                0x0000000140006a80                my_sinf
  .text          0x0000000140006aa0       0xa0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtof.o)
                 0x0000000140006aa0                __strtof
                 0x0000000140006aa0                __mingw_strtof
@@ -2307,7 +2307,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .text          0x000000014000f480        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00156.o)
                 0x000000014000f480                mbrlen
  .text          0x000000014000f488        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00159.o)
-                0x000000014000f488                memset
+                0x000000014000f488                my_memset
  .text          0x000000014000f490        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00178.o)
                 0x000000014000f490                tolower
  .text          0x000000014000f498        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00190.o)
@@ -2321,7 +2321,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .text          0x000000014000f4b8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0s00103.o)
                 0x000000014000f4b8                strerror
  .text          0x000000014000f4c0        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01143.o)
-                0x000000014000f4c0                memcpy
+                0x000000014000f4c0                my_memcpy
  .text          0x000000014000f4c8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-locale-l1-1-0s00019.o)
                 0x000000014000f4c8                localeconv
  .text          0x000000014000f4d0        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-filesystem-l1-1-0s00009.o)
@@ -4731,7 +4731,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x0000000140041a80       0x70 C:/raylib/raylib/src/libraylib.a(rglfw.o)
  .text$fitToMonitor
                 0x0000000140041af0       0x80 C:/raylib/raylib/src/libraylib.a(rglfw.o)
- .text$fprintf.constprop.0
+ .text$fdebug_printf.constprop.0
                 0x0000000140041b70       0x30 C:/raylib/raylib/src/libraylib.a(utils.o)
  .text$getEGLConfigAttrib
                 0x0000000140041ba0       0x30 C:/raylib/raylib/src/libraylib.a(rglfw.o)
@@ -5250,7 +5250,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x000000014004ea80       0xb0 C:/raylib/raylib/src/libraylib.a(rcore.o)
  .text$parseMapping
                 0x000000014004eb30      0x520 C:/raylib/raylib/src/libraylib.a(rglfw.o)
- .text$printf   0x000000014004f050       0x50 C:/raylib/raylib/src/libraylib.a(rtextures.o)
+ .text$debug_printf   0x000000014004f050       0x50 C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .text$qoi_decode
                 0x000000014004f0a0      0x2c0 C:/raylib/raylib/src/libraylib.a(rtextures.o)
                 0x000000014004f0a0                qoi_decode
@@ -5794,26 +5794,26 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .text$sdeflate
                 0x00000001400571f0       0x10 C:/raylib/raylib/src/libraylib.a(rcore.o)
                 0x00000001400571f0                sdeflate
- .text$sinfl_adler32.constprop.0
+ .text$my_sinfl_adler32.constprop.0
                 0x0000000140057200      0x100 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .text$sinfl_build
+ .text$my_sinfl_build
                 0x0000000140057300      0x2c0 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .text$sinfl_decode
+ .text$my_sinfl_decode
                 0x00000001400575c0       0x70 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .text$sinfl_decompress
+ .text$my_sinfl_decompress
                 0x0000000140057630      0x690 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .text$sinfl_refill
+ .text$my_sinfl_refill
                 0x0000000140057cc0       0x90 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .text$sinflate
+ .text$my_sinflate
                 0x0000000140057d50       0x10 C:/raylib/raylib/src/libraylib.a(rcore.o)
-                0x0000000140057d50                sinflate
- .text$snprintf.constprop.0
+                0x0000000140057d50                my_sinflate
+ .text$sndebug_printf.constprop.0
                 0x0000000140057d60       0x30 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .text$sprintf  0x0000000140057d90       0x30 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .text$sprintf  0x0000000140057dc0       0x30 C:/raylib/raylib/src/libraylib.a(rtextures.o)
- .text$sprintf  0x0000000140057df0       0x30 C:/raylib/raylib/src/libraylib.a(rtext.o)
- .text$sprintf  0x0000000140057e20       0x30 C:/raylib/raylib/src/libraylib.a(utils.o)
- .text$sprintf  0x0000000140057e50       0x30 C:/raylib/raylib/src/libraylib.a(rglfw.o)
+ .text$sdebug_printf  0x0000000140057d90       0x30 C:/raylib/raylib/src/libraylib.a(rcore.o)
+ .text$sdebug_printf  0x0000000140057dc0       0x30 C:/raylib/raylib/src/libraylib.a(rtextures.o)
+ .text$sdebug_printf  0x0000000140057df0       0x30 C:/raylib/raylib/src/libraylib.a(rtext.o)
+ .text$sdebug_printf  0x0000000140057e20       0x30 C:/raylib/raylib/src/libraylib.a(utils.o)
+ .text$sdebug_printf  0x0000000140057e50       0x30 C:/raylib/raylib/src/libraylib.a(rglfw.o)
  .text$sscanf   0x0000000140057e80       0x30 C:/raylib/raylib/src/libraylib.a(rcore.o)
  .text$sscanf   0x0000000140057eb0       0x30 C:/raylib/raylib/src/libraylib.a(rtext.o)
  .text$sscanf.constprop.0
@@ -6712,7 +6712,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x000000014007a0c0                stbir_set_user_data
  .text$stbir_simd_ceilf
                 0x000000014007a0e0       0x30 C:/raylib/raylib/src/libraylib.a(rtextures.o)
- .text$stbir_simd_memcpy
+ .text$stbir_simd_my_memcpy
                 0x000000014007a110      0x110 C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .text$stbiw__encode_png_line
                 0x000000014007a220      0x270 C:/raylib/raylib/src/libraylib.a(rtextures.o)
@@ -6854,9 +6854,9 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .text$zsdeflate
                 0x00000001400801b0       0xc0 C:/raylib/raylib/src/libraylib.a(rcore.o)
                 0x00000001400801b0                zsdeflate
- .text$zsinflate
+ .text$zmy_sinflate
                 0x0000000140080270       0x50 C:/raylib/raylib/src/libraylib.a(rcore.o)
-                0x0000000140080270                zsinflate
+                0x0000000140080270                zmy_sinflate
  *(.text.*)
  *(.gnu.linkonce.t.*)
  *(.glue_7t)
@@ -10869,7 +10869,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .pdata$CursorEnterCallback
                 0x00000001400c31d4        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .pdata$sscanf  0x00000001400c31e0        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
- .pdata$sinfl_refill
+ .pdata$my_sinfl_refill
                 0x00000001400c31ec        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .pdata$msf_free_gif_state
                 0x00000001400c31f8        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
@@ -10883,7 +10883,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400c3228        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .pdata$SetDimensionsFromMonitor
                 0x00000001400c3234        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
- .pdata$sprintf
+ .pdata$sdebug_printf
                 0x00000001400c3240        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .pdata$KeyCallback
                 0x00000001400c324c        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
@@ -10901,13 +10901,13 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400c3294        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .pdata$WindowDropCallback
                 0x00000001400c32a0        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
- .pdata$sinfl_adler32.constprop.0
+ .pdata$my_sinfl_adler32.constprop.0
                 0x00000001400c32ac        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
- .pdata$sinfl_build
+ .pdata$my_sinfl_build
                 0x00000001400c32b8        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
- .pdata$snprintf.constprop.0
+ .pdata$sndebug_printf.constprop.0
                 0x00000001400c32c4        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
- .pdata$sinfl_decode
+ .pdata$my_sinfl_decode
                 0x00000001400c32d0        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .pdata$sdefl_match_codes
                 0x00000001400c32dc        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
@@ -10915,7 +10915,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400c32e8        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .pdata$sdefl_compr
                 0x00000001400c32f4        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
- .pdata$sinfl_decompress
+ .pdata$my_sinfl_decompress
                 0x00000001400c3300        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .pdata$gladLoadGLUserPtr
                 0x00000001400c330c        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
@@ -11576,9 +11576,9 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400c4284        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .pdata$msf_gif_end_to_file
                 0x00000001400c4290        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
- .pdata$sinflate
+ .pdata$my_sinflate
                 0x00000001400c429c        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
- .pdata$zsinflate
+ .pdata$zmy_sinflate
                 0x00000001400c42a8        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .pdata$sdeflate
                 0x00000001400c42b4        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
@@ -12277,7 +12277,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400c52f8        0xc C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .pdata$stbiw__writefv
                 0x00000001400c5304        0xc C:/raylib/raylib/src/libraylib.a(rtextures.o)
- .pdata$stbir_simd_memcpy
+ .pdata$stbir_simd_my_memcpy
                 0x00000001400c5310        0xc C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .pdata$stbir__resample_horizontal_gather
                 0x00000001400c531c        0xc C:/raylib/raylib/src/libraylib.a(rtextures.o)
@@ -12453,10 +12453,10 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400c5718        0xc C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .pdata$stbir__horizontal_gather_3_channels_with_n_coeffs_mod0
                 0x00000001400c5724        0xc C:/raylib/raylib/src/libraylib.a(rtextures.o)
- .pdata$printf  0x00000001400c5730        0xc C:/raylib/raylib/src/libraylib.a(rtextures.o)
+ .pdata$debug_printf  0x00000001400c5730        0xc C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .pdata$stbi__stdio_write
                 0x00000001400c573c        0xc C:/raylib/raylib/src/libraylib.a(rtextures.o)
- .pdata$sprintf
+ .pdata$sdebug_printf
                 0x00000001400c5748        0xc C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .pdata$stbir__half_to_float_SIMD
                 0x00000001400c5754        0xc C:/raylib/raylib/src/libraylib.a(rtextures.o)
@@ -13242,7 +13242,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .pdata$sscanf  0x00000001400c69a8        0xc C:/raylib/raylib/src/libraylib.a(rtext.o)
  .pdata$stbtt__tesselate_cubic
                 0x00000001400c69b4        0xc C:/raylib/raylib/src/libraylib.a(rtext.o)
- .pdata$sprintf
+ .pdata$sdebug_printf
                 0x00000001400c69c0        0xc C:/raylib/raylib/src/libraylib.a(rtext.o)
  .pdata$rect_height_compare
                 0x00000001400c69cc        0xc C:/raylib/raylib/src/libraylib.a(rtext.o)
@@ -13398,9 +13398,9 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400c6d50        0xc C:/raylib/raylib/src/libraylib.a(rtext.o)
  .pdata$GetCodepointPrevious
                 0x00000001400c6d5c        0xc C:/raylib/raylib/src/libraylib.a(rtext.o)
- .pdata$sprintf
+ .pdata$sdebug_printf
                 0x00000001400c6d68        0xc C:/raylib/raylib/src/libraylib.a(utils.o)
- .pdata$fprintf.constprop.0
+ .pdata$fdebug_printf.constprop.0
                 0x00000001400c6d74        0xc C:/raylib/raylib/src/libraylib.a(utils.o)
  .pdata$SetTraceLogCallback
                 0x00000001400c6d80        0xc C:/raylib/raylib/src/libraylib.a(utils.o)
@@ -13548,7 +13548,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400c70d4        0xc C:/raylib/raylib/src/libraylib.a(rglfw.o)
  .pdata$deviceObjectCallback
                 0x00000001400c70e0        0xc C:/raylib/raylib/src/libraylib.a(rglfw.o)
- .pdata$sprintf
+ .pdata$sdebug_printf
                 0x00000001400c70ec        0xc C:/raylib/raylib/src/libraylib.a(rglfw.o)
  .pdata$initJoysticks
                 0x00000001400c70f8        0xc C:/raylib/raylib/src/libraylib.a(rglfw.o)
@@ -14149,16 +14149,16 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .pdata         0x00000001400c7efc        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sqrtf.o)
  .pdata         0x00000001400c7f08       0x48 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-dirent.o)
  .pdata         0x00000001400c7f50        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-_stat.o)
- .pdata         0x00000001400c7f5c        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
+ .pdata         0x00000001400c7f5c        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
  .pdata         0x00000001400c7f68       0x6c C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o)
- .pdata         0x00000001400c7fd4        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
- .pdata         0x00000001400c7fe0        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
- .pdata         0x00000001400c7fec        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
- .pdata         0x00000001400c7ff8        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
+ .pdata         0x00000001400c7fd4        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+ .pdata         0x00000001400c7fe0        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+ .pdata         0x00000001400c7fec        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+ .pdata         0x00000001400c7ff8        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
  .pdata         0x00000001400c8004        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-atan2f.o)
  .pdata         0x00000001400c8010        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-ceilf.o)
  .pdata         0x00000001400c801c        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cos.o)
- .pdata         0x00000001400c8028        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
+ .pdata         0x00000001400c8028        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
  .pdata         0x00000001400c8034       0x24 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cossin.o)
  .pdata         0x00000001400c8058        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-floor.o)
  .pdata         0x00000001400c8064        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-floorf.o)
@@ -14166,7 +14166,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .pdata         0x00000001400c807c        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmodf.o)
  .pdata         0x00000001400c8088        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-log.o)
  .pdata         0x00000001400c8094       0x18 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o)
- .pdata         0x00000001400c80ac        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
+ .pdata         0x00000001400c80ac        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
  .pdata         0x00000001400c80b8        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtof.o)
  .pdata         0x00000001400c80c4        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtopx.o)
  .pdata         0x00000001400c80d0        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-powi.o)
@@ -14269,7 +14269,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .xdata$CursorEnterCallback
                 0x00000001400c918c        0x4 C:/raylib/raylib/src/libraylib.a(rcore.o)
  .xdata$sscanf  0x00000001400c9190        0x8 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .xdata$sinfl_refill
+ .xdata$my_sinfl_refill
                 0x00000001400c9198        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .xdata$msf_free_gif_state
                 0x00000001400c91a4        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
@@ -14283,7 +14283,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400c91c0       0x18 C:/raylib/raylib/src/libraylib.a(rcore.o)
  .xdata$SetDimensionsFromMonitor
                 0x00000001400c91d8        0x8 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .xdata$sprintf
+ .xdata$sdebug_printf
                 0x00000001400c91e0        0x8 C:/raylib/raylib/src/libraylib.a(rcore.o)
  .xdata$KeyCallback
                 0x00000001400c91e8        0x4 C:/raylib/raylib/src/libraylib.a(rcore.o)
@@ -14301,13 +14301,13 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400c920c        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .xdata$WindowDropCallback
                 0x00000001400c9218       0x10 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .xdata$sinfl_adler32.constprop.0
+ .xdata$my_sinfl_adler32.constprop.0
                 0x00000001400c9228        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
- .xdata$sinfl_build
+ .xdata$my_sinfl_build
                 0x00000001400c9234       0x18 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .xdata$snprintf.constprop.0
+ .xdata$sndebug_printf.constprop.0
                 0x00000001400c924c        0x8 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .xdata$sinfl_decode
+ .xdata$my_sinfl_decode
                 0x00000001400c9254        0x4 C:/raylib/raylib/src/libraylib.a(rcore.o)
  .xdata$sdefl_match_codes
                 0x00000001400c9258        0x8 C:/raylib/raylib/src/libraylib.a(rcore.o)
@@ -14315,7 +14315,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400c9260       0x18 C:/raylib/raylib/src/libraylib.a(rcore.o)
  .xdata$sdefl_compr
                 0x00000001400c9278       0x18 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .xdata$sinfl_decompress
+ .xdata$my_sinfl_decompress
                 0x00000001400c9290       0x18 C:/raylib/raylib/src/libraylib.a(rcore.o)
  .xdata$gladLoadGLUserPtr
                 0x00000001400c92a8       0x18 C:/raylib/raylib/src/libraylib.a(rcore.o)
@@ -14976,9 +14976,9 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400ca268        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .xdata$msf_gif_end_to_file
                 0x00000001400ca274        0x8 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .xdata$sinflate
+ .xdata$my_sinflate
                 0x00000001400ca27c        0x4 C:/raylib/raylib/src/libraylib.a(rcore.o)
- .xdata$zsinflate
+ .xdata$zmy_sinflate
                 0x00000001400ca280        0xc C:/raylib/raylib/src/libraylib.a(rcore.o)
  .xdata$sdeflate
                 0x00000001400ca28c        0x4 C:/raylib/raylib/src/libraylib.a(rcore.o)
@@ -15677,7 +15677,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400cb624        0x8 C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .xdata$stbiw__writefv
                 0x00000001400cb62c       0x10 C:/raylib/raylib/src/libraylib.a(rtextures.o)
- .xdata$stbir_simd_memcpy
+ .xdata$stbir_simd_my_memcpy
                 0x00000001400cb63c        0x8 C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .xdata$stbir__resample_horizontal_gather
                 0x00000001400cb644        0x8 C:/raylib/raylib/src/libraylib.a(rtextures.o)
@@ -15853,10 +15853,10 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400cbb00       0x10 C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .xdata$stbir__horizontal_gather_3_channels_with_n_coeffs_mod0
                 0x00000001400cbb10        0x8 C:/raylib/raylib/src/libraylib.a(rtextures.o)
- .xdata$printf  0x00000001400cbb18        0x8 C:/raylib/raylib/src/libraylib.a(rtextures.o)
+ .xdata$debug_printf  0x00000001400cbb18        0x8 C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .xdata$stbi__stdio_write
                 0x00000001400cbb20        0x4 C:/raylib/raylib/src/libraylib.a(rtextures.o)
- .xdata$sprintf
+ .xdata$sdebug_printf
                 0x00000001400cbb24        0x8 C:/raylib/raylib/src/libraylib.a(rtextures.o)
  .xdata$stbir__half_to_float_SIMD
                 0x00000001400cbb2c       0x24 C:/raylib/raylib/src/libraylib.a(rtextures.o)
@@ -16642,7 +16642,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .xdata$sscanf  0x00000001400cd4cc        0x8 C:/raylib/raylib/src/libraylib.a(rtext.o)
  .xdata$stbtt__tesselate_cubic
                 0x00000001400cd4d4       0x38 C:/raylib/raylib/src/libraylib.a(rtext.o)
- .xdata$sprintf
+ .xdata$sdebug_printf
                 0x00000001400cd50c        0x8 C:/raylib/raylib/src/libraylib.a(rtext.o)
  .xdata$rect_height_compare
                 0x00000001400cd514        0x4 C:/raylib/raylib/src/libraylib.a(rtext.o)
@@ -16798,9 +16798,9 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400cda10        0x8 C:/raylib/raylib/src/libraylib.a(rtext.o)
  .xdata$GetCodepointPrevious
                 0x00000001400cda18        0x8 C:/raylib/raylib/src/libraylib.a(rtext.o)
- .xdata$sprintf
+ .xdata$sdebug_printf
                 0x00000001400cda20        0x8 C:/raylib/raylib/src/libraylib.a(utils.o)
- .xdata$fprintf.constprop.0
+ .xdata$fdebug_printf.constprop.0
                 0x00000001400cda28        0x8 C:/raylib/raylib/src/libraylib.a(utils.o)
  .xdata$SetTraceLogCallback
                 0x00000001400cda30        0x4 C:/raylib/raylib/src/libraylib.a(utils.o)
@@ -16948,7 +16948,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000001400cdc50        0x8 C:/raylib/raylib/src/libraylib.a(rglfw.o)
  .xdata$deviceObjectCallback
                 0x00000001400cdc58       0x10 C:/raylib/raylib/src/libraylib.a(rglfw.o)
- .xdata$sprintf
+ .xdata$sdebug_printf
                 0x00000001400cdc68        0x8 C:/raylib/raylib/src/libraylib.a(rglfw.o)
  .xdata$initJoysticks
                 0x00000001400cdc70        0x8 C:/raylib/raylib/src/libraylib.a(rglfw.o)
@@ -17549,16 +17549,16 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .xdata         0x00000001400ce850        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sqrtf.o)
  .xdata         0x00000001400ce85c       0x48 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-dirent.o)
  .xdata         0x00000001400ce8a4       0x10 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-_stat.o)
- .xdata         0x00000001400ce8b4        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfprintf.o)
+ .xdata         0x00000001400ce8b4        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfdebug_printf.o)
  .xdata         0x00000001400ce8c0       0x70 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vfscanf.o)
- .xdata         0x00000001400ce930        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsnprintf.o)
- .xdata         0x00000001400ce93c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsprintf.o)
- .xdata         0x00000001400ce944        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-acosf.o)
- .xdata         0x00000001400ce94c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-asinf.o)
+ .xdata         0x00000001400ce930        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsndebug_printf.o)
+ .xdata         0x00000001400ce93c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-mingw_vsdebug_printf.o)
+ .xdata         0x00000001400ce944        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_cosf.o)
+ .xdata         0x00000001400ce94c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-amy_sinf.o)
  .xdata         0x00000001400ce954        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-atan2f.o)
  .xdata         0x00000001400ce95c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-ceilf.o)
  .xdata         0x00000001400ce964        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cos.o)
- .xdata         0x00000001400ce970        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cosf.o)
+ .xdata         0x00000001400ce970        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_cosf.o)
  .xdata         0x00000001400ce978       0x14 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-cossin.o)
  .xdata         0x00000001400ce98c        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-floor.o)
  .xdata         0x00000001400ce994        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-floorf.o)
@@ -17566,7 +17566,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .xdata         0x00000001400ce9a4        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-fmodf.o)
  .xdata         0x00000001400ce9ac        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-log.o)
  .xdata         0x00000001400ce9b8       0x1c C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-pow.o)
- .xdata         0x00000001400ce9d4        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-sinf.o)
+ .xdata         0x00000001400ce9d4        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-my_sinf.o)
  .xdata         0x00000001400ce9dc        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtof.o)
  .xdata         0x00000001400ce9e4        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-strtopx.o)
  .xdata         0x00000001400ce9ec        0xc C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmingwex.a(lib64_libmingwex_a-powi.o)
@@ -18058,9 +18058,9 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .idata$5       0x00000001400d0b20        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00084.o)
                 0x00000001400d0b20                __imp_acos
  .idata$5       0x00000001400d0b28        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00085.o)
-                0x00000001400d0b28                __imp_acosf
+                0x00000001400d0b28                __imp_amy_cosf
  .idata$5       0x00000001400d0b30        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00090.o)
-                0x00000001400d0b30                __imp_asinf
+                0x00000001400d0b30                __imp_amy_sinf
  .idata$5       0x00000001400d0b38        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00096.o)
                 0x00000001400d0b38                __imp_atan2f
  .idata$5       0x00000001400d0b40        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00135.o)
@@ -18068,7 +18068,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .idata$5       0x00000001400d0b48        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00154.o)
                 0x00000001400d0b48                __imp_cos
  .idata$5       0x00000001400d0b50        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00155.o)
-                0x00000001400d0b50                __imp_cosf
+                0x00000001400d0b50                __imp_my_cosf
  .idata$5       0x00000001400d0b58        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00200.o)
                 0x00000001400d0b58                __imp_floor
  .idata$5       0x00000001400d0b60        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00201.o)
@@ -18098,7 +18098,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .idata$5       0x00000001400d0bc0        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00276.o)
                 0x00000001400d0bc0                __imp_roundf
  .idata$5       0x00000001400d0bc8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00285.o)
-                0x00000001400d0bc8                __imp_sinf
+                0x00000001400d0bc8                __imp_my_sinf
  .idata$5       0x00000001400d0bd0        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00288.o)
                 0x00000001400d0bd0                __imp_sqrt
  .idata$5       0x00000001400d0bd8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-math-l1-1-0s00289.o)
@@ -18110,9 +18110,9 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .idata$5       0x00000001400d0bf0        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01142.o)
                 0x00000001400d0bf0                __imp_memcmp
  .idata$5       0x00000001400d0bf8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01143.o)
-                0x00000001400d0bf8                __imp_memcpy
+                0x00000001400d0bf8                __imp_my_memcpy
  .idata$5       0x00000001400d0c00        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01144.o)
-                0x00000001400d0c00                __imp_memmove
+                0x00000001400d0c00                __imp_my_memmove
  .idata$5       0x00000001400d0c08        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01147.o)
                 0x00000001400d0c08                __imp_strchr
  .idata$5       0x00000001400d0c10        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01148.o)
@@ -18176,7 +18176,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .idata$5       0x00000001400d0cf8        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00156.o)
                 0x00000001400d0cf8                __imp_mbrlen
  .idata$5       0x00000001400d0d00        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00159.o)
-                0x00000001400d0d00                __imp_memset
+                0x00000001400d0d00                __imp_my_memset
  .idata$5       0x00000001400d0d08        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00160.o)
                 0x00000001400d0d08                __imp_strcat
  .idata$5       0x00000001400d0d10        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00162.o)
@@ -18370,7 +18370,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .idata$5       0x00000001400d1000        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00864.o)
                 0x00000001400d1000                __imp_ShowWindow
  .idata$5       0x00000001400d1008        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00880.o)
-                0x00000001400d1008                __imp_SystemParametersInfoW
+                0x00000001400d1008                __imp_SystemParametermy_sinfoW
  .idata$5       0x00000001400d1010        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00887.o)
                 0x00000001400d1010                __imp_ToUnicode
  .idata$5       0x00000001400d1018        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00889.o)
