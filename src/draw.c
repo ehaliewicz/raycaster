@@ -255,8 +255,12 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
     
 
     if(peg_type == BOTTOM_PEGGED) {
-        float end_v = 31.0f;
-        start_v = end_v - 4.0f * units;
+        //float end_v = 31.0f;
+        start_v = 32.0f - 4.0f * units;
+        //start_v += 0.01f;
+    }
+    while(start_v < 0) {
+        start_v += 32.0f;
     }
 
     u32 fog_r = (fog_col >> 16)&0xFF;
