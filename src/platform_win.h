@@ -86,4 +86,9 @@ void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float 
 u8* platform_load_image(const char* file, int expected_width, int expected_height);
 void platform_unload_image(u8* img_data);
 
+
+void platform_add_task(void (*fp)(void* arg), void* arg_ptr);
+void platform_join_threadpool();
+void platform_init_threadpool(int num_threads);
+
 #endif 

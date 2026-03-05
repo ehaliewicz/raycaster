@@ -1583,6 +1583,7 @@ int mainCRTStartup(void) {
 }
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
+    platform_init_threadpool(NUM_THREADS);
     init_raycast_module();
     init_entities_module();
     init_game();

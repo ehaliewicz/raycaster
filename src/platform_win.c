@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -354,3 +355,106 @@ u8* platform_load_image(const char* path, int expected_width, int expected_heigh
 //    VirtualFree(img_data, 0, MEM_RELEASE);
 //}
 
+typedef struct thread_pool_
+{
+    TP_CALLBACK_ENVIRON callback_environ;
+    PTP_CLEANUP_GROUP cleanup_group;
+    PTP_POOL pool;
+} thread_pool;
+
+
+static thread_pool* thread_pool_create_inner(int cpu_threads)
+{
+    assert(cpu_threads > 0);
+    thread_pool* tp = (thread_pool*)calloc(1, sizeof(thread_pool));
+
+    if (tp) {
+
+        InitializeThreadpoolEnvironment(&tp->callback_environ);
+
+        tp->pool = CreateThreadpool(NULL);
+
+        SetThreadpoolThreadMinimum(tp->pool, cpu_threads);
+        SetThreadpoolThreadMaximum(tp->pool, cpu_threads);
+
+        tp->cleanup_group = CreateThreadpoolCleanupGroup();
+
+        SetThreadpoolCallbackPool(&tp->callback_environ, tp->pool);
+        SetThreadpoolCallbackCleanupGroup(&tp->callback_environ, tp->cleanup_group, NULL);
+    }
+
+    return tp;
+}
+
+static void thread_pool_add_work_inner(thread_pool* tp, PTP_WORK_CALLBACK function, void* arg_var)
+{
+    if (tp)
+    {
+        PTP_WORK work = CreateThreadpoolWork(function, arg_var, &tp->callback_environ);
+        SubmitThreadpoolWork(work);
+    }
+}
+
+static void thread_pool_destroy_inner(thread_pool* tp)
+{
+    if (tp)
+    {
+        CloseThreadpoolCleanupGroupMembers(tp->cleanup_group, FALSE, NULL);
+        CloseThreadpoolCleanupGroup(tp->cleanup_group);
+
+        DestroyThreadpoolEnvironment(&tp->callback_environ);
+
+        CloseThreadpool(tp->pool);
+
+        free(tp);
+    }
+}
+
+
+typedef struct {
+    void (*fp)(void*);
+    void* args;
+    volatile s64 finished;
+} thread_func_and_args;
+
+void CALLBACK thread_caller(PTP_CALLBACK_INSTANCE instance, PVOID arg_var_name, PTP_WORK work) {
+    thread_func_and_args* fargs = (thread_func_and_args*)arg_var_name;
+    fargs->fp(fargs->args);
+    InterlockedIncrement64(&fargs->finished);
+}
+
+static thread_pool* tp;
+#define MAX_JOB_SLOTS 16
+thread_func_and_args job_slots[MAX_JOB_SLOTS];
+
+void platform_init_threadpool(int num_threads) {
+    for(int i = 0; i < MAX_JOB_SLOTS; i++) {
+        job_slots[i].finished = 1;
+    }
+    tp = thread_pool_create_inner(num_threads);
+}
+
+void platform_add_task(void (*fp)(void* arg), void* arg_ptr) {
+    for(int i = 0; i < MAX_JOB_SLOTS; i++) {
+        if(job_slots[i].finished) {
+            job_slots[i].args = arg_ptr;
+            job_slots[i].fp = fp;
+            job_slots[i].finished = 0;
+            thread_pool_add_work_inner(tp, thread_caller, &job_slots[i]);
+            return;
+        }
+    }
+}
+
+void platform_join_threadpool() {
+    while(1) {
+        retry:
+
+        for(int i = 0; i < MAX_JOB_SLOTS; i++) {
+            if(job_slots[i].finished == 0) {
+                goto retry;
+            }
+        }
+        break;
+    }
+}

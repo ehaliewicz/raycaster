@@ -10,7 +10,7 @@
 #include "draw.h"
 #include "my_defs.h"
 #include "raycast.h"
-#include "thread.h"
+#include "platform_win.h"
 
 
 
@@ -401,7 +401,6 @@ typedef struct {
     int editor_mode_enabled;
     int editor_selected_map_idx;
     editor_selected_thing editor_selected_thg;
-    volatile s64 finished;
     u8 *visited_cell_bitmap;
     sprite_cache_entry* sprite_cache;
 } thread_params;
@@ -1753,9 +1752,7 @@ void draw_transformed_sprites(u32* output, edit_wall_id* edit_id_buffer, float* 
 }
 
 
-#ifndef PLATFORM_WEB
-thread_pool_function(raycast_wrapper, arg_var)
-{
+void raycast_wrapper(void* arg_var) {
     thread_params* tp = (thread_params*)arg_var;
     draw_first_person_level_inner(
         tp->output, tp->edit_id_buffer, tp->z_buffer, 
@@ -1765,17 +1762,12 @@ thread_pool_function(raycast_wrapper, arg_var)
         tp->editor_mode_enabled, tp->editor_selected_map_idx, tp->editor_selected_thg,
         tp->visited_cell_bitmap, tp->sprite_cache
     );
-
-    InterlockedIncrement64(&tp->finished);
 }
 
-thread_pool_function(draw_sprites_wrapper, arg_var)
-{
+void draw_sprites_wrapper(void* arg_var) {
     thread_params* tp = (thread_params*)arg_var;
     draw_transformed_sprites(tp->output, tp->edit_id_buffer, tp->z_buffer, tp->flash_frame, tp->player_z, tp->start_x, tp->end_x, tp->editor_mode_enabled, tp->editor_selected_map_idx, tp->editor_selected_thg);
-    InterlockedIncrement64(&tp->finished);
 }
-#endif
 
 #define MAX_REQUESTED_SPRITES 2048
 
@@ -1806,15 +1798,7 @@ void draw_first_person_level(
     int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side) {
 
 
-#ifndef PLATFORM_WEB
-    static int tp_created = 0;
-    static thread_pool* tp;
-    //return;
-    if(!tp_created) {
-        tp_created = 1;
-        tp = thread_pool_create(NUM_THREADS);
-    }
-#endif
+#
     for(int thd = 0; thd < NUM_THREADS; thd++) {
         for(int i = 0; i < MAP_SIZE*MAP_SIZE/8; i++) {
             visited_cells[thd][i] = 0;
@@ -1838,7 +1822,6 @@ void draw_first_person_level(
         parms[i].editor_mode_enabled = editor_mode_enabled;
         parms[i].editor_selected_map_idx = editor_selected_map_idx;
         parms[i].editor_selected_thg = editor_selected_side;
-        parms[i].finished = 1;
         parms[i].visited_cell_bitmap = visited_cells[i];
         parms[i].sprite_cache = per_thread_sprite_cache[i];
     }
@@ -1846,22 +1829,10 @@ void draw_first_person_level(
 //#define PLATFORM_WEB
 #ifndef PLATFORM_WEB
     for(int i = 0; i < NUM_THREADS; i++) {
-        parms[i].finished = 0;
-        thread_pool_add_work(tp, raycast_wrapper, &parms[i]);
+        platform_add_task(raycast_wrapper, &parms[i]);
     }
 
-    while(1) {
-        int finished = 0;
-
-            for(int i = 0; i < NUM_THREADS; i++) { 
-            if(parms[i].finished) {
-                finished++;
-            }
-        }
-        if(finished == NUM_THREADS) {
-            break;
-        }
-    }
+    platform_join_threadpool();
 #else
     draw_first_person_level_inner(
         output, edit_id_buffer, z_buffer, 
@@ -1873,7 +1844,6 @@ void draw_first_person_level(
     );
 #endif
 #undef PLATFORM_WEB 
-
 
     {
         num_trans_sprites = 0;
@@ -1916,21 +1886,10 @@ void draw_first_person_level(
 
 #ifndef PLATFORM_WEB
     for(int i = 0; i < NUM_THREADS; i++) {
-        parms[i].finished = 0;
-        thread_pool_add_work(tp, draw_sprites_wrapper, &parms[i]);
-    }    
-    while(1) {
-        int finished = 0;
-
-        for(int i = 0; i < NUM_THREADS; i++) { 
-            if(parms[i].finished) {
-                finished++;
-            }
-        }
-        if(finished == NUM_THREADS) {
-            break;
-        }
+        platform_add_task(draw_sprites_wrapper, &parms[i]);
     }
+    platform_join_threadpool();
+
 
 #else 
     draw_transformed_sprites(output, edit_id_buffer, z_buffer, flash_frame, player_z, start_x, end_x, editor_mode_enabled, editor_selected_map_idx, editor_selected_side);
