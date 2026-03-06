@@ -261,12 +261,8 @@ float get_height_at_point_for_sprites(float px, float py, int return_ceil) {
 }
 
 int collides(float spx, float spy, float px, float py, float pz, level this_level) {
-
-
-
     if (disable_collision) { return 0; }
     if(editor_mode_enabled) { return 0; }
-
     
     int source_map_x = my_floorf(spx);
     int source_map_y = my_floorf(spy);
@@ -291,24 +287,11 @@ int collides(float spx, float spy, float px, float py, float pz, level this_leve
          (levels[cur_level_idx].n_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX);
     }
 
-
-    //int x = px;
-    //int y = py;
-    //int idx = y*MAP_SIZE+x;
-
     float floor_height = get_height_at_point(px, py, pz, 0, 1);
     float ceil_height = get_height_at_point(px, py, pz, 1, 1);
     if(has_sprite) {
         floor_height += 8.0f;
     }
-
-    //if(this_level.lower_cell_types[idx] == NE_TO_SW_DIAG || this_level.lower_cell_types[idx] == NW_TO_SE_DIAG) {
-    //    floor = MAX(floor, this_level.upper_floor[idx]);
-    //};
-    //int ceil = this_level.ceil[idx];
-    //if(this_level.lower_cell_types[idx] == NE_TO_SW_DIAG || this_level.upper_cell_types[idx] == NW_TO_SE_DIAG) {
-    //    ceil = MIN(ceil, this_level.upper_ceil[idx]);
-    //}
     if(ceil_height < player_z+2 || ceil_height < (floor_height + PLAYER_HEIGHT + 2)) {
         return 1;
     }
@@ -352,7 +335,6 @@ void update_player(float frame_time, Vector2 mouse_delta) {
             door_timer_running = 0;
         }
 
-
         int_open_amount = CLAMP(int_open_amount, 0, 255);
 
         levels[cur_level_idx].parameter[timer_door] = int_open_amount;
@@ -379,13 +361,6 @@ void update_player(float frame_time, Vector2 mouse_delta) {
                 }
             }
 
-                //player_y = my_floorf(player_y)-(PLAYER_RADIUS+.1);
-                //float lerped_close_position = (float)int_open_amount/DOOR_FULLY_OPEN;
-                //debug_printf("PUSH PLAYER OUT! door y pos: %f\n", lerped_close_position);
-                //float max_y_pos = MAX(0.0f, lerped_close_position-1.0f);
-                //if(player_y > max_y_pos) {
-                //    player_y = max_y_pos;
-                //}
         }
     }
 
@@ -410,8 +385,6 @@ void update_player(float frame_time, Vector2 mouse_delta) {
             }
         }
     }
-
-
 
     if (platform_is_key_down(KEY_W)) {
         float vel_x = move_speed*x;
