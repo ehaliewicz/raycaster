@@ -1460,6 +1460,7 @@ void run_game() {
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 20}, 18, 1, RED);
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
+        debug_printf("p %f %f %f\n", player_x, player_y, player_z);
         debug_printf("%4.0f fps\n", 1000.0f/avg_frame_time);
     } platform_end_drawing();
 

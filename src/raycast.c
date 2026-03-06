@@ -51,6 +51,26 @@ const float diag_dy[NUM_CELL_TYPES] = {
     1.0f // THIN_WALL_Y
 };
 
+const float door_start_x_offsets[NUM_CELL_TYPES] = {
+    // normal walls
+    0.0f,
+    0.0f,// NE_TO_SW_DIAG
+    0.0f,// NW_TO_SE_DIAG
+    0.0f,// SLOPE_Y=3,
+    0.0f,// SLOPE_X=4,
+    0.0f/32.0f,//0.1f,// DOOR_Y=5,
+    4.0f/32.0f,// DOOR_X=6
+};
+const float door_start_y_offsets[NUM_CELL_TYPES] = {
+    // normal walls
+    0.0f,
+    1.0f,// NE_TO_SW_DIAG
+    0.0f,// NW_TO_SE_DIAG
+    0.0f,// SLOPE_Y=3,
+    0.0f,// SLOPE_X=4,
+    0.0f/32.0f,// DOOR_Y=5,
+    4.0f/32.0f,// DOOR_X=6
+};
 const float diag_x_offsets[NUM_CELL_TYPES] = {
     // normal walls
     0.0f,
@@ -177,7 +197,8 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
     
     float lerp_open_amount = door_open_amount*255.0f;
     lerp_open_amount = lerp_open_amount/250.0f;
-    float x1 = lerp(map_x, map_x + diag_x_offsets[cell_type], lerp_open_amount);
+    if(cell_type == DOOR_X) { lerp_open_amount = 1.0f - lerp_open_amount; }
+    float x1 = lerp(map_x+0.01f, map_x+0.01f + diag_x_offsets[cell_type], lerp_open_amount);
     float y1 = lerp(map_y, map_y + diag_y_offsets[cell_type], lerp_open_amount);
     float cur_thickness = x1-map_x;
     float angle = door_open_amount * (3.14159 / 2.0f);
@@ -191,6 +212,10 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
     // back face - offset inward along perpendicular
     float perp_x = -dir_y * thickness;//cur_thickness;
     float perp_y =  dir_x * thickness;//cur_thickness;
+    if(cell_type == DOOR_X) {
+        perp_x = -perp_x;
+        perp_y = -perp_y;
+    }
     float cap_x2 = CLAMP(x2+perp_x, map_x, map_x+.999f);
     float cap_y2 = CLAMP(y2+perp_y, map_y, map_y+.999f);
    
@@ -201,14 +226,12 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
     end_cap_line.diag_perp_dist = 1e9f;
     int hits_line1 = calc_line_hit(
         &res_main_line1, 
-        //result,
         ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, player_x, player_y, 
         map_x, map_y, 
         x1, y1, 
         x2, y2, 
         perp_dist, 0.0f, 1.0f
     );
-    //return hits_line1;
 
 
     int hits_line2 = calc_line_hit(
@@ -238,26 +261,23 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
     
     float hit_diag_mid_u = 0.0f;
     float hit_diag_mid_v = 0.0f;
-    diag_intersect best_hit = res_main_line1;
-    int got_hit = hits_line1 && my_fabsf(res_main_line1.diag_perp_dist) > NEAR_PLANE_DIST;//) {
-    //    got_hit = 1;
-    //    best_hit = res_main_line1;
-    //}
-    if(got_hit) {
-        hit_diag_mid_u = res_main_line1.mid_flat_u;
-        hit_diag_mid_v = res_main_line1.mid_flat_v;
+    diag_intersect best_hit;
+    best_hit.diag_perp_dist = DARK_DIST;
+    int got_hit = 0;
+    if (hits_line1 && res_main_line1.diag_perp_dist > NEAR_PLANE_DIST && res_main_line1.diag_perp_dist < best_hit.diag_perp_dist) {
+        got_hit = 1;
+        best_hit = res_main_line1;
     }
-    if(hits_line2 && res_main_line2.diag_perp_dist > NEAR_PLANE_DIST && my_fabsf(res_main_line2.diag_perp_dist) < best_hit.diag_perp_dist) {
+
+    if(hits_line2 && res_main_line2.diag_perp_dist > NEAR_PLANE_DIST && res_main_line2.diag_perp_dist < best_hit.diag_perp_dist) {
         got_hit = 1;
         best_hit = res_main_line2;
-        hit_diag_mid_u = res_main_line2.mid_flat_u;
-        hit_diag_mid_v = res_main_line2.mid_flat_v;
     }
-    if(hits_start_cap && start_cap_line.diag_perp_dist > NEAR_PLANE_DIST && my_fabsf(start_cap_line.diag_perp_dist) < best_hit.diag_perp_dist) {
+    if(hits_start_cap && start_cap_line.diag_perp_dist > NEAR_PLANE_DIST && start_cap_line.diag_perp_dist < best_hit.diag_perp_dist) {
         got_hit = 1;
         best_hit = start_cap_line;
     }
-    if(hits_end_cap && end_cap_line.diag_perp_dist > NEAR_PLANE_DIST && my_fabsf(end_cap_line.diag_perp_dist) < best_hit.diag_perp_dist) {
+    if(hits_end_cap && end_cap_line.diag_perp_dist > NEAR_PLANE_DIST && end_cap_line.diag_perp_dist < best_hit.diag_perp_dist) {
         got_hit = 1;
         best_hit = end_cap_line;
     }
@@ -1146,7 +1166,7 @@ void draw_first_person_level_inner(
                     int lower_hits_diag;
                     float door_open_amount = this_level->parameter[map_idx]/255.0f;
                     if(lower_cell_type == DOOR_Y || lower_cell_type == DOOR_X) { 
-                        lower_hits_diag = calc_door_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, perp_dist, lower_cell_type, (lower_cell_type == DOOR_Y ? door_open_amount : (1.0f-door_open_amount)));
+                        lower_hits_diag = calc_door_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, perp_dist, lower_cell_type, (lower_cell_type == DOOR_Y ? door_open_amount : (0.9999f-door_open_amount)));
                         // use flat exit UV coords for floor/ceiling next to door, when the door is fully open
                         //if(lower_hits_diag) {
                         //    lower_diag_intersect.mid_flat_u = CLAMP(lower_diag_intersect.mid_flat_u, MIN(flat_u, exit_flat_u), MAX(flat_u, exit_flat_u));
