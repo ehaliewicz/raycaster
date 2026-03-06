@@ -82,17 +82,17 @@
                 "-Wextra",
                 "-Werror",
                 "-std=c2x",
-                "-lmingw32",
-                "-lraylib",
+                //"-lmingw32",
+                //"-lraylib",
                 "-lopengl32",
                 "-lgcc",
                 "-lkernel32",
                 "-lmsvcrt",
                 "-lgdi32",
-                "-lwinmm",
-                "-lws2_32",
+                //"-lwinmm",
+                //"-lws2_32",
                 "-o",
-                "${workspaceFolder}/out/cl-debug.exe"
+                "${workspaceFolder}/out/raycast-debug.exe"
             ],
             "options": {
                 "cwd": "C:/msys64/ucrt64/bin"
@@ -248,7 +248,7 @@
             "dependsOn": [
                 "C/C++: gcc.exe debug build"
             ],
-            "command": "${workspaceFolder}\\out\\cl-debug.exe",
+            "command": "${workspaceFolder}\\out\\raycast-debug.exe",
             "options": {
                 "cwd": "${workspaceFolder}\\out"
             },

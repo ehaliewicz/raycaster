@@ -260,15 +260,47 @@ float get_height_at_point_for_sprites(float px, float py, int return_ceil) {
     }
 }
 
-int collides(float px, float py, float pz, level this_level) {
+int collides(float spx, float spy, float px, float py, float pz, level this_level) {
+
+
+
     if (disable_collision) { return 0; }
     if(editor_mode_enabled) { return 0; }
+
+    
+    int source_map_x = my_floorf(spx);
+    int source_map_y = my_floorf(spy);
+    int dst_map_x = my_floorf(px);
+    int dst_map_y = my_floorf(py);
+    int has_sprite = 0;
+
+    int src_map_idx = source_map_y*MAP_SIZE+source_map_x;
+    int dst_map_idx = dst_map_y*MAP_SIZE+dst_map_x;
+    if(source_map_x > dst_map_x) {
+        has_sprite = (levels[cur_level_idx].w_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) || 
+         (levels[cur_level_idx].e_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX);
+    } else if (source_map_x < dst_map_x) {
+        has_sprite = (levels[cur_level_idx].e_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) || 
+         (levels[cur_level_idx].w_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX);
+    }
+    if(source_map_y > dst_map_y) {
+        has_sprite = (levels[cur_level_idx].n_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) || 
+         (levels[cur_level_idx].s_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX);
+    } else if  (source_map_y < dst_map_y) {
+        has_sprite = (levels[cur_level_idx].s_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) || 
+         (levels[cur_level_idx].n_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX);
+    }
+
+
     //int x = px;
     //int y = py;
     //int idx = y*MAP_SIZE+x;
 
     float floor_height = get_height_at_point(px, py, pz, 0, 1);
     float ceil_height = get_height_at_point(px, py, pz, 1, 1);
+    if(has_sprite) {
+        floor_height += 8.0f;
+    }
 
     //if(this_level.lower_cell_types[idx] == NE_TO_SW_DIAG || this_level.lower_cell_types[idx] == NW_TO_SE_DIAG) {
     //    floor = MAX(floor, this_level.upper_floor[idx]);
@@ -389,12 +421,12 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         float probe_x = new_x + (vel_x > 0 ? r : -r);
         float probe_y = new_y + (vel_y > 0 ? r : -r);
 
-        if((collides(probe_x, player_y - r, player_z, cur_level) == 0) && 
-            (collides(probe_x, player_y + r, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, probe_x, player_y - r, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, probe_x, player_y + r, player_z, cur_level) == 0)) {
             player_x = new_x;
         }
-        if((collides(player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x + r, probe_y, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_x - r, probe_y, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, player_x + r, probe_y, player_z, cur_level) == 0)) {
             player_y = new_y;
         }
     }
@@ -405,12 +437,12 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         float new_y = player_y + vel_y;
         float probe_x = new_x + (vel_x > 0 ? r : -r);
         float probe_y = new_y + (vel_y > 0 ? r : -r);
-        if((collides(probe_x, player_y - r, player_z, cur_level) == 0) && 
-            (collides(probe_x, player_y + r, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, probe_x, player_y - r, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, probe_x, player_y + r, player_z, cur_level) == 0)) {
             player_x = new_x;
         }
-        if((collides(player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x + r, probe_y, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_x - r, probe_y, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, player_x + r, probe_y, player_z, cur_level) == 0)) {
             player_y = new_y;
         }
     }
@@ -421,12 +453,12 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         float new_y = player_y + vel_y;
         float probe_x = new_x + (vel_x > 0 ? r : -r);
         float probe_y = new_y + (vel_y > 0 ? r : -r);
-        if((collides(probe_x, player_y - r, player_z, cur_level) == 0) && 
-            (collides(probe_x, player_y + r, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, probe_x, player_y - r, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, probe_x, player_y + r, player_z, cur_level) == 0)) {
             player_x = new_x;
         }
-        if((collides(player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x + r, probe_y, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_x - r, probe_y, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, player_x + r, probe_y, player_z, cur_level) == 0)) {
             player_y = new_y;
         }
     }
@@ -437,12 +469,12 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         float new_y = player_y + vel_y;
         float probe_x = new_x + (vel_x > 0 ? r : -r);
         float probe_y = new_y + (vel_y > 0 ? r : -r);    
-        if((collides(probe_x, player_y - r, player_z, cur_level) == 0) && 
-            (collides(probe_x, player_y + r, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, probe_x, player_y - r, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, probe_x, player_y + r, player_z, cur_level) == 0)) {
             player_x = new_x;
         }
-        if((collides(player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x + r, probe_y, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_x - r, probe_y, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, player_x + r, probe_y, player_z, cur_level) == 0)) {
             player_y = new_y;
         }
     }
@@ -459,45 +491,11 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     float tp_height = get_height_at_point(player_x, player_y-PLAYER_RADIUS, player_z, 0, 1);
     float bt_height = get_height_at_point(player_x, player_y+PLAYER_RADIUS, player_z, 0, 1);
 
-    int left_goes_through_border = my_floorf(player_x-PLAYER_RADIUS) != my_floorf(player_x);
-    int right_goes_through_border = my_floorf(player_x+PLAYER_RADIUS) != my_floorf(player_x);
-    int up_goes_through_border = my_floorf(player_y-PLAYER_RADIUS) != my_floorf(player_y);
-    int down_goes_through_border = my_floorf(player_y+PLAYER_RADIUS) != my_floorf(player_y);
-    int left_map_idx = map_y*MAP_SIZE+map_x-1;
-    int right_map_idx = map_y*MAP_SIZE+map_x+1;
-    int up_map_idx = (map_y-1)*MAP_SIZE+map_x;
-    int down_map_idx = (map_y+1)*MAP_SIZE+map_x;
-
-
-    // check for sprites on either border cell
-    //int left_has_sprite = 0;
-    //if(left_goes_through_border) {
-    //    left_has_sprite = (levels[cur_level_idx].w_sprite_index[map_idx] != EMPTY_SPRITE_INDEX || 
-    //     levels[left_map_idx].e_sprite_index[map_idx] != EMPTY_SPRITE_INDEX);
-    //}
-
 
     //float exact_height = get_height_at_point(player_x, player_y, 0);
     float player_contact_height = player_z-PLAYER_HEIGHT;
     float max_takeable_step = MAX(lf_height, MAX(rt_height, MAX(tp_height, bt_height)));
-    //int got_takeable_step = 0;
-    if(lf_height <= (player_contact_height+2)) {
-        //got_takeable_step = 1;
-        max_takeable_step = MAX(max_takeable_step, lf_height);
-    }
-    if(rt_height <= (player_contact_height+2)) {
-        //got_takeable_step = 1;
-        max_takeable_step = MAX(max_takeable_step, rt_height);
-    }
-    if(tp_height <= (player_contact_height+2)) {
-        //got_takeable_step = 1;
-        max_takeable_step = MAX(max_takeable_step, tp_height);
-    }
-    if(bt_height <= (player_contact_height+2)) {
-        //got_takeable_step = 1;
-        max_takeable_step = MAX(max_takeable_step, bt_height);
-    }
-
+   
     float target_height = max_takeable_step+PLAYER_HEIGHT;
     if(editor_mode_enabled) {
         //if(target_height > player_z) {
