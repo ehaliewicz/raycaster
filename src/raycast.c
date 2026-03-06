@@ -199,15 +199,13 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
     lerp_open_amount = lerp_open_amount/250.0f;
     if(cell_type == DOOR_X) { lerp_open_amount = 1.0f - lerp_open_amount; }
     float x1 = lerp(map_x+0.01f, map_x+0.01f + diag_x_offsets[cell_type], lerp_open_amount);
-    float y1 = lerp(map_y, map_y + diag_y_offsets[cell_type], lerp_open_amount);
+    float y1 = lerp(map_y+0.01f, map_y+0.01f + diag_y_offsets[cell_type], lerp_open_amount);
     float cur_thickness = x1-map_x;
     float angle = door_open_amount * (3.14159 / 2.0f);
     float dir_x = my_cosf(angle);
     float dir_y = my_sinf(angle); 
-    //float x1 = hinge_x + dir_y * thickness;
-    //float y1 = hinge_y - dir_x * thickness;
-    float x2 = CLAMP(x1 + dir_x, map_x, map_x+.999f);
-    float y2 = CLAMP(y1 + dir_y, map_y, map_y+.999f);
+    float x2 = CLAMP(x1 + dir_x, map_x+0.01f, map_x+.99f);
+    float y2 = CLAMP(y1 + dir_y, map_y+0.01f, map_y+.99f);
 
     // back face - offset inward along perpendicular
     float perp_x = -dir_y * thickness;//cur_thickness;
@@ -216,8 +214,10 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
         perp_x = -perp_x;
         perp_y = -perp_y;
     }
-    float cap_x2 = CLAMP(x2+perp_x, map_x, map_x+.999f);
-    float cap_y2 = CLAMP(y2+perp_y, map_y, map_y+.999f);
+    float cap_x1 = CLAMP(x1+perp_x, map_x+0.01f, map_x+.99f);
+    float cap_y1 = CLAMP(y1+perp_y, map_y+0.01f, map_y+.99f);
+    float cap_x2 = CLAMP(x2+perp_x, map_x+0.01f, map_x+.99f);
+    float cap_y2 = CLAMP(y2+perp_y, map_y+0.01f, map_y+.99f);
    
     diag_intersect res_main_line1, res_main_line2, end_cap_line, start_cap_line;
     res_main_line1.diag_perp_dist = 1e9f;
@@ -238,8 +238,8 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
         &res_main_line2, 
         ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, player_x, player_y, 
         map_x, map_y, 
-        x1 + perp_x, y1 + perp_y,
-        x2 + perp_x, y2 + perp_y,
+        cap_x1, cap_y1,
+        cap_x2, cap_y2,
         perp_dist, 0.0f, 1.0f
     );
     int hits_start_cap = calc_line_hit(
@@ -247,7 +247,7 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
         ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, player_x, player_y,
         map_x, map_y,  
         x1, y1,
-        x1 + perp_x, y1 + perp_y,
+        cap_x1, cap_y1,
         perp_dist, 0.0f, 4.0f/32.0f
     );
     int hits_end_cap = calc_line_hit(
@@ -282,70 +282,10 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
         best_hit = end_cap_line;
     }
 
-
     *result = best_hit;
     return got_hit;
 
 }
-
-
-// diagonals are
-// offset 0.5, 0.5
-// q2x = p2x+1.0
-// q2y = p2y + slope
-
-// doors are 
-// offset 0, 0
-// q2x = p2x + dir_x*1.0f;
-// q2y = p2y + dir_y*1.0f;
-/*
-int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, float cam_dir_x, float cam_dir_y, float player_x, float player_y, int map_x, int map_y, float perp_dist, cell_types cell_type) {
-    int hits_diag = 0;
-    result->mid_flat_u = 0.0f;
-    result->mid_flat_v = 0.0f;
-    result->diag_perp_dist = perp_dist;
-
-    float diag_ix = 0.0f;
-    float diag_iy = 0.0f;
-    float p1x = player_x;
-    float p1y = player_y;
-    float q1x = player_x + ray_dir_x;
-    float q1y = player_y + ray_dir_y;
-    float p2x = map_x+0.5f;
-    float p2y = map_y+0.5f;
-    float q2x = p2x + 1.0f;    
-    float q2y = p2y + diag_dy[cell_type];
-    float a1 = q1y - p1y;
-    float b1 = p1x - q1x;
-    float c1 = a1 * p1x + b1 * p1y;
-
-    float a2 = q2y - p2y;//-1;
-    float b2 = p2x - q2x;//-1;
-    float c2 = a2 * p2x + b2 * p2y;
-
-    float determinant = a1 * b2 - a2 * b1;
-
-    diag_ix = (c1 * b2 - c2 * b1) / determinant;
-    diag_iy = (a1 * c2 - a2 * c1) / determinant;
-    
-    float lx = my_fabsf(diag_ix - map_x);
-    result->diag_wall_u = lx;
-
-
-    result->mid_flat_u = diag_ix - my_floorf(diag_ix);
-    result->mid_flat_v = diag_iy - my_floorf(diag_iy);
-
-
-    if(my_floorf(diag_ix) == map_x && my_floorf(diag_iy) == map_y) {
-        hits_diag = 1;
-        float dx = diag_ix-player_x;
-        float dy = diag_iy-player_y;
-        result->diag_perp_dist = dx*cam_dir_x + dy*cam_dir_y;
-    }
-    return hits_diag;
-                
-}
-*/
 
 void set_byte_in_bitmap(u8* bitmap, int bit_idx) {
     int byte_idx = bit_idx>>3;
