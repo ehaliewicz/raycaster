@@ -446,17 +446,36 @@ void update_player(float frame_time, Vector2 mouse_delta) {
             player_y = new_y;
         }
     }
-    int map_x = (int)player_x;
-    int map_y = (int)player_y;
-    int floor = levels[cur_level_idx].floor[map_y*MAP_SIZE + map_x];
-    if(levels[cur_level_idx].lower_cell_types[map_y*MAP_SIZE+map_x] != NORMAL_CELL) {
-        floor = MAX(floor, levels[cur_level_idx].upper_floor[map_y*MAP_SIZE + map_x]);
+    int map_x = my_floorf(player_x);
+    int map_y = my_floorf(player_y);
+    int map_idx = map_y*MAP_SIZE+map_x;
+    int floor = levels[cur_level_idx].floor[map_idx];
+    if(levels[cur_level_idx].lower_cell_types[map_idx] != NORMAL_CELL) {
+        floor = MAX(floor, levels[cur_level_idx].upper_floor[map_idx]);
     }
     
     float lf_height = get_height_at_point(player_x-PLAYER_RADIUS, player_y, player_z, 0, 1);
     float rt_height = get_height_at_point(player_x+PLAYER_RADIUS, player_y, player_z, 0, 1);
     float tp_height = get_height_at_point(player_x, player_y-PLAYER_RADIUS, player_z, 0, 1);
     float bt_height = get_height_at_point(player_x, player_y+PLAYER_RADIUS, player_z, 0, 1);
+
+    int left_goes_through_border = my_floorf(player_x-PLAYER_RADIUS) != my_floorf(player_x);
+    int right_goes_through_border = my_floorf(player_x+PLAYER_RADIUS) != my_floorf(player_x);
+    int up_goes_through_border = my_floorf(player_y-PLAYER_RADIUS) != my_floorf(player_y);
+    int down_goes_through_border = my_floorf(player_y+PLAYER_RADIUS) != my_floorf(player_y);
+    int left_map_idx = map_y*MAP_SIZE+map_x-1;
+    int right_map_idx = map_y*MAP_SIZE+map_x+1;
+    int up_map_idx = (map_y-1)*MAP_SIZE+map_x;
+    int down_map_idx = (map_y+1)*MAP_SIZE+map_x;
+
+
+    // check for sprites on either border cell
+    //int left_has_sprite = 0;
+    //if(left_goes_through_border) {
+    //    left_has_sprite = (levels[cur_level_idx].w_sprite_index[map_idx] != EMPTY_SPRITE_INDEX || 
+    //     levels[left_map_idx].e_sprite_index[map_idx] != EMPTY_SPRITE_INDEX);
+    //}
+
 
     //float exact_height = get_height_at_point(player_x, player_y, 0);
     float player_contact_height = player_z-PLAYER_HEIGHT;

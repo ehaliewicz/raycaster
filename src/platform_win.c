@@ -1,4 +1,4 @@
-#include <assert.h>
+#include "assert.h"
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,7 +33,7 @@ int platform_get_key_pressed() {
     return res;
 }
 
-int clear_keys() {
+void clear_keys() {
     g_keys = memset(g_keys, 0, sizeof(int)*256);
     g_keys_prev = memset(g_keys, 0, sizeof(int)*256);
 }
@@ -307,6 +307,7 @@ int platform_save_file_data(const char* path, void* data, size_t size) {
     DWORD written;
     WriteFile(f, data, size, &written, NULL);
     CloseHandle(f);
+    return written;
 }
 
 u8 *platform_load_file_data(const char *path, int *out_size) {

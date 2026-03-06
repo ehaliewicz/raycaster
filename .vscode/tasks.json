@@ -1,6 +1,61 @@
 {
     "version": "2.0.0",
-    "tasks": [
+    "windows": {
+        "options": {
+            "shell": {
+                "executable": "cmd.exe",
+                "args": [
+                    "/d", "/c", "\"C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvarsall.bat\" amd64", "&" 
+                ]
+            }
+        }
+    },
+    "tasks": [ 
+        {
+            "type": "cppbuild",
+            "label": "C/C++: cl.exe build",
+            //"dependsOn": "setup-vs-env",
+            "command": "cl.exe",
+            "args": [
+                "-IC:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.43.34808/include",
+                "-IC:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/ucrt",
+                "-IC:/Program Files (x86)/Windows Kits/10/Include/10.0.20348.0/um",
+                "-IC:/Program Files (x86)/Windows Kits/10/Include/10.0.20348.0/shared",
+                //"-IC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/include",
+                //"-LC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib",
+                "-g",
+                //"-ggdb",
+                "${workspaceFolder}/src/draw.c",
+                //"${workspaceFolder}/src/network.c",
+                "${workspaceFolder}/src/entity.c",
+                "${workspaceFolder}/src/lz.c",
+                "${workspaceFolder}/src/raycast.c",
+                "${workspaceFolder}/src/platform_win.c",
+                "${workspaceFolder}/src/my_defs.c",
+                "${workspaceFolder}/src/main.c",
+                "-std=c2x",
+                
+                //"-lmingw32",
+                //"-lraylib",
+                "/link",
+                "opengl32.lib",
+                "user32.lib",
+                //"gcc",
+                "kernel32.lib",
+                "msvcrt.lib",
+                "gdi32.lib",
+                //"-lws2_32",
+                "/out:${workspaceFolder}/out/raycast-cl.exe"
+            ],
+            "options": {
+                "cwd": "C:/msys64/ucrt64/bin"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe"
+        },
         {
             "type": "cppbuild",
             "label": "C/C++: gcc.exe debug build",
@@ -11,8 +66,8 @@
                 "-mwindows",
                 //"-nostdlib",
                 "-fdiagnostics-color=always",
-                "-IC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/include",
-                "-LC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib",
+                //"-IC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/include",
+                //"-LC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib",
                 "-DDEBUG",
                 "-g",
                 "-ggdb",
@@ -50,42 +105,6 @@
         },
         {
             "type": "cppbuild",
-            "label": "C/C++: gcc.exe build tiny",
-            "command": "C:/msys64/ucrt64/bin/gcc.exe",
-            "args": [
-                "-nostartfiles", 
-                //"-ffreestanding", "-nostdlib",
-                "-mwindows",
-                "-mno-stack-arg-probe",
-                "-ffunction-sections", 
-                "-fdata-sections",
-                "-Os",
-                "-IC:/raylib/raylib/src",
-                "-LC:/raylib/raylib/src",
-                "-s",
-                "${workspaceFolder}/src/tiny2.c",
-                "${workspaceFolder}/src/tiny.c",
-                "-Wl,-Map=${workspaceFolder}/out/tiny.map,--gc-sections",
-                "-Xlinker", "--stack=0x100000,0x100000",
-                "-lkernel32",
-                "-lraylib",
-                "-lgdi32",
-                "-lwinmm",
-                "-lmsvcrt",
-                "-o",
-                "${workspaceFolder}/out/tiny.exe"
-            ],
-            "options": {
-                "cwd": "C:/msys64/ucrt64/bin"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": "build",
-            "detail": "compiler: C:/msys64/ucrt64/bin/gcc.exe"
-        },
-        {
-            "type": "cppbuild",
             "label": "C/C++: gcc.exe build raycaster",
             "command": "C:/msys64/ucrt64/bin/gcc.exe",
             "args": [
@@ -96,9 +115,9 @@
                 "-fdiagnostics-color=always",
                 //"-IC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/include",
                 //"-LC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib",
-                "-IC:/raylib/raylib/src",
-                "-LC:/raylib/raylib/src",
-                "-Os",
+                //"-IC:/raylib/raylib/src",
+                //"-LC:/raylib/raylib/src",
+                "-O2",
                 "-fno-builtin",
                 "-fno-trapping-math",
                 "-fno-math-errno",
@@ -116,7 +135,7 @@
                 //"-fopt-info-vec-missed",
                 "-ffunction-sections", 
                 "-fdata-sections",
-                "-s",
+                //"-s",
                 "-fno-ident",
                 "${workspaceFolder}/src/entity.c",
                 "${workspaceFolder}/src/draw.c",
@@ -158,32 +177,60 @@
             "label": "C/C++: clang.exe build raycaster",
             "command": "C:/Users/Erik/code/llvm-mingw-20251216-ucrt-x86_64/bin/clang.exe",
             "args": [
-                "-Wpsabi",
+                "-nostartfiles",
+                "-mconsole",
+                "-nostdlib",
+                //"-Wpsabi",
                 "-fdiagnostics-color=always",
-                "-IC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/include",
-                "-LC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib",
-                "-O3",
+                //"-IC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/include",
+                //"-LC:/Users/Erik/code/raylib-5.5_win64_mingw-w64/lib",
+                //"-IC:/raylib/raylib/src",
+                //"-LC:/raylib/raylib/src",
+                "-O2",
+                "-fno-builtin",
+                "-fno-trapping-math",
+                "-fno-math-errno",
+                "-ffp-contract=fast",
+                "-fno-inline",
+                "-fno-inline-functions",
+                "-fno-exceptions",
+                "-fno-asynchronous-unwind-tables",
+                "-mno-stack-arg-probe",
+                //"-flto",
                 //"-ffast-math",
+                //"-g",
                 //"-ggdb",
                 "-ftree-vectorize",
+                //"-fopt-info-vec-missed",
+                "-ffunction-sections", 
+                "-fdata-sections",
+                //"-s",
+                "-fno-ident",
                 "${workspaceFolder}/src/entity.c",
                 "${workspaceFolder}/src/draw.c",
                 //"${workspaceFolder}/src/network.c",
                 "${workspaceFolder}/src/lz.c",
-                "${workspaceFolder}/src/raycast.c",
                 "${workspaceFolder}/src/platform_win.c",
                 "${workspaceFolder}/src/my_defs.c",
                 "${workspaceFolder}/src/main.c",
-                "-Wextra",
-                "-std=c2x",
-                "-lmingw32",
-                "-lraylib",
+                "${workspaceFolder}/src/raycast.c",
+                //"-Wextra",
+                //"-Werror",
+                "-Wl,-Map=${workspaceFolder}/out/raycast.map,--gc-sections",
+                //"-std=c2x",
+                //"-lmingw32",
+                "-lmsvcrt",
+                "-luser32",
+                //"-lraylib",
                 "-lopengl32",
+                //"-lgcc",
+                "-lkernel32",
                 "-lgdi32",
-                "-lwinmm",
-                "-lws2_32",
+                //"-lwinmm",
+                //"-lws2_32",
+                //"-shared", "-o" ,"${workspaceFolder}/out/raycast.dll",
                 "-o",
-                "${workspaceFolder}/out/raycast.exe"
+                "${workspaceFolder}/out/raycast-clang.exe"
             ],
             "options": {
                 "cwd": "C:/msys64/ucrt64/bin"
