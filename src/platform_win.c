@@ -118,7 +118,7 @@ void update_viewport(int width, int height) {
 static LRESULT CALLBACK wnd_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_CLOSE:   g_running = 0; return 0;
-        case WM_KEYDOWN: g_keys[wp] = 1; g_last_key_pressed = wp; return 0;
+        case WM_KEYDOWN: g_keys[wp] = 1; g_last_key_pressed = wp; if(wp == VK_CONTROL) {printf("WHaOARORAORSFIOETRNEIO1@#!@# !!! BAZONGA \n"); } return 0;
         case WM_KEYUP:   g_keys[wp] = 0; return 0;
         case WM_LBUTTONDOWN: g_keys[VK_LBUTTON] = 1; return 0;
         case WM_LBUTTONUP:   g_keys[VK_LBUTTON] = 0; return 0;

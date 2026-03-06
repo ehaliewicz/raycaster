@@ -366,6 +366,8 @@ typedef struct {
 } thread_params;
 
 
+
+
 void draw_first_person_level_inner(
     u32* output, edit_wall_id* edit_id_buffer, float* z_buffer,
     int start_x, int end_x, 
@@ -592,6 +594,8 @@ void draw_first_person_level_inner(
             int hit_enter_sprite = EMPTY_SPRITE_INDEX;
             int hit_exit_sprite = EMPTY_SPRITE_INDEX;
             int hit_middle_sprite = this_level->m_sprite_index[map_idx];
+            int hit_floor_sprite = this_level->f_sprite_index[map_idx];
+            int hit_ceiling_sprite = this_level->c_sprite_index[map_idx];
             float enter_sprite_wall_u = wall_u;
             float exit_sprite_wall_u = 0.0f;
             editor_selected_thing enter_sprite_thg, exit_sprite_thg;
@@ -650,6 +654,42 @@ void draw_first_person_level_inner(
                 sprite_cache[num_sprites_hit].light_factor = 1.0f;
                 sprite_cache[num_sprites_hit++].z0 = perp_dist;
             }
+            if(hit_floor_sprite != EMPTY_SPRITE_INDEX) {
+                float sprite_bot_y = floor_height;
+                sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
+                sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
+                sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
+                sprite_cache[num_sprites_hit].sprite_idx = hit_floor_sprite;
+                sprite_cache[num_sprites_hit].u0 = exit_flat_u;
+                sprite_cache[num_sprites_hit].v0 = exit_flat_v;
+                sprite_cache[num_sprites_hit].u1 = flat_u;
+                sprite_cache[num_sprites_hit].v1 = flat_v;
+                sprite_cache[num_sprites_hit].map_idx = map_idx;
+                sprite_cache[num_sprites_hit].sprite_thg = FLOOR_SPRITE;
+                sprite_cache[num_sprites_hit].flat_sprite = 1;
+                sprite_cache[num_sprites_hit].light_factor = FLOOR_LIGHT_FACTOR;
+                sprite_cache[num_sprites_hit].z0 = next_perp_dist;
+                sprite_cache[num_sprites_hit++].z1 = perp_dist;
+
+            }
+
+            if (hit_ceiling_sprite != EMPTY_SPRITE_INDEX) {
+                float sprite_bot_y = ceil_height;
+                sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
+                sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
+                sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
+                sprite_cache[num_sprites_hit].sprite_idx = hit_ceiling_sprite;
+                sprite_cache[num_sprites_hit].u0 = flat_u;
+                sprite_cache[num_sprites_hit].v0 = flat_v;
+                sprite_cache[num_sprites_hit].u1 = exit_flat_u;
+                sprite_cache[num_sprites_hit].v1 = exit_flat_v;
+                sprite_cache[num_sprites_hit].map_idx = map_idx;
+                sprite_cache[num_sprites_hit].sprite_thg = CEIL_SPRITE;
+                sprite_cache[num_sprites_hit].flat_sprite = 1;
+                sprite_cache[num_sprites_hit].light_factor = CEIL_LIGHT_FACTOR;
+                sprite_cache[num_sprites_hit].z0 = perp_dist;
+                sprite_cache[num_sprites_hit++].z1 = next_perp_dist;
+            }
 
             if(hit_middle_sprite != EMPTY_SPRITE_INDEX) {
                 float sprite_top_y = floor_height + this_level->m_sprite_offset[map_idx];
@@ -673,39 +713,33 @@ void draw_first_person_level_inner(
                 sprite_cache[num_sprites_hit].light_factor = FLOOR_LIGHT_FACTOR;
                 sprite_cache[num_sprites_hit++].z0 = perp_dist;
 
+                
+                // upper half
+                sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
+                sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
+                sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
+                sprite_cache[num_sprites_hit].sprite_idx = hit_middle_sprite;
+                sprite_cache[num_sprites_hit].u0 = flat_u;
+                sprite_cache[num_sprites_hit].v0 = flat_v;
+                sprite_cache[num_sprites_hit].u1 = exit_flat_u;
+                sprite_cache[num_sprites_hit].v1 = exit_flat_v;
+                sprite_cache[num_sprites_hit].map_idx = map_idx;
+                sprite_cache[num_sprites_hit].sprite_thg = MIDDLE_SPRITE;
+                sprite_cache[num_sprites_hit].flat_sprite = 1;
+                sprite_cache[num_sprites_hit].light_factor = CEIL_LIGHT_FACTOR;
+                sprite_cache[num_sprites_hit].z0 = perp_dist;
+                sprite_cache[num_sprites_hit++].z1 = next_perp_dist;
                 if(sprite_bot_y < ray_origin_z) {
+                    // if bottom half, adjust some parameters
                     // bottom half
-                    sprite_cache[num_sprites_hit].bottom_height = sprite_top_y;
-                    sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
-                    sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
-                    sprite_cache[num_sprites_hit].sprite_idx = hit_middle_sprite;
-                    sprite_cache[num_sprites_hit].u0 = exit_flat_u;
-                    sprite_cache[num_sprites_hit].v0 = exit_flat_v;
-                    sprite_cache[num_sprites_hit].u1 = flat_u;
-                    sprite_cache[num_sprites_hit].v1 = flat_v;
-                    sprite_cache[num_sprites_hit].map_idx = map_idx;
-                    sprite_cache[num_sprites_hit].sprite_thg = MIDDLE_SPRITE;
-                    sprite_cache[num_sprites_hit].flat_sprite = 1;
-                    sprite_cache[num_sprites_hit].light_factor = FLOOR_LIGHT_FACTOR;
-                    sprite_cache[num_sprites_hit].z0 = next_perp_dist;
-                    sprite_cache[num_sprites_hit++].z1 = perp_dist;
-                    
-                } else {
-                    // upper half
-                    sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
-                    sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
-                    sprite_cache[num_sprites_hit].prev_drawn_bot = prev_drawn_bot;
-                    sprite_cache[num_sprites_hit].sprite_idx = hit_middle_sprite;
-                    sprite_cache[num_sprites_hit].u0 = flat_u;
-                    sprite_cache[num_sprites_hit].v0 = flat_v;
-                    sprite_cache[num_sprites_hit].u1 = exit_flat_u;
-                    sprite_cache[num_sprites_hit].v1 = exit_flat_v;
-                    sprite_cache[num_sprites_hit].map_idx = map_idx;
-                    sprite_cache[num_sprites_hit].sprite_thg = MIDDLE_SPRITE;
-                    sprite_cache[num_sprites_hit].flat_sprite = 1;
-                    sprite_cache[num_sprites_hit].light_factor = CEIL_LIGHT_FACTOR;
-                    sprite_cache[num_sprites_hit].z0 = perp_dist;
-                    sprite_cache[num_sprites_hit++].z1 = next_perp_dist;
+                    sprite_cache[num_sprites_hit-1].bottom_height = sprite_top_y;
+                    sprite_cache[num_sprites_hit-1].u0 = exit_flat_u;
+                    sprite_cache[num_sprites_hit-1].v0 = exit_flat_v;
+                    sprite_cache[num_sprites_hit-1].u1 = flat_u;
+                    sprite_cache[num_sprites_hit-1].v1 = flat_v;
+                    sprite_cache[num_sprites_hit-1].light_factor = FLOOR_LIGHT_FACTOR;
+                    sprite_cache[num_sprites_hit-1].z0 = next_perp_dist;
+                    sprite_cache[num_sprites_hit-1].z1 = perp_dist;
                 }
             }
 

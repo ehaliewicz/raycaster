@@ -199,7 +199,9 @@ float get_height_at_point(float px, float py, float pz, int return_ceil, int che
     }
     if(check_middle_sprite && this_level->m_sprite_index[map_idx] != EMPTY_SPRITE_INDEX) {
         int mid_sprite_height = floor + this_level->m_sprite_offset[map_idx];
-        if(mid_sprite_height > ret_val && mid_sprite_height <= pz) {
+        if((!return_ceil) && mid_sprite_height > ret_val && mid_sprite_height <= pz) {
+            ret_val = mid_sprite_height;
+        } else if(return_ceil && mid_sprite_height > ret_val && mid_sprite_height >= pz) {
             ret_val = mid_sprite_height;
         }
     }
@@ -572,11 +574,14 @@ void init_level(int fresh_map) {
         }
     }
     
-    printf("set ceiling?");
     for(int i = 0; i < MAP_SIZE*MAP_SIZE; i++) {
-        if(levels[cur_level_idx].upper_cell_types[i] == NORMAL_CELL && levels[cur_level_idx].ctex[i] == SKYBOX_TEX_IDX) {
-            levels[cur_level_idx].ceil[i] = MAX_WALL_HEIGHT;
-        }
+        // clear floor sprites
+        //levels[cur_level_idx].m_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        //levels[cur_level_idx].m_sprite_offset[i] = 12;
+        //levels[cur_level_idx].c_sprite_index[i] = EMPTY_SPRITE_INDEX;
+        //if(levels[cur_level_idx].upper_cell_types[i] == NORMAL_CELL && levels[cur_level_idx].ctex[i] == SKYBOX_TEX_IDX) {
+        //    levels[cur_level_idx].ceil[i] = MAX_WALL_HEIGHT;
+        //}
 
         // set anchors
         //levels[cur_level_idx].floor_anchor[i] = 0;
@@ -872,6 +877,12 @@ void handle_editor() {
                 height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_map_idx];
                 anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_map_idx];
                 break;
+            case FLOOR_SPRITE:
+                spr_ptr = &levels[cur_level_idx].f_sprite_index[editor_selected_map_idx];
+                break;
+            case CEIL_SPRITE:
+                spr_ptr = &levels[cur_level_idx].c_sprite_index[editor_selected_map_idx];
+                break;
             case MIDDLE_SPRITE:
                 spr_ptr = &levels[cur_level_idx].m_sprite_index[editor_selected_map_idx];
                 height_ptr = &levels[cur_level_idx].m_sprite_offset[editor_selected_map_idx];
@@ -902,24 +913,41 @@ void handle_editor() {
             *height_ptr = nval;
         }
 
-        if(spr_ptr != NULL) {
+        if(spr_ptr != NULL && (!platform_is_key_down(VK_SHIFT))) {
+
             if(dy == -1) { 
-                if (platform_is_key_down(KEY_CONTROL) && (editor_selected_side != MIDDLE_SPRITE)) {
-                    // move to middle position
+                if (platform_is_key_down(KEY_CONTROL) && (editor_selected_side == CEIL_SPRITE)) {
+                    // move to ceil position
                     editor_selected_side = MIDDLE_SPRITE;
                     levels[cur_level_idx].m_sprite_index[editor_selected_map_idx] = *spr_ptr;
                     *spr_ptr = EMPTY_SPRITE_INDEX;
-
+                } else if (platform_is_key_down(KEY_CONTROL) && (editor_selected_side != FLOOR_SPRITE)) {
+                    // move to middle position
+                    editor_selected_side = FLOOR_SPRITE;
+                    levels[cur_level_idx].f_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                    *spr_ptr = EMPTY_SPRITE_INDEX;
                 } else if ((!platform_is_key_down(KEY_CONTROL)) && editor_selected_side != N_SPRITE) {
                     editor_selected_side = N_SPRITE;
                     levels[cur_level_idx].n_sprite_index[editor_selected_map_idx] = *spr_ptr;
                     *spr_ptr = EMPTY_SPRITE_INDEX;
                 }
-            } else if (dy == 1 && (!platform_is_key_down(KEY_CONTROL)) && editor_selected_side != S_SPRITE) {
-                editor_selected_side = S_SPRITE;
-                levels[cur_level_idx].s_sprite_index[editor_selected_map_idx] = *spr_ptr;
-                *spr_ptr = EMPTY_SPRITE_INDEX;
-            } else if (dx == -1 && editor_selected_side != W_SPRITE) {
+            } else if (dy == 1) {
+                 if (platform_is_key_down(KEY_CONTROL) && (editor_selected_side == FLOOR_SPRITE)) {
+                    // move to middle position
+                    editor_selected_side = MIDDLE_SPRITE;
+                    levels[cur_level_idx].m_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                    *spr_ptr = EMPTY_SPRITE_INDEX;
+                } else if (platform_is_key_down(KEY_CONTROL) && (editor_selected_side != CEIL_SPRITE)) {
+                    // move to floor position
+                    editor_selected_side = CEIL_SPRITE;
+                    levels[cur_level_idx].c_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                    *spr_ptr = EMPTY_SPRITE_INDEX;
+                } else if ((!platform_is_key_down(KEY_CONTROL)) && editor_selected_side != S_SPRITE) {
+                    editor_selected_side = S_SPRITE;
+                    levels[cur_level_idx].s_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                    *spr_ptr = EMPTY_SPRITE_INDEX;
+                }
+             } else if (dx == -1 && editor_selected_side != W_SPRITE) {
                 editor_selected_side = W_SPRITE;
                 levels[cur_level_idx].w_sprite_index[editor_selected_map_idx] = *spr_ptr;
                 *spr_ptr = EMPTY_SPRITE_INDEX;
@@ -938,6 +966,12 @@ void handle_editor() {
         switch(editor_selected_side) {
             case MIDDLE_SPRITE:
                 spr_ptr = &levels[cur_level_idx].m_sprite_index[idx];
+                break;
+            case CEIL_SPRITE:
+                spr_ptr = &levels[cur_level_idx].c_sprite_index[idx];
+                break;
+            case FLOOR_SPRITE:
+                spr_ptr = &levels[cur_level_idx].f_sprite_index[idx];
                 break;
             case CELL_SPRITE:
             default:
@@ -1096,6 +1130,12 @@ void handle_editor() {
                 break;
             case MIDDLE_SPRITE:
                 spr_ptr = &levels[cur_level_idx].m_sprite_index[editor_selected_map_idx];
+                break;
+            case CEIL_SPRITE:
+                spr_ptr = &levels[cur_level_idx].c_sprite_index[editor_selected_map_idx];
+                break;
+            case FLOOR_SPRITE:
+                spr_ptr = &levels[cur_level_idx].f_sprite_index[editor_selected_map_idx];
                 break;
             case CELL_SPRITE:
                 spr_ptr = &levels[cur_level_idx].sprite_index[editor_selected_map_idx];
@@ -1446,11 +1486,10 @@ void run_game() {
         //char buf[80]; 
         //debug_printf(buf, "%i %i -> %i %i FOV%.0f %s", cur_render_width, cur_render_height, cur_output_width, cur_output_height, cur_fov, use_vsync ? "vsync" : "");
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 5}, 18, 1, RED);
-        //debug_printf(buf, "%4.0f fps", 1000.0f/avg_frame_time);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 20}, 18, 1, RED);
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
-        debug_printf("p %f %f %f\n", player_x, player_y, player_z);
+        //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
         debug_printf("%4.0f fps\n", 1000.0f/avg_frame_time);
     } platform_end_drawing();
 
