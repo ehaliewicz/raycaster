@@ -39,9 +39,9 @@ typedef struct {
     float mid_flat_v;
 } diag_intersect;
 
-const float diag_dy[NUM_CELL_TYPES] = {
-    1.0f, // dummy entry for normal walls
-    -1.0f, // NE_TO_SW_DIAG
+const float diag_dx[NUM_CELL_TYPES] = {
+    0.0f, // dummy entry for normal walls
+    1.0f, // NE_TO_SW_DIAG
     1.0f,  // NW_TO_SE_DIAG
     0.0f,// SLOPE_Y=3,
     0.0f,// SLOPE_X=4,
@@ -50,6 +50,44 @@ const float diag_dy[NUM_CELL_TYPES] = {
     0.0f, // THIN_WALL_X
     1.0f // THIN_WALL_Y
 };
+
+const float diag_dy[NUM_CELL_TYPES] = {
+    1.0f, // dummy entry for normal walls
+    -1.0f, // NE_TO_SW_DIAG
+    1.0f,  // NW_TO_SE_DIAG
+    0.0f,// SLOPE_Y=3,
+    0.0f,// SLOPE_X=4,
+    0.0f,// DOOR_Y=5,
+    0.0f,// DOOR_X=6
+    1.0f, // THIN_WALL_X
+    0.0f // THIN_WALL_Y
+};
+
+const float diag_start_x_offsets[NUM_CELL_TYPES] = {
+    // normal walls
+    0.0f,
+    0.0f,// NE_TO_SW_DIAG
+    0.0f,// NW_TO_SE_DIAG
+    0.0f,// SLOPE_Y=3,
+    0.0f,// SLOPE_X=4,
+    0.0f,//0.1f,// DOOR_Y=5,
+    0.0f,// DOOR_X=6
+    0.5f, // THIN WALL X
+    0.0f, // THIN WALL Y
+};
+const float diag_start_y_offsets[NUM_CELL_TYPES] = {
+    // normal walls
+    0.0f,
+    1.0f,// NE_TO_SW_DIAG
+    0.0f,// NW_TO_SE_DIAG
+    0.0f,// SLOPE_Y=3,
+    0.0f,// SLOPE_X=4,
+    0.0f,// DOOR_Y=5,
+    0.0f,// DOOR_X=6
+    0.0f, // THIN WALL X
+    0.5f, // THIN WALL Y
+};
+
 
 const float door_start_x_offsets[NUM_CELL_TYPES] = {
     // normal walls
@@ -71,7 +109,9 @@ const float door_start_y_offsets[NUM_CELL_TYPES] = {
     0.0f/32.0f,// DOOR_Y=5,
     4.0f/32.0f,// DOOR_X=6
 };
-const float diag_x_offsets[NUM_CELL_TYPES] = {
+
+
+const float door_end_x_offsets[NUM_CELL_TYPES] = {
     // normal walls
     0.0f,
     0.0f,// NE_TO_SW_DIAG
@@ -81,7 +121,7 @@ const float diag_x_offsets[NUM_CELL_TYPES] = {
     4.0f/32.0f,//0.1f,// DOOR_Y=5,
     0.0f,// DOOR_X=6
 };
-const float diag_y_offsets[NUM_CELL_TYPES] = {
+const float door_end_y_offsets[NUM_CELL_TYPES] = {
     // normal walls
     0.0f,
     1.0f,// NE_TO_SW_DIAG
@@ -180,12 +220,12 @@ int calc_line_hit(
 
 
 int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, float cam_dir_x, float cam_dir_y, float player_x, float player_y, int map_x, int map_y, float perp_dist, cell_types cell_type) {
-    float x1 = map_x + diag_x_offsets[cell_type];
-    float y1 = map_y + diag_y_offsets[cell_type];
+    float x1 = map_x + diag_start_x_offsets[cell_type];
+    float y1 = map_y + diag_start_y_offsets[cell_type];
 
     // can't just use +1,+1 and +1,-1 here, for some reason.
     
-    float x2 = x1 + 1.0f;
+    float x2 = x1 + diag_dx[cell_type]; //1.0f;
     float y2 = y1 + diag_dy[cell_type];
     result->diag_perp_dist = 1e9f;
 
@@ -198,8 +238,8 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
     float lerp_open_amount = door_open_amount*255.0f;
     lerp_open_amount = lerp_open_amount/250.0f;
     if(cell_type == DOOR_X) { lerp_open_amount = 1.0f - lerp_open_amount; }
-    float x1 = lerp(map_x+0.01f, map_x+0.01f + diag_x_offsets[cell_type], lerp_open_amount);
-    float y1 = lerp(map_y+0.01f, map_y+0.01f + diag_y_offsets[cell_type], lerp_open_amount);
+    float x1 = lerp(map_x+0.01f, map_x+0.01f + door_end_x_offsets[cell_type], lerp_open_amount);
+    float y1 = lerp(map_y+0.01f, map_y+0.01f + door_end_y_offsets[cell_type], lerp_open_amount);
     float cur_thickness = x1-map_x;
     float angle = door_open_amount * (3.14159 / 2.0f);
     float dir_x = my_cosf(angle);
@@ -639,6 +679,12 @@ void draw_first_person_level_inner(
             }
             if(hit_enter_sprite != EMPTY_SPRITE_INDEX && !in_start_cell && num_sprites_hit < MAX_SPRITE_HITS) {
                 float sprite_bot_y = floor_height;
+                if((lower_cell_type == THIN_WALL_X && enter_sprite_thg == E_SPRITE) ||
+                   (lower_cell_type == THIN_WALL_Y && enter_sprite_thg == N_SPRITE) || 
+                   (lower_cell_type == NW_TO_SE_DIAG && (enter_sprite_thg == E_SPRITE || enter_sprite_thg == N_SPRITE)) || 
+                   (lower_cell_type == NE_TO_SW_DIAG && (enter_sprite_thg == W_SPRITE || enter_sprite_thg == W_SPRITE))) {
+                    sprite_bot_y = upper_floor_height;
+                }
 
                 sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
                 sprite_cache[num_sprites_hit].top_height = sprite_bot_y+8.0f;
@@ -672,7 +718,6 @@ void draw_first_person_level_inner(
                 sprite_cache[num_sprites_hit++].z1 = perp_dist;
 
             }
-
             if (hit_ceiling_sprite != EMPTY_SPRITE_INDEX) {
                 float sprite_bot_y = ceil_height;
                 sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
@@ -690,7 +735,6 @@ void draw_first_person_level_inner(
                 sprite_cache[num_sprites_hit].z0 = perp_dist;
                 sprite_cache[num_sprites_hit++].z1 = next_perp_dist;
             }
-
             if(hit_middle_sprite != EMPTY_SPRITE_INDEX) {
                 float sprite_top_y = floor_height + this_level->m_sprite_offset[map_idx];
                 float sprite_bot_y = floor_height + this_level->m_sprite_offset[map_idx]-1.0f;
@@ -742,10 +786,14 @@ void draw_first_person_level_inner(
                     sprite_cache[num_sprites_hit-1].z1 = perp_dist;
                 }
             }
-
-
             if(hit_exit_sprite != EMPTY_SPRITE_INDEX && num_sprites_hit < MAX_SPRITE_HITS) {
                 float sprite_bot_y = floor_height;
+                if((lower_cell_type == THIN_WALL_X && exit_sprite_thg == E_SPRITE) || 
+                   (lower_cell_type == THIN_WALL_Y && exit_sprite_thg == N_SPRITE) || 
+                   (lower_cell_type == NW_TO_SE_DIAG && (exit_sprite_thg == E_SPRITE || exit_sprite_thg == N_SPRITE)) || 
+                   (lower_cell_type == NE_TO_SW_DIAG && (exit_sprite_thg == W_SPRITE || exit_sprite_thg == W_SPRITE))) {
+                    sprite_bot_y = upper_floor_height;
+                }
 
                 sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
                 sprite_cache[num_sprites_hit].top_height = sprite_bot_y+8.0f;
@@ -811,6 +859,9 @@ void draw_first_person_level_inner(
                 // miscellaneous stuff for diagonal draw order sorting 
                 float subx = ray_origin_x - my_floorf(ray_origin_x);
                 float suby = ray_origin_y - my_floorf(ray_origin_y);
+                int in_top = (suby < 0.5f);
+                int in_right = (subx >= 0.5f);
+
                 int in_top_right = (subx >= suby);
                 //int in_bottom_left = !in_top_right;
                 int in_top_left = (subx < (1.0f - suby));
@@ -818,17 +869,25 @@ void draw_first_person_level_inner(
 
                 int enters_right_side = (step_x == -1) && (side == VERTICAL_SIDE);
                 int enters_left_side = (step_x == 1) && (side == VERTICAL_SIDE);
-                //int enters_bot_side = (step_y == -1) && (side == HORIZONTAL_SIDE);
+                int enters_bot_side = (step_y == -1) && (side == HORIZONTAL_SIDE);
                 int enters_top_side = (step_y == 1) && (side == HORIZONTAL_SIDE);
-                //int in_bottom_half = 
-                // floor
 
-                if(lower_cell_type == NE_TO_SW_DIAG || lower_cell_type ==  NW_TO_SE_DIAG) { //} || lower_cell_type == DOOR_Y) {
+                int enters_top_side_right_half = (enters_top_side && ((hit_x - my_floorf(hit_x)) >= 0.5f));
+                int enters_bot_side_right_half = (enters_bot_side && ((hit_x - my_floorf(hit_x)) >= 0.5f));
+                int enters_left_side_top_half = (enters_left_side && ((hit_y - my_floorf(hit_y)) <= 0.5f));
+                int enters_right_side_top_half = (enters_right_side && ((hit_y - my_floorf(hit_y)) <= 0.5f));
+
+                if(lower_cell_type == NE_TO_SW_DIAG || lower_cell_type ==  NW_TO_SE_DIAG || 
+                   lower_cell_type == THIN_WALL_X || lower_cell_type == THIN_WALL_Y) { //} || lower_cell_type == DOOR_Y) {
                     int draw_upper_first;
                     if(lower_cell_type == NE_TO_SW_DIAG) {
                         draw_upper_first = (in_start_cell ? in_top_left : (enters_left_side || enters_top_side));
-                    } else { // NW_TO_SE_DIAG
+                    } else if (lower_cell_type == NW_TO_SE_DIAG) {
                         draw_upper_first = (in_start_cell ? in_top_right : (enters_right_side || enters_top_side));
+                    } else if (lower_cell_type == THIN_WALL_X) {
+                        draw_upper_first = (in_start_cell ? in_right : (enters_right_side || enters_top_side_right_half || enters_bot_side_right_half));
+                    } else if (lower_cell_type == THIN_WALL_Y) {
+                        draw_upper_first = (in_start_cell ? in_top : (enters_top_side || enters_left_side_top_half || enters_right_side_top_half));
                     }
 
                     if(draw_upper_first) {
@@ -843,14 +902,20 @@ void draw_first_person_level_inner(
                     }
                 }
 
-                if(upper_cell_type == NE_TO_SW_DIAG || upper_cell_type ==  NW_TO_SE_DIAG) {
+                if(upper_cell_type == NE_TO_SW_DIAG || upper_cell_type ==  NW_TO_SE_DIAG || 
+                   upper_cell_type == THIN_WALL_X || upper_cell_type == THIN_WALL_Y) {
                     // handle diagonal stuff
                     int draw_upper_first;
                     if(upper_cell_type == NE_TO_SW_DIAG) {
                         draw_upper_first = (in_start_cell ? in_top_left : (enters_left_side || enters_top_side));
-                    } else { // NW_TO_SE_DIAG
+                    } else if(upper_cell_type == NW_TO_SE_DIAG) { // NW_TO_SE_DIAG
                         draw_upper_first = (in_start_cell ? in_top_right : (enters_right_side || enters_top_side));
+                    } else if (upper_cell_type == THIN_WALL_X) {
+                        draw_upper_first = (in_start_cell ? in_right : (enters_right_side || enters_top_side_right_half || enters_bot_side_right_half));
+                    } else if (upper_cell_type == THIN_WALL_Y) {
+                        draw_upper_first = (in_start_cell ? in_top : (enters_top_side || enters_left_side_top_half || enters_right_side_top_half));
                     }
+
 
                     if(draw_upper_first) {
                         first_ceil_height = upper_ceil_height;
@@ -1135,7 +1200,9 @@ void draw_first_person_level_inner(
                         }
                         prev_drawn_bot = proj_step_next_height;
                     }
-                } else if(lower_cell_type == NW_TO_SE_DIAG || lower_cell_type == NE_TO_SW_DIAG || lower_cell_type == DOOR_Y || lower_cell_type == DOOR_X) {
+                } else if(lower_cell_type == NW_TO_SE_DIAG || lower_cell_type == NE_TO_SW_DIAG || 
+                    lower_cell_type == THIN_WALL_X || lower_cell_type == THIN_WALL_Y ||
+                    lower_cell_type == DOOR_Y || lower_cell_type == DOOR_X) {
                     diag_intersect lower_diag_intersect;
                     int lower_hits_diag;
                     float door_open_amount = this_level->parameter[map_idx]/255.0f;
@@ -1382,9 +1449,10 @@ void draw_first_person_level_inner(
                         }
                         prev_drawn_top = proj_step_next_height;
                     }
-                } else if(upper_cell_type == NW_TO_SE_DIAG || upper_cell_type == NE_TO_SW_DIAG) {
+                } else if(upper_cell_type == NW_TO_SE_DIAG || upper_cell_type == NE_TO_SW_DIAG ||
+                    upper_cell_type == THIN_WALL_X || upper_cell_type == THIN_WALL_Y) {
                     diag_intersect upper_diag_intersect;
-                    int upper_hits_diag = 0; //calc_diag_hit(&upper_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, perp_dist, upper_cell_type);    
+                    int upper_hits_diag = calc_diag_hit(&upper_diag_intersect, ray_dir_x, ray_dir_y, cam_dir_x, cam_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, perp_dist, upper_cell_type);    
                     if(upper_hits_diag && upper_diag_intersect.diag_perp_dist > NEAR_PLANE_DIST) {                        
 
                         // draw first ceil

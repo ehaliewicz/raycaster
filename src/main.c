@@ -135,6 +135,8 @@ float get_height_at_point(float px, float py, float pz, int return_ceil, int che
     float suby = py - my_floorf(py);
     int in_top_left = subx < (1.0f-suby);//in_top && in_left;
     int in_top_right = subx >= suby; //in_top && in_right;
+    int in_right = subx >= 0.5f;
+    int in_top = suby < 0.5f;
     int map_idx = map_y*MAP_SIZE + map_x;
     level* this_level = &levels[cur_level_idx];
     cell_types floor_cell_type = this_level->lower_cell_types[map_idx];
@@ -147,7 +149,9 @@ float get_height_at_point(float px, float py, float pz, int return_ceil, int che
     float ret_val;
 
     if((check_cell_type == NE_TO_SW_DIAG && in_top_left) || 
-       (check_cell_type == NW_TO_SE_DIAG && in_top_right)) {
+       (check_cell_type == NW_TO_SE_DIAG && in_top_right) || 
+        (check_cell_type == THIN_WALL_X && in_right) ||
+        (check_cell_type == THIN_WALL_Y && in_top)) {
             ret_val = return_ceil ? this_level->upper_ceil[map_idx] : this_level->upper_floor[map_idx];
     } else if(check_cell_type == SLOPE_Y) {
         float first_height = floor;
@@ -247,7 +251,9 @@ float get_height_at_point_for_sprites(float px, float py, int return_ceil) {
     }
 }
 
-int collides(float spx, float spy, float px, float py, float pz, level this_level) {
+#define MAX_STEP_HEIGHT 2.5f
+
+int collides(float spx, float spy, float spz, float px, float py, float pz, level this_level) {
     if (disable_collision) { return 0; }
     if(editor_mode_enabled) { return 0; }
     
@@ -259,30 +265,61 @@ int collides(float spx, float spy, float px, float py, float pz, level this_leve
 
     int src_map_idx = source_map_y*MAP_SIZE+source_map_x;
     int dst_map_idx = dst_map_y*MAP_SIZE+dst_map_x;
+
+    float sprite_pos = 0.0f;
+    float src_floor_height = get_height_at_point(spx, spy, pz, 0, 1);
+    float floor_height = get_height_at_point(px, py, pz, 0, 1);
+    
+    float ceil_height = get_height_at_point(px, py, pz, 1, 1);
     if(source_map_x > dst_map_x) {
-        has_sprite = (levels[cur_level_idx].w_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) || 
-         (levels[cur_level_idx].e_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX);
+        // if we've moved left
+        if(levels[cur_level_idx].w_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) {
+            has_sprite = 1;
+            sprite_pos = src_floor_height;
+        } else if (levels[cur_level_idx].e_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
+            has_sprite = 1;
+            sprite_pos = get_height_at_point(dst_map_x+0.999f, spy, pz, 0, 0);
+        }
     } else if (source_map_x < dst_map_x) {
-        has_sprite = (levels[cur_level_idx].e_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) || 
-         (levels[cur_level_idx].w_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX);
+        // moved right
+        if(levels[cur_level_idx].e_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) {
+            has_sprite = 1;
+            sprite_pos = src_floor_height;
+        } else if (levels[cur_level_idx].w_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
+            has_sprite = 1;
+            sprite_pos = get_height_at_point(dst_map_x, spy, pz, 0, 0);
+
+        }
     }
     if(source_map_y > dst_map_y) {
-        has_sprite = (levels[cur_level_idx].n_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) || 
-         (levels[cur_level_idx].s_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX);
-    } else if  (source_map_y < dst_map_y) {
-        has_sprite = (levels[cur_level_idx].s_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) || 
-         (levels[cur_level_idx].n_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX);
+        // moved up
+        if(levels[cur_level_idx].n_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) {
+            has_sprite = 1;
+            sprite_pos = src_floor_height;
+
+        } else if (levels[cur_level_idx].s_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
+            has_sprite = 1;
+            sprite_pos = get_height_at_point(spx, dst_map_y+0.99f, pz, 0, 0);
+
+        }
+    } else if (source_map_y < dst_map_y) {
+        // moved down
+        if (levels[cur_level_idx].s_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) {
+            has_sprite = 1;
+            sprite_pos = src_floor_height;
+        } else if (levels[cur_level_idx].n_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
+            has_sprite = 1;
+            sprite_pos = get_height_at_point(spx, dst_map_y, pz, 0, 0);
+        }
     }
 
-    float floor_height = get_height_at_point(px, py, pz, 0, 1);
-    float ceil_height = get_height_at_point(px, py, pz, 1, 1);
     if(has_sprite) {
-        floor_height += 8.0f;
+        floor_height = sprite_pos + 8.0f;
     }
     if(ceil_height < player_z+2 || ceil_height < (floor_height + PLAYER_HEIGHT + 2)) {
         return 1;
     }
-    if(floor_height >= (player_z-PLAYER_HEIGHT)+2.5) {
+    if(floor_height >= (player_z-PLAYER_HEIGHT)+MAX_STEP_HEIGHT+0.001f) {
         return 1;
     }
     return 0;
@@ -381,12 +418,14 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         float probe_x = new_x + (vel_x > 0 ? r : -r);
         float probe_y = new_y + (vel_y > 0 ? r : -r);
 
-        if((collides(player_x, player_y, probe_x, player_y - r, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, probe_x, player_y + r, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_z, probe_x, player_y - r, player_z, cur_level) == 0) && 
+            //(collides(player_x, player_y, probe_x, player_y, player_z, cur_level) == 0) &&
+            (collides(player_x, player_y, player_z, probe_x, player_y + r, player_z, cur_level) == 0)) {
             player_x = new_x;
         }
-        if((collides(player_x, player_y, player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, player_x + r, probe_y, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_z, player_x - r, probe_y, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, player_z, player_x,    probe_y, player_z, cur_level) == 0) &&
+            (collides(player_x, player_y, player_z, player_x + r, probe_y, player_z, cur_level) == 0)) {
             player_y = new_y;
         }
     }
@@ -397,12 +436,12 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         float new_y = player_y + vel_y;
         float probe_x = new_x + (vel_x > 0 ? r : -r);
         float probe_y = new_y + (vel_y > 0 ? r : -r);
-        if((collides(player_x, player_y, probe_x, player_y - r, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, probe_x, player_y + r, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_z, probe_x, player_y - r, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, player_z, probe_x, player_y + r, player_z, cur_level) == 0)) {
             player_x = new_x;
         }
-        if((collides(player_x, player_y, player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, player_x + r, probe_y, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_z, player_x - r, probe_y, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, player_z, player_x + r, probe_y, player_z, cur_level) == 0)) {
             player_y = new_y;
         }
     }
@@ -413,12 +452,12 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         float new_y = player_y + vel_y;
         float probe_x = new_x + (vel_x > 0 ? r : -r);
         float probe_y = new_y + (vel_y > 0 ? r : -r);
-        if((collides(player_x, player_y, probe_x, player_y - r, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, probe_x, player_y + r, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_z, probe_x, player_y - r, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, player_z, probe_x, player_y + r, player_z, cur_level) == 0)) {
             player_x = new_x;
         }
-        if((collides(player_x, player_y, player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, player_x + r, probe_y, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_z, player_x - r, probe_y, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, player_z, player_x + r, probe_y, player_z, cur_level) == 0)) {
             player_y = new_y;
         }
     }
@@ -429,43 +468,39 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         float new_y = player_y + vel_y;
         float probe_x = new_x + (vel_x > 0 ? r : -r);
         float probe_y = new_y + (vel_y > 0 ? r : -r);    
-        if((collides(player_x, player_y, probe_x, player_y - r, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, probe_x, player_y + r, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_z, probe_x, player_y - r, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, player_z, probe_x, player_y + r, player_z, cur_level) == 0)) {
             player_x = new_x;
         }
-        if((collides(player_x, player_y, player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, player_x + r, probe_y, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_z, player_x - r, probe_y, player_z, cur_level) == 0) && 
+            (collides(player_x, player_y, player_z, player_x + r, probe_y, player_z, cur_level) == 0)) {
             player_y = new_y;
         }
     }
-    int map_x = my_floorf(player_x);
-    int map_y = my_floorf(player_y);
-    int map_idx = map_y*MAP_SIZE+map_x;
-    int floor = levels[cur_level_idx].floor[map_idx];
-    if(levels[cur_level_idx].lower_cell_types[map_idx] != NORMAL_CELL) {
-        floor = MAX(floor, levels[cur_level_idx].upper_floor[map_idx]);
-    }
-    
+
+    float ct_height = get_height_at_point(player_x, player_y, player_z, 0, 1);
     float lf_height = get_height_at_point(player_x-PLAYER_RADIUS, player_y, player_z, 0, 1);
     float rt_height = get_height_at_point(player_x+PLAYER_RADIUS, player_y, player_z, 0, 1);
     float tp_height = get_height_at_point(player_x, player_y-PLAYER_RADIUS, player_z, 0, 1);
     float bt_height = get_height_at_point(player_x, player_y+PLAYER_RADIUS, player_z, 0, 1);
 
+    float player_foot = player_z - PLAYER_HEIGHT;
 
-    //float exact_height = get_height_at_point(player_x, player_y, 0);
-    float player_contact_height = player_z-PLAYER_HEIGHT;
-    float max_takeable_step = MAX(lf_height, MAX(rt_height, MAX(tp_height, bt_height)));
-   
-    float target_height = max_takeable_step+PLAYER_HEIGHT;
+    // A probe can only pull you up if it's within step range of where you already are.
+    // This stops a corner probe from teleporting you onto a ledge you haven't reached.
+    float max_takeable_step = ct_height;
+    if (lf_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, lf_height);
+    if (rt_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, rt_height);
+    if (tp_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, tp_height);
+    if (bt_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, bt_height);
+
+    float target_height = max_takeable_step + PLAYER_HEIGHT;
+
+
     if(editor_mode_enabled) {
-        //if(target_height > player_z) {
-        //    float dh = target_height-player_z;
-        //    player_z += (target_height - player_z)*0.15;
-        //}
+
     } else {
-        //if(got_takeable_step) {
-            player_z += (target_height - player_z)*0.15;
-        //}
+        player_z += (target_height - player_z)*0.15;
     }
     player_z = MIN(MAX_WALL_HEIGHT, player_z);
 
@@ -1474,8 +1509,8 @@ void run_game() {
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 20}, 18, 1, RED);
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
-        //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
-        debug_printf("%4.0f fps\n", 1000.0f/avg_frame_time);
+        debug_printf("p %f %f %f\n", player_x, player_y, player_z);
+        //debug_printf("%4.0f fps\n", 1000.0f/avg_frame_time);
     } platform_end_drawing();
 
     int scale_y = FP_SCREEN_HEIGHT/32;

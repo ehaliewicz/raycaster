@@ -25,8 +25,8 @@ typedef enum {
     SLOPE_X=4,
     DOOR_Y=5,
     DOOR_X=6,
-    THIN_WALL_X=7,
-    THIN_WALL_Y=8,
+    THIN_WALL_X=7, // split vertically in half
+    THIN_WALL_Y=8, // split horizontally in half
     //HEIGHTMAP=6
 } cell_types;
 
