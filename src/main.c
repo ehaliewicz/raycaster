@@ -88,14 +88,11 @@ void* my_calloc(long long unsigned int bytes, char* for_str) {
     return calloc(bytes, 1);
 }
 
-
-
 float running_time = 0.0f;
 
 float get_running_time() {
     return running_time;
 }
-
 
 long long int rseed = 0x853c49e6748fea9bULL;
 
@@ -111,18 +108,9 @@ u32 urand() {
     return lcg(6364136223846793005ULL, 0xda3e39cb94b95bdbULL);
 }
 
-// levels are what, 32x32 tile?
-
-// textures are what... 32x32? :)
-
-
-
 u32** textures;
 u32* skybox;
-u32** sprites;//[NUM_SPRITES];
-
-
-
+u32** sprites;
 
 level *levels = NULL;
 
@@ -141,15 +129,12 @@ int disable_collision = 0;
 #define DOOR_FULLY_OPEN  200
 
 float get_height_at_point(float px, float py, float pz, int return_ceil, int check_middle_sprite) {
-    int map_x = px;
-    int map_y = py;
+    int map_x = my_floorf(px);
+    int map_y = my_floorf(py);
     float subx = px - my_floorf(px);
     float suby = py - my_floorf(py);
-    int in_top = suby < 0.5f;
-    int in_left = subx < 0.5f;
-    int in_right = !in_left;
-    int in_top_left = in_top && in_left;
-    int in_top_right = in_top && in_right;
+    int in_top_left = subx < (1.0f-suby);//in_top && in_left;
+    int in_top_right = subx >= suby; //in_top && in_right;
     int map_idx = map_y*MAP_SIZE + map_x;
     level* this_level = &levels[cur_level_idx];
     cell_types floor_cell_type = this_level->lower_cell_types[map_idx];
