@@ -16,7 +16,7 @@ void nop_printf(const char* fmt, ...);
 #ifdef DDEBUG
 #define debug_printf printf 
 #else 
-#define debug_printf printf
+#define debug_printf nop_printf
 #endif
 //void debug_printf(const char* fmt, ...);
 #endif

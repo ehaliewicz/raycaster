@@ -118,7 +118,7 @@ void update_viewport(int width, int height) {
 static LRESULT CALLBACK wnd_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_CLOSE:   g_running = 0; return 0;
-        case WM_KEYDOWN: g_keys[wp] = 1; g_last_key_pressed = wp; if(wp == VK_CONTROL) {printf("WHaOARORAORSFIOETRNEIO1@#!@# !!! BAZONGA \n"); } return 0;
+        case WM_KEYDOWN: g_keys[wp] = 1; g_last_key_pressed = wp; return 0;
         case WM_KEYUP:   g_keys[wp] = 0; return 0;
         case WM_LBUTTONDOWN: g_keys[VK_LBUTTON] = 1; return 0;
         case WM_LBUTTONUP:   g_keys[VK_LBUTTON] = 0; return 0;
@@ -142,11 +142,13 @@ static LRESULT CALLBACK wnd_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 }
 
 
-
 typedef long long int (WINAPI *PFNWGLSWAPINTERVALEXTPROC)(int);
 static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
 
 void platform_init_window(int width, int height, const char *title) {
+    
+    SetProcessDPIAware();
+
     if(g_keys == NULL) {
         debug_printf("allocating...\n");
         g_keys = my_calloc(sizeof(int)*256, "key buffer");
@@ -274,13 +276,14 @@ void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float 
         glRotatef(rotation, 0.0f, 0.0f, 1.0f);
         glScalef(scale, scale, 1.0f);
         // centered on pos
-        float hw = w * 0.5f;
-        float hh = h * 0.5f;
+        float half_width = w * 0.5f;
+        float half_height = h * 0.5f;
+        // uv 0,0 is bottom left
         glBegin(GL_QUADS);
-            glTexCoord2f(0, 0); glVertex2f(-hw, -hh);
-            glTexCoord2f(1, 0); glVertex2f( hw, -hh);
-            glTexCoord2f(1, 1); glVertex2f( hw,  hh);
-            glTexCoord2f(0, 1); glVertex2f(-hw,  hh);
+            glTexCoord2f(0, 0); glVertex2f(-half_width, -half_height);
+            glTexCoord2f(1, 0); glVertex2f( half_width, -half_height);
+            glTexCoord2f(1, 1); glVertex2f( half_width,  half_height);
+            glTexCoord2f(0, 1); glVertex2f(-half_width,  half_height);
         glEnd();
     //glPopMatrix();
 }
