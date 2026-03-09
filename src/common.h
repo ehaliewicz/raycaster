@@ -46,7 +46,7 @@ typedef enum {
 #define FOV (cur_fov*0.0174533f)
 #define VFOV (45.0f*0.0174533f)
 
-#define NUM_RESOLUTIONS 6
+#define NUM_RESOLUTIONS 7
 
 extern float cur_fov;
 extern int cur_output_width;
@@ -81,7 +81,7 @@ extern int cur_render_scale;
 #elif PLATFORM_WEB
     #define NUM_THREADS 1
 #else
-    #define NUM_THREADS 4
+    #define NUM_THREADS 12
 #endif 
 
 

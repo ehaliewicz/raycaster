@@ -440,26 +440,7 @@ void draw_first_person_level_inner(
 
 
 
-        /* DRAW SKYBOX */
-        {
-            float ray_ang = my_atan2f(ray_dir_y, ray_dir_x);
-            if(ray_ang < 0.0f) {
-                ray_ang += 6.28f;
-            }
 
-            u32* skybox = textures[SKYBOX_TEX_IDX];
-
-            float u = 1024.0f* (0.5f + ray_ang / (2.0f * 3.14159));
-            float flt_u = (u+skybox_u_offset);
-            //float subtex_u = flt_u - my_floorf(flt_u);
-            int int_u = ((int)(flt_u))&(SKYBOX_TEX_WIDTH-1);
-            for(int y = 0; y < FP_SCREEN_HEIGHT-1; y++) {
-                int v = (SKYBOX_TEX_HEIGHT/4+(int)(SKYBOX_V_PER_PIX*(y+(-pitch*(float)FP_SCREEN_HEIGHT))))&(SKYBOX_TEX_HEIGHT-1);
-                u32 texell = skybox[int_u*SKYBOX_TEX_HEIGHT+v];
-
-                output[screen_x*FP_SCREEN_HEIGHT+y] = texell;
-            }
-        }
         int num_sprites_hit = 0;
         
         int rem_steps = MAX_STEPS;
@@ -509,6 +490,22 @@ void draw_first_person_level_inner(
         float light_factor = 0.75f;
         float next_light_factor;
         
+        u32* skybox_column = NULL;
+        {
+            float ray_ang = my_atan2f(ray_dir_y, ray_dir_x);
+            if(ray_ang < 0.0f) {
+                ray_ang += 6.28f;
+            }
+
+            u32* skybox = textures[SKYBOX_TEX_IDX];
+
+            float u = 1024.0f* (0.5f + ray_ang / (2.0f * 3.14159));
+            float flt_u = (u+skybox_u_offset);
+            //float subtex_u = flt_u - my_floorf(flt_u);
+            int int_u = ((int)(flt_u))&(SKYBOX_TEX_WIDTH-1);
+            skybox_column = &skybox[int_u*SKYBOX_TEX_HEIGHT];
+        }
+            
 
         for(int step = 0; 
             (step < rem_steps) && 
@@ -555,6 +552,8 @@ void draw_first_person_level_inner(
 
             int floor_anchor = this_level->floor_anchor[map_idx];
             int ceil_anchor = this_level->ceil_anchor[map_idx];
+            int floor_anchor_is_not_zero = floor_anchor > 0;
+            int ceil_anchor_is_not_max = ceil_anchor < MAX_WALL_HEIGHT;
 
             int proj_floor_anchor_height = project_to_screen(floor_anchor, perp_dist, pitch, ray_origin_z);
             int proj_zero_height = project_to_screen(0, perp_dist, pitch, ray_origin_z);
@@ -940,10 +939,15 @@ void draw_first_person_level_inner(
                 int proj_ceil_first_step_height = project_to_screen(first_ceil_height, perp_dist, pitch, ray_origin_z);
 
                 if(!in_start_cell && !lower_step_slope && proj_floor_first_step_height < prev_drawn_bot) {
+                    if(floor_anchor_is_not_zero) {
+                        draw_skybox_vline(
+                            output, skybox_column, screen_x, MAX(prev_drawn_top, proj_floor_anchor_height), prev_drawn_bot
+                        );
+                    }
                     draw_lit_fogged_clipped_textured_wall(
                         output, z_buffer,
                         (lower_wall_tex == SKYBOX_TEX_IDX),
-                        get_texture_column(textures[lower_wall_tex], wall_u),
+                        get_texture_column(textures[lower_wall_tex], wall_u),skybox_column,
                         screen_x, proj_floor_first_step_height, proj_floor_anchor_height,
                         first_floor_height, floor_anchor, BOTTOM_PEGGED,
                         prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, lower_intersect_wall_light_level, 
@@ -995,12 +999,16 @@ void draw_first_person_level_inner(
 
                     
                     if(!in_start_cell && proj_slope_start_height < prev_drawn_bot) {      
-
+                        if(floor_anchor_is_not_zero) {
+                            draw_skybox_vline(
+                                output, skybox_column, screen_x, MAX(prev_drawn_top, proj_floor_anchor_height), prev_drawn_bot
+                            );
+                        }
                         // draw wall up to start of slope    
                         draw_lit_fogged_clipped_textured_wall(
                             output, z_buffer,
                             ((lower_wall_tex) == SKYBOX_TEX_IDX),
-                            get_texture_column(textures[lower_wall_tex], wall_u),
+                            get_texture_column(textures[lower_wall_tex], wall_u),skybox_column,
                             screen_x, proj_slope_start_height, proj_floor_anchor_height,
                             slope_start_height, floor_anchor, BOTTOM_PEGGED,
                             prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, lower_intersect_wall_light_level, 
@@ -1029,10 +1037,15 @@ void draw_first_person_level_inner(
 
                 // draw first ceil step
                 if(!in_start_cell && !upper_step_slope && proj_ceil_first_step_height > prev_drawn_top) {
+                    if(ceil_anchor_is_not_max) {
+                        draw_skybox_vline(
+                            output, skybox_column, screen_x, prev_drawn_top, MIN(prev_drawn_bot, proj_ceil_anchor_height)
+                        );
+                    }
                     draw_lit_fogged_clipped_textured_wall(
                         output, z_buffer,
                         ((upper_wall_tex) == SKYBOX_TEX_IDX),
-                        get_texture_column(textures[upper_wall_tex], wall_u),
+                        get_texture_column(textures[upper_wall_tex], wall_u),skybox_column,
                         screen_x, proj_ceil_anchor_height, proj_ceil_first_step_height,
                         ceil_anchor, first_ceil_height, TOP_PEGGED,
                         prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, upper_intersect_wall_light_level, 
@@ -1084,12 +1097,20 @@ void draw_first_person_level_inner(
                     int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
 
 
-                    if(proj_slope_start_height > prev_drawn_top) {      
+                    if(proj_slope_start_height > prev_drawn_top) {  
+                        if(ceil_anchor_is_not_max) {
+                            if(ceil_anchor_is_not_max) {
+                                draw_skybox_vline(
+                                    output, skybox_column, screen_x, prev_drawn_top, MIN(prev_drawn_bot, proj_ceil_anchor_height)
+                                );
+                            }
+                        }
+                        
                         // draw wall up to start of slope    
                         draw_lit_fogged_clipped_textured_wall(
                             output, z_buffer,
                             ((upper_wall_tex) == SKYBOX_TEX_IDX),
-                            get_texture_column(textures[upper_wall_tex], wall_u),
+                            get_texture_column(textures[upper_wall_tex], wall_u), skybox_column,
                             screen_x, 
                             proj_ceil_anchor_height, proj_slope_start_height,
                             ceil_anchor, slope_start_height, TOP_PEGGED,
@@ -1148,7 +1169,7 @@ void draw_first_person_level_inner(
 
                     if (proj_slope_end_height < prev_drawn_bot) {
                         draw_lit_fogged_tex_flat(
-                            output, z_buffer, textures[upper_floor_texture],
+                            output, z_buffer, textures[upper_floor_texture],skybox_column,
                             screen_x, proj_slope_end_height, proj_slope_start_height, 
                             next_perp_dist, perp_dist, 
                             exit_flat_u, exit_flat_v, flat_u, flat_v,
@@ -1178,7 +1199,7 @@ void draw_first_person_level_inner(
                     int proj_step_next_height = project_to_screen(first_floor_height, next_perp_dist, pitch, ray_origin_z);
                     if(proj_step_next_height < prev_drawn_bot) {
                         draw_lit_fogged_tex_flat(
-                            output, z_buffer, textures[first_floor_texture],
+                            output, z_buffer, textures[first_floor_texture],skybox_column,
                             screen_x, proj_step_next_height, proj_floor_first_step_height, next_perp_dist, perp_dist,
                             exit_flat_u, exit_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, first_floor_light_level,
                             FOG_COL
@@ -1223,7 +1244,7 @@ void draw_first_person_level_inner(
                         int proj_first_height_diag = project_to_screen(first_floor_height, lower_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
                         if(proj_first_height_diag < prev_drawn_bot) {
                             draw_lit_fogged_tex_flat(
-                                output, z_buffer, textures[first_floor_texture],
+                                output, z_buffer, textures[first_floor_texture],skybox_column,
                                 screen_x, proj_first_height_diag, proj_floor_first_step_height, lower_diag_intersect.diag_perp_dist, perp_dist,
                                 lower_diag_intersect.mid_flat_u, lower_diag_intersect.mid_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, first_floor_light_level,
                                 FOG_COL
@@ -1251,10 +1272,15 @@ void draw_first_person_level_inner(
                         int proj_floor_anchor_height_diag = project_to_screen(floor_anchor, lower_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
                         int proj_zero_height_diag = project_to_screen(0, lower_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
                         if(proj_second_height_diag < prev_drawn_bot) {
+                            if(floor_anchor_is_not_zero) {
+                                draw_skybox_vline(
+                                    output, skybox_column, screen_x, MAX(prev_drawn_top, proj_floor_anchor_height_diag), prev_drawn_bot
+                                );
+                            }
                             draw_lit_fogged_clipped_textured_wall(
                                 output, z_buffer,
-                                ((lower_diag_wall_tex) == SKYBOX_TEX_IDX),
-                                get_texture_column(textures[lower_diag_wall_tex], lower_diag_intersect.diag_wall_u),
+                                ((lower_diag_wall_tex) == SKYBOX_TEX_IDX), 
+                                get_texture_column(textures[lower_diag_wall_tex], lower_diag_intersect.diag_wall_u), skybox_column,
                                 screen_x, proj_second_height_diag, proj_floor_anchor_height_diag,
                                 second_floor_height, floor_anchor, BOTTOM_PEGGED,
                                 prev_drawn_top, prev_drawn_bot, lower_diag_intersect.diag_perp_dist, DIAG_LIGHT_FACTOR, lower_diag_light_level, 
@@ -1281,7 +1307,7 @@ void draw_first_person_level_inner(
                         int proj_second_height_next = project_to_screen(second_floor_height, next_perp_dist, pitch, ray_origin_z);
                         if(lower_cell_type != DOOR_Y && lower_cell_type != DOOR_X && proj_second_height_next < prev_drawn_bot) {
                             draw_lit_fogged_tex_flat(
-                                output, z_buffer, textures[second_floor_texture], 
+                                output, z_buffer, textures[second_floor_texture],skybox_column,
                                 screen_x, proj_second_height_next, proj_second_height_diag, next_perp_dist, lower_diag_intersect.diag_perp_dist,
                                 exit_flat_u, exit_flat_v, lower_diag_intersect.mid_flat_u, lower_diag_intersect.mid_flat_v, prev_drawn_top, prev_drawn_bot,  
                                 FLOOR_LIGHT_FACTOR, second_floor_light_level,
@@ -1309,7 +1335,7 @@ void draw_first_person_level_inner(
                         if ((lower_cell_type == DOOR_Y || lower_cell_type == DOOR_X) && proj_floor_first_step_height_at_next_dist < prev_drawn_bot) {
                             // draw lower floor a second time..
                             draw_lit_fogged_tex_flat(
-                                output, z_buffer, textures[first_floor_texture],
+                                output, z_buffer, textures[first_floor_texture],skybox_column,
                                 screen_x, proj_floor_first_step_height_at_next_dist,  proj_first_height_diag, next_perp_dist, lower_diag_intersect.diag_perp_dist,
                                 exit_flat_u, exit_flat_v, lower_diag_intersect.mid_flat_u, lower_diag_intersect.mid_flat_v, prev_drawn_top, prev_drawn_bot, FLOOR_LIGHT_FACTOR, first_floor_light_level,
                                 FOG_COL
@@ -1339,7 +1365,7 @@ void draw_first_person_level_inner(
                         int proj_step_next_height = project_to_screen(first_floor_height, next_perp_dist, pitch, ray_origin_z);
                         if(proj_step_next_height < prev_drawn_bot) {
                             draw_lit_fogged_tex_flat(
-                                output, z_buffer, textures[first_floor_texture],
+                                output, z_buffer, textures[first_floor_texture],skybox_column,
                                 screen_x, proj_step_next_height, proj_floor_first_step_height, next_perp_dist, perp_dist,
                                 exit_flat_u, exit_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, first_floor_light_level,
                                 FOG_COL
@@ -1399,7 +1425,7 @@ void draw_first_person_level_inner(
 
                     if (proj_slope_end_height > prev_drawn_top) {
                         draw_lit_fogged_tex_flat(
-                            output, z_buffer, textures[upper_ceil_texture],
+                            output, z_buffer, textures[upper_ceil_texture],skybox_column,
                             screen_x, proj_slope_start_height, proj_slope_end_height, 
                             perp_dist, next_perp_dist, 
                             flat_u, flat_v, exit_flat_u, exit_flat_v, 
@@ -1427,7 +1453,7 @@ void draw_first_person_level_inner(
                     int proj_step_next_height = project_to_screen(first_ceil_height, next_perp_dist, pitch, ray_origin_z);
                     if(proj_step_next_height > prev_drawn_top) {
                         draw_lit_fogged_tex_flat(
-                            output, z_buffer, textures[first_ceil_texture],
+                            output, z_buffer, textures[first_ceil_texture],skybox_column,
                             screen_x, proj_ceil_first_step_height, proj_step_next_height, perp_dist, next_perp_dist,
                             flat_u, flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot,  CEIL_LIGHT_FACTOR, first_ceil_light_level,
                             FOG_COL
@@ -1459,7 +1485,7 @@ void draw_first_person_level_inner(
                         int proj_first_height_diag = project_to_screen(first_ceil_height, upper_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
                         if(proj_first_height_diag > prev_drawn_top) {
                             draw_lit_fogged_tex_flat(
-                                output, z_buffer, textures[first_ceil_texture],
+                                output, z_buffer, textures[first_ceil_texture],skybox_column,
                                 screen_x, proj_ceil_first_step_height, proj_first_height_diag, perp_dist, upper_diag_intersect.diag_perp_dist,
                                 flat_u, flat_v,  upper_diag_intersect.mid_flat_u, upper_diag_intersect.mid_flat_v, prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, first_ceil_light_level,
                                 FOG_COL
@@ -1487,10 +1513,17 @@ void draw_first_person_level_inner(
                         int proj_ceil_anchor_height_diag = project_to_screen(ceil_anchor, upper_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
                         int proj_max_height_diag = project_to_screen(MAX_WALL_HEIGHT, upper_diag_intersect.diag_perp_dist, pitch, ray_origin_z);
                         if(proj_second_height_diag > prev_drawn_top) {
+
+                            if(ceil_anchor_is_not_max) {
+                                draw_skybox_vline(
+                                    output, skybox_column, screen_x, prev_drawn_top, MIN(prev_drawn_bot, proj_ceil_anchor_height_diag)
+                                );
+                            }
+
                             draw_lit_fogged_clipped_textured_wall(
                                 output, z_buffer,
                                 ((upper_diag_wall_tex) == SKYBOX_TEX_IDX),
-                                get_texture_column(textures[upper_diag_wall_tex], upper_diag_intersect.diag_wall_u),
+                                get_texture_column(textures[upper_diag_wall_tex], upper_diag_intersect.diag_wall_u),skybox_column,
                                 screen_x, proj_ceil_anchor_height_diag, proj_second_height_diag,
                                 ceil_anchor, second_ceil_height, TOP_PEGGED,
                                 prev_drawn_top, prev_drawn_bot, upper_diag_intersect.diag_perp_dist, DIAG_LIGHT_FACTOR, upper_diag_light_level, 
@@ -1519,7 +1552,7 @@ void draw_first_person_level_inner(
                         int proj_second_height_next = project_to_screen(second_ceil_height, next_perp_dist, pitch, ray_origin_z);
                         if(proj_second_height_next > prev_drawn_top) {
                             draw_lit_fogged_tex_flat(
-                                output, z_buffer, textures[second_ceil_texture],
+                                output, z_buffer, textures[second_ceil_texture],skybox_column,
                                 screen_x, proj_second_height_diag, proj_second_height_next, upper_diag_intersect.diag_perp_dist, next_perp_dist, 
                                 upper_diag_intersect.mid_flat_u, upper_diag_intersect.mid_flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot,  
                                 CEIL_LIGHT_FACTOR, second_ceil_light_level,
@@ -1551,7 +1584,7 @@ void draw_first_person_level_inner(
                         int proj_step_next_height = project_to_screen(first_ceil_height, next_perp_dist, pitch, ray_origin_z);
                         if(proj_step_next_height > prev_drawn_top) {
                             draw_lit_fogged_tex_flat(
-                                output, z_buffer, textures[first_ceil_texture],
+                                output, z_buffer, textures[first_ceil_texture],skybox_column,
                                 screen_x, proj_ceil_first_step_height, proj_step_next_height, perp_dist, next_perp_dist,
                                 flat_u, flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, first_ceil_light_level,
                                 FOG_COL
@@ -1590,6 +1623,13 @@ void draw_first_person_level_inner(
 
         }
     
+
+        draw_skybox_vline(
+            output, skybox_column, screen_x, prev_drawn_top, prev_drawn_bot
+        );
+
+
+
         if(num_sprites_hit > 0) {
             for(int i = num_sprites_hit-1; i >= 0; i--) {
                 sprite_cache_entry spr = sprite_cache[i];
@@ -1624,7 +1664,7 @@ void draw_first_person_level_inner(
                         z1 = z0;
                     }
                     draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
-                        output, z_buffer, sprites[spr.sprite_idx], screen_x, 
+                        output, z_buffer, sprites[spr.sprite_idx], skybox_column, screen_x, 
                         unclipped_y0, unclipped_y1, 
                         z0, z1, u0, v0, u1, v1, 
                         spr.prev_drawn_top, spr.prev_drawn_bot, spr.light_factor, BRIGHT, FOG_COL, DO_ALPHA_BLEND
@@ -1655,7 +1695,7 @@ void draw_first_person_level_inner(
 
 
                     draw_lit_fogged_textured_z_buffered_blended_sprite(
-                        output, z_buffer, 0, tex_col, screen_x, 
+                        output, z_buffer, 0, tex_col, skybox_column, screen_x, 
                         unclipped_y0, unclipped_y1, 
                         spr.v0*8.0f, spr.v1*8.0f, TOP_PEGGED,
                         spr.prev_drawn_top, spr.prev_drawn_bot,
@@ -1792,7 +1832,7 @@ void draw_transformed_sprites(u32* output, edit_wall_id* edit_id_buffer, float* 
                 u32* tex_col = get_texture_column(sprites[spr_idx], (x-screen_x0)*tex_per_pix);
 
                 draw_lit_fogged_textured_z_buffered_blended_sprite(
-                    output, z_buffer,  0, tex_col,
+                    output, z_buffer,  0, tex_col, textures[SKYBOX_TEX_IDX],
                     x, screen_y0, screen_y1, sprite.world_y0, sprite.world_y1, TOP_PEGGED, 0, FP_SCREEN_HEIGHT,
                     z, 1.0f, BRIGHT, FOG_COL, NO_REPEAT_TEX, DO_ALPHA_BLEND, DO_DEPTH_TEST
                 );

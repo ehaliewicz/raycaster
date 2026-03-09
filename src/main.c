@@ -34,10 +34,14 @@ const int resolutions[NUM_RESOLUTIONS][2] = {
     {1024, 768},
     {1280, 1024},
     {1280, 720},
-    {1920, 1080}
+    {1920, 1080},
+    {3440, 1300}
 };
 const int res_is_wide[NUM_RESOLUTIONS] = {
-    0,0,0,0,1,1
+    0,0,0,0,1,1,0
+};
+const int res_is_superwide[NUM_RESOLUTIONS] = {
+    0,0,0,0,0,0,1
 };
 
 int cur_render_res_idx = -1;
@@ -1277,7 +1281,7 @@ void change_resolution() {
     cur_output_height = resolutions[cur_render_res_idx][1];
     cur_render_width = cur_output_width / cur_render_scale;
     cur_render_height = cur_output_height / cur_render_scale;
-    cur_fov = res_is_wide[cur_render_res_idx] ? 100.0f : 85.0f;
+    cur_fov = res_is_superwide[cur_render_res_idx] ? 120.0f : res_is_wide[cur_render_res_idx] ? 100.0f : 85.0f;
     
     int prev_use_vsync = use_vsync;
     int prev_fullscreen = fullscreen;
@@ -1509,8 +1513,8 @@ void run_game() {
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 20}, 18, 1, RED);
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
-        debug_printf("p %f %f %f\n", player_x, player_y, player_z);
-        //debug_printf("%4.0f fps\n", 1000.0f/avg_frame_time);
+        //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
+        debug_printf("%4.0f fps\n", 1000.0f/avg_frame_time);
     } platform_end_drawing();
 
     int scale_y = FP_SCREEN_HEIGHT/32;
@@ -1607,6 +1611,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow);
 
 
 #ifdef DEBUG
+int main(int argc, char** argv) {
+#elif CL_COMPILER
 int main(int argc, char** argv) {
 #else
 int atexit(void (*fn)(void)) { return 0; }
