@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include "common.h"
+#include "collision.h"
 #include "draw.h"
 #include "my_defs.h"
 #include "raycast.h"

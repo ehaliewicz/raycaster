@@ -86,6 +86,10 @@ extern int cur_render_scale;
 
 
 
+#define PLAYER_RADIUS (0.25f)
+
+#define DOOR_FULLY_OPEN  200
+
 #define NUM_LEVELS 1
 
 typedef struct {
@@ -159,6 +163,10 @@ typedef struct {
     u8 floor_anchor[MAP_SIZE*MAP_SIZE];
     u8 ceil_anchor[MAP_SIZE*MAP_SIZE];
 } level;
+
+
+extern level *levels;
+extern int cur_level_idx;
 
 
 typedef enum {

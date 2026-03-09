@@ -9,8 +9,8 @@
 #include <string.h>
 #include "my_defs.h"
 #include "platform_win.h"
-//#include "raylib.h"
 
+#include "collision.h"
 #include "common.h"
 #include "entity.h"
 #include "lz.h"
@@ -128,207 +128,6 @@ int disable_collision = 0;
 
 
 
-#define PLAYER_RADIUS (0.25f)
-
-#define DOOR_FULLY_OPEN  200
-
-float get_height_at_point(float px, float py, float pz, int return_ceil, int check_middle_sprite) {
-    int map_x = my_floorf(px);
-    int map_y = my_floorf(py);
-    float subx = px - my_floorf(px);
-    float suby = py - my_floorf(py);
-    int in_top_left = subx < (1.0f-suby);//in_top && in_left;
-    int in_top_right = subx >= suby; //in_top && in_right;
-    int in_right = subx >= 0.5f;
-    int in_top = suby < 0.5f;
-    int map_idx = map_y*MAP_SIZE + map_x;
-    level* this_level = &levels[cur_level_idx];
-    cell_types floor_cell_type = this_level->lower_cell_types[map_idx];
-    cell_types ceil_cell_type = this_level->upper_cell_types[map_idx];
-    cell_types check_cell_type = return_ceil ? ceil_cell_type : floor_cell_type;
-    int floor = this_level->floor[map_idx];
-    int upper_floor = this_level->upper_floor[map_idx];
-    int ceil = this_level->ceil[map_idx];
-    int upper_ceil = this_level->upper_ceil[map_idx];
-    float ret_val;
-
-    if((check_cell_type == NE_TO_SW_DIAG && in_top_left) || 
-       (check_cell_type == NW_TO_SE_DIAG && in_top_right) || 
-        (check_cell_type == THIN_WALL_X && in_right) ||
-        (check_cell_type == THIN_WALL_Y && in_top)) {
-            ret_val = return_ceil ? this_level->upper_ceil[map_idx] : this_level->upper_floor[map_idx];
-    } else if(check_cell_type == SLOPE_Y) {
-        float first_height = floor;
-        float second_height = upper_floor;
-        if(return_ceil) {
-            first_height = ceil;
-            second_height = upper_ceil;
-        }
-        ret_val = first_height + (suby * (second_height - first_height));
-
-    } else if (check_cell_type == SLOPE_X) { 
-        float first_height = floor;
-        float second_height = upper_floor;
-        if(return_ceil) {
-            first_height = ceil;
-            second_height = upper_ceil;
-        }
-        ret_val = first_height + (subx * (second_height - first_height));
-
-    } else if (check_cell_type == DOOR_Y) {
-        if(this_level->parameter[map_idx] >= DOOR_FULLY_OPEN || suby >= 0.25f) {
-            ret_val = return_ceil ? ceil : floor;
-        } else {
-            ret_val = return_ceil ? upper_ceil : upper_floor;
-        }
-    } else if (check_cell_type == DOOR_X) {
-        if(this_level->parameter[map_idx] >= DOOR_FULLY_OPEN || subx >= 0.25f) {
-            ret_val = return_ceil ? ceil : floor;
-        } else {
-            ret_val = return_ceil ? upper_ceil : upper_floor;
-        }
-    } else {
-        ret_val = return_ceil ? ceil : floor;
-    }
-    if(check_middle_sprite && this_level->m_sprite_index[map_idx] != EMPTY_SPRITE_INDEX) {
-        int mid_sprite_height = floor + this_level->m_sprite_offset[map_idx];
-        if((!return_ceil) && mid_sprite_height > ret_val && mid_sprite_height <= pz) {
-            ret_val = mid_sprite_height;
-        } else if(return_ceil && mid_sprite_height > ret_val && mid_sprite_height >= pz) {
-            ret_val = mid_sprite_height;
-        }
-    }
-    return ret_val;
-}
-
-float get_height_at_point_for_sprites(float px, float py, int return_ceil) {
-    int map_x = px;
-    int map_y = py;
-    float subx = px - my_floorf(px);
-    float suby = py - my_floorf(py);
-    int in_top = suby < 0.5f;
-    int in_left = subx < 0.5f;
-    int in_right = !in_left;
-    int in_top_left = in_top && in_left;
-    int in_top_right = in_top && in_right;
-    int map_idx = map_y*MAP_SIZE + map_x;
-    level* this_level = &levels[cur_level_idx];
-    cell_types floor_cell_type = this_level->lower_cell_types[map_idx];
-    cell_types ceil_cell_type = this_level->upper_cell_types[map_idx];
-    cell_types check_cell_type = return_ceil ? ceil_cell_type : floor_cell_type;
-    int floor = this_level->floor[map_idx];
-    int upper_floor = this_level->upper_floor[map_idx];
-    int ceil = this_level->ceil[map_idx];
-    int upper_ceil = this_level->upper_ceil[map_idx];
-
-    if((check_cell_type == NE_TO_SW_DIAG && in_top_left) || 
-       (check_cell_type == NW_TO_SE_DIAG && in_top_right)) {
-            return return_ceil ? this_level->upper_ceil[map_idx] : this_level->upper_floor[map_idx];
-    } else if(check_cell_type == SLOPE_Y) {
-        float first_height = floor;
-        float second_height = upper_floor;
-        if(return_ceil) {
-            first_height = ceil;
-            second_height = upper_ceil;
-        }
-        float height = first_height + (suby * (second_height - first_height));
-
-        return height; 
-    } else if (check_cell_type == SLOPE_X) { 
-        float first_height = floor;
-        float second_height = upper_floor;
-        if(return_ceil) {
-            first_height = ceil;
-            second_height = upper_ceil;
-        }
-        float height = first_height + (subx * (second_height - first_height));
-
-        return height; 
-    } else if (check_cell_type == DOOR_Y) {
-        if(this_level->parameter[map_idx] >= DOOR_FULLY_OPEN || suby >= 0.25f) {
-            return return_ceil ? ceil : floor;
-        } else {
-            return return_ceil ? upper_ceil : upper_floor;
-        }
-    } else {
-        return return_ceil ? ceil : floor;
-    }
-}
-
-#define MAX_STEP_HEIGHT 2.5f
-
-int collides(float spx, float spy, float spz, float px, float py, float pz, level this_level) {
-    if (disable_collision) { return 0; }
-    if(editor_mode_enabled) { return 0; }
-    
-    int source_map_x = my_floorf(spx);
-    int source_map_y = my_floorf(spy);
-    int dst_map_x = my_floorf(px);
-    int dst_map_y = my_floorf(py);
-    int has_sprite = 0;
-
-    int src_map_idx = source_map_y*MAP_SIZE+source_map_x;
-    int dst_map_idx = dst_map_y*MAP_SIZE+dst_map_x;
-
-    float sprite_pos = 0.0f;
-    float src_floor_height = get_height_at_point(spx, spy, pz, 0, 1);
-    float floor_height = get_height_at_point(px, py, pz, 0, 1);
-    
-    float ceil_height = get_height_at_point(px, py, pz, 1, 1);
-    if(source_map_x > dst_map_x) {
-        // if we've moved left
-        if(levels[cur_level_idx].w_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) {
-            has_sprite = 1;
-            sprite_pos = src_floor_height;
-        } else if (levels[cur_level_idx].e_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
-            has_sprite = 1;
-            sprite_pos = get_height_at_point(dst_map_x+0.999f, spy, pz, 0, 0);
-        }
-    } else if (source_map_x < dst_map_x) {
-        // moved right
-        if(levels[cur_level_idx].e_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) {
-            has_sprite = 1;
-            sprite_pos = src_floor_height;
-        } else if (levels[cur_level_idx].w_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
-            has_sprite = 1;
-            sprite_pos = get_height_at_point(dst_map_x, spy, pz, 0, 0);
-
-        }
-    }
-    if(source_map_y > dst_map_y) {
-        // moved up
-        if(levels[cur_level_idx].n_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) {
-            has_sprite = 1;
-            sprite_pos = src_floor_height;
-
-        } else if (levels[cur_level_idx].s_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
-            has_sprite = 1;
-            sprite_pos = get_height_at_point(spx, dst_map_y+0.99f, pz, 0, 0);
-
-        }
-    } else if (source_map_y < dst_map_y) {
-        // moved down
-        if (levels[cur_level_idx].s_sprite_index[src_map_idx] != EMPTY_SPRITE_INDEX) {
-            has_sprite = 1;
-            sprite_pos = src_floor_height;
-        } else if (levels[cur_level_idx].n_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
-            has_sprite = 1;
-            sprite_pos = get_height_at_point(spx, dst_map_y, pz, 0, 0);
-        }
-    }
-
-    if(has_sprite) {
-        floor_height = sprite_pos + 8.0f;
-    }
-    if(ceil_height < player_z+2 || ceil_height < (floor_height + PLAYER_HEIGHT + 2)) {
-        return 1;
-    }
-    if(floor_height >= (player_z-PLAYER_HEIGHT)+MAX_STEP_HEIGHT+0.001f) {
-        return 1;
-    }
-    return 0;
-}
-
 int door_timer_running = 0;
 int timer_door = 0; // the map idx of the door we're opening
 float start_open_time; // one second to open, one second open, one second to close?
@@ -414,70 +213,44 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         }
     }
 
+    int moved = 0;
+    float vel_x = 0.0f;
+    float vel_y = 0.0f;
+
     if (platform_is_key_down(KEY_W)) {
-        float vel_x = move_speed*x;
-        float vel_y = move_speed*y;
+        moved = 1;
+        vel_x = move_speed*x;
+        vel_y = move_speed*y;
+    }\
+    if(platform_is_key_down(KEY_A)) {
+        moved = 1;
+        vel_x += move_speed*strafe_left_x;
+        vel_y += move_speed*strafe_left_y;
+    }
+    if(platform_is_key_down(KEY_S)) {
+        vel_x = -move_speed*x;
+        vel_y = -move_speed*y;
+    }
+
+    if(platform_is_key_down(KEY_D)) {
+        vel_x += move_speed*strafe_right_x;
+        vel_y += move_speed*strafe_right_y;
+    }
+
+    if(moved) {
         float new_x = player_x + vel_x;
         float new_y = player_y + vel_y;
         float probe_x = new_x + (vel_x > 0 ? r : -r);
         float probe_y = new_y + (vel_y > 0 ? r : -r);
 
-        if((collides(player_x, player_y, player_z, probe_x, player_y - r, player_z, cur_level) == 0) && 
+        if((collides(player_x, player_y, player_z, probe_x, player_y - r, player_z, cur_level, disable_collision, editor_mode_enabled) == 0) && 
             //(collides(player_x, player_y, probe_x, player_y, player_z, cur_level) == 0) &&
-            (collides(player_x, player_y, player_z, probe_x, player_y + r, player_z, cur_level) == 0)) {
+            (collides(player_x, player_y, player_z, probe_x, player_y + r, player_z, cur_level, disable_collision, editor_mode_enabled) == 0)) {
             player_x = new_x;
         }
-        if((collides(player_x, player_y, player_z, player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, player_z, player_x,    probe_y, player_z, cur_level) == 0) &&
-            (collides(player_x, player_y, player_z, player_x + r, probe_y, player_z, cur_level) == 0)) {
-            player_y = new_y;
-        }
-    }
-    if(platform_is_key_down(KEY_A)) {
-        float vel_x = move_speed*strafe_left_x;
-        float vel_y = move_speed*strafe_left_y;
-        float new_x = player_x + vel_x;
-        float new_y = player_y + vel_y;
-        float probe_x = new_x + (vel_x > 0 ? r : -r);
-        float probe_y = new_y + (vel_y > 0 ? r : -r);
-        if((collides(player_x, player_y, player_z, probe_x, player_y - r, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, player_z, probe_x, player_y + r, player_z, cur_level) == 0)) {
-            player_x = new_x;
-        }
-        if((collides(player_x, player_y, player_z, player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, player_z, player_x + r, probe_y, player_z, cur_level) == 0)) {
-            player_y = new_y;
-        }
-    }
-    if(platform_is_key_down(KEY_D)) {
-        float vel_x = move_speed*strafe_right_x;
-        float vel_y = move_speed*strafe_right_y;
-        float new_x = player_x + vel_x;
-        float new_y = player_y + vel_y;
-        float probe_x = new_x + (vel_x > 0 ? r : -r);
-        float probe_y = new_y + (vel_y > 0 ? r : -r);
-        if((collides(player_x, player_y, player_z, probe_x, player_y - r, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, player_z, probe_x, player_y + r, player_z, cur_level) == 0)) {
-            player_x = new_x;
-        }
-        if((collides(player_x, player_y, player_z, player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, player_z, player_x + r, probe_y, player_z, cur_level) == 0)) {
-            player_y = new_y;
-        }
-    }
-    if (platform_is_key_down(KEY_S)) {
-        float vel_x = - move_speed*x;
-        float vel_y = - move_speed*y; 
-        float new_x = player_x + vel_x;
-        float new_y = player_y + vel_y;
-        float probe_x = new_x + (vel_x > 0 ? r : -r);
-        float probe_y = new_y + (vel_y > 0 ? r : -r);    
-        if((collides(player_x, player_y, player_z, probe_x, player_y - r, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, player_z, probe_x, player_y + r, player_z, cur_level) == 0)) {
-            player_x = new_x;
-        }
-        if((collides(player_x, player_y, player_z, player_x - r, probe_y, player_z, cur_level) == 0) && 
-            (collides(player_x, player_y, player_z, player_x + r, probe_y, player_z, cur_level) == 0)) {
+        if((collides(player_x, player_y, player_z, player_x - r, probe_y, player_z, cur_level, disable_collision, editor_mode_enabled) == 0) && 
+            (collides(player_x, player_y, player_z, player_x,    probe_y, player_z, cur_level, disable_collision, editor_mode_enabled) == 0) &&
+            (collides(player_x, player_y, player_z, player_x + r, probe_y, player_z, cur_level, disable_collision, editor_mode_enabled) == 0)) {
             player_y = new_y;
         }
     }
