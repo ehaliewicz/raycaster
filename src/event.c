@@ -35,7 +35,7 @@ u32 size()     {
 }
 
 void initialize_event_module() {
-    queue = malloc(MAX_EVENTS*sizeof(event));
+    queue = my_malloc(MAX_EVENTS*sizeof(event), "event queue");
     read = 0;
     write = 0;
 }

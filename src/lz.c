@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define LZ_HEADER 0xB0B2
+
 #define MATCH_LEN_BITS 8
 #define MATCH_OFFSET_BITS 8
 
@@ -121,6 +123,7 @@ compressed* compress(u8* data, int data_len) {
     int num_opcode_bytes = (num_bits+7)>>3;
     int num_operand_bytes = num_bytes;
     compressed* res = my_malloc(sizeof(compressed)+(num_opcode_bytes+num_operand_bytes), "compressed output");
+    res->header = LZ_HEADER;
     res->num_opcodes = num_bits;
     res->num_operand_bytes = num_operand_bytes;
     res->uncompressed_size = data_len;
@@ -130,7 +133,10 @@ compressed* compress(u8* data, int data_len) {
 }
 
 
-u8* decompress(compressed* comp) {
+int decompress(compressed* comp, u8** output_ptr) {
+    if(comp->header != LZ_HEADER) {
+        return -1;
+    }
     int num_opcodes = comp->num_opcodes;
     int num_operand_bytes = comp->num_operand_bytes;
     u8* output = my_malloc(sizeof(u8)*comp->uncompressed_size, "decompressed output");
@@ -159,6 +165,10 @@ u8* decompress(compressed* comp) {
 
     if(output_idx != comp->uncompressed_size){
         debug_printf("Decompressed size doesn't match!\n");
+        return -1;
     }
-     return output;
+
+    *output_ptr = output;
+    return output_idx;
+
 }

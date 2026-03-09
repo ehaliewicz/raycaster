@@ -16,6 +16,7 @@
 #include "lz.h"
 #include "network.h"
 #include "raycast.h"
+#include "resources.h"
 
 typedef enum {
     PIXEL_BUFFER = 0,
@@ -112,9 +113,8 @@ u32 urand() {
     return lcg(6364136223846793005ULL, 0xda3e39cb94b95bdbULL);
 }
 
-u32** textures;
+
 u32* skybox;
-u32** sprites;
 
 level *levels = NULL;
 
@@ -140,7 +140,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     float strafe_right_y = x;
     float strafe_left_x = y;
     float strafe_left_y = -x;
-    float move_speed = .04f * frame_time / 16.0f;
+    float move_speed = 0.04f * frame_time / 16.0f;
     level cur_level = levels[cur_level_idx];
     float r = PLAYER_RADIUS;
 
@@ -219,20 +219,22 @@ void update_player(float frame_time, Vector2 mouse_delta) {
 
     if (platform_is_key_down(KEY_W)) {
         moved = 1;
-        vel_x = move_speed*x;
-        vel_y = move_speed*y;
-    }\
+        vel_x += move_speed*x;
+        vel_y += move_speed*y;
+    }
     if(platform_is_key_down(KEY_A)) {
         moved = 1;
         vel_x += move_speed*strafe_left_x;
         vel_y += move_speed*strafe_left_y;
     }
     if(platform_is_key_down(KEY_S)) {
-        vel_x = -move_speed*x;
-        vel_y = -move_speed*y;
+        moved = 1;
+        vel_x += -move_speed*x;
+        vel_y += -move_speed*y;
     }
 
     if(platform_is_key_down(KEY_D)) {
+        moved = 1;
         vel_x += move_speed*strafe_right_x;
         vel_y += move_speed*strafe_right_y;
     }
@@ -326,7 +328,7 @@ void draw_topdown_level() {
 
 
 void copy_32_map_to_64() {
-    // 
+    //
 }
 
 
@@ -363,6 +365,8 @@ void init_level(int fresh_map) {
                     levels[level].s_sprite_index[idx] = EMPTY_SPRITE_INDEX;
                     levels[level].w_sprite_index[idx] = EMPTY_SPRITE_INDEX;
                     levels[level].m_sprite_index[idx] = EMPTY_SPRITE_INDEX;
+                    levels[level].f_sprite_index[idx] = EMPTY_SPRITE_INDEX;
+                    levels[level].c_sprite_index[idx] = EMPTY_SPRITE_INDEX;
                     levels[level].parameter[idx] = 0;
                 }
             }
@@ -443,122 +447,6 @@ void draw_player() {
 }
 
 //Font font;
-
-typedef enum {
-    TEXTURE,
-    SPRITE
-} asset_type;
-typedef struct {
-    const char* name;
-    const asset_type type;
-} asset;
-
-u32* camera_texture = NULL;
-
-
-const char* texture_assets[] = {
-    "flat_tex0",
-    "flat_tex1",
-    "wall_tex0",
-    "wall_tex1",
-    "bookshelf",
-    "grass",
-    "church"
-};
-const char* sprite_assets[] = {
-    "tree",
-    "moss",
-    "chandelier",
-    "glass_window2",
-    "glass_window3",
-    "fence",
-    "bush",
-    "glass_window4",
-    "wall_tex0",
-    "GATO1",
-    "GATO2",
-    "GATO3",
-    "GATO4",
-    "GATO5",
-    "GATO6",
-    "GATO7",
-    "GATO8",
-    "GATO9",
-    "GATO10",
-    "fox1",
-    "fox2",
-};
-
-void load_resources() {
-    //font = LoadFont("C:/Windows/Fonts/courbd.ttf");
-
-    const int num_sprite_assets = ((sizeof(sprite_assets)) / sizeof(char*));
-    const int num_texture_assets = ((sizeof(texture_assets)) / sizeof(char*));
-    const int num_assets = num_sprite_assets+num_texture_assets;
-
-
-    int tex_idx = 0;
-    int sprite_idx = 0;
-    size_t tex_num_bytes = sizeof(u8)*4*TEX_SIZE*TEX_SIZE;
-    size_t tex_num_pixels = sizeof(u32)*TEX_SIZE*TEX_SIZE;
-    
-    textures = my_malloc(sizeof(u32*)*16, "texture pointer array");
-    sprites = my_malloc(sizeof(u32*)*NUM_SPRITES, "sprite pointer array");
-
-    //u32* backing_texture_data = my_calloc(sizeof(u32)*tex_num_pixels*(NUM_TEXTURES+NUM_SPRITES), "assets");
-    char buf[64] = {'r','e','s','o','u','r','c','e','s','/'};
-    for(int asset_idx = 0; asset_idx < num_assets; asset_idx++) {
-        int is_texture = (asset_idx < num_texture_assets);
-        const char* asset_name = is_texture ? texture_assets[asset_idx] : sprite_assets[asset_idx-num_texture_assets];
-        int i = 0;
-        while(asset_name[i] != '\0') { 
-            buf[10+i] = asset_name[i]; i++;
-        };
-        buf[10+i++] = '.';
-        buf[10+i++] = 't';
-        buf[10+i++] = 'g';
-        buf[10+i++] = 'a';
-        buf[10+i++] = '\0';
-
-
-
-        debug_printf("Loading %s...\n", buf);
-        u8* tex_data = platform_load_image(buf, 32, 32);
-        if(tex_data == NULL) {
-            debug_printf("ERROR LOADING ASSET %s\n", buf);
-            exit(1);
-        }
-        debug_printf("Loaded.\n");
-
-        //u32* data_ptr = backing_texture_data+(tex_num_pixels*asset_idx);
-        //my_memcpy(data_ptr, tex_data, tex_num_bytes);
-
-        debug_printf("Copied\n");
-
-        
-        //platform_unload_image(tex_data);
-        if(is_texture) {
-            textures[tex_idx++] = (u32*)tex_data;//data_ptr;
-        } else {
-            sprites[sprite_idx++] = (u32*)tex_data;//data_ptr;
-        }
-    }
-
-    camera_texture = my_calloc(32*32*sizeof(u32), "camera texture");
-    textures[tex_idx++] = camera_texture;
-
-
-    debug_printf("Loading skybox tga\n");
-    u8* skybox_tex_data = platform_load_image("resources/skybox.tga", SKYBOX_TEX_HEIGHT, SKYBOX_TEX_WIDTH);
-    //skybox = my_calloc(4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT, "skybox");
-    //my_memcpy(skybox, skybox_tex_data, 4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT);
-    textures[SKYBOX_TEX_IDX] = (u32*)skybox_tex_data;
-    //platform_unload_image(skybox_tex_data);
-    debug_printf("Loaded\n");
-    //Image height_tex = LoadImage("resources/flat_tex_heightmap.tga");
-    //my_memcpy(heightmap, height_tex.data, 32*32);
-    //UnloadImage(height_tex);
-}
 
 
 void handle_editor() {
@@ -1062,7 +950,8 @@ void change_resolution() {
     fullscreen = requested_fullscreen;
     if(prev_use_vsync != use_vsync) {
         platform_set_vsync(use_vsync);
-    } 
+    }
+    printf("vsync %i\n", use_vsync);
 
     //SetConfigFlags(FLAG_VSYNC_HINT);
 
@@ -1259,7 +1148,7 @@ void run_game() {
                 //if(platform_is_key_down(KEY_X)) {
                 //    crt_shader(draw_pix);
                 //}
-                platform_update_texture(draw_tex, (u32*)draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+                //platform_update_texture(draw_tex, (u32*)draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
                 break;
             case Z_BUFFER:
 
@@ -1342,6 +1231,7 @@ void init_game() {
     
     int num_loaded_bytes;
     u8* loaded_bytes = platform_load_file_data(MAP_SAVE_FILE, &num_loaded_bytes);
+    
     if(num_loaded_bytes == sizeof(level)*NUM_LEVELS) {
         levels = (level*)loaded_bytes;
         init_level(0);
@@ -1350,13 +1240,18 @@ void init_game() {
 
         if(comp->uncompressed_size != sizeof(level)*NUM_LEVELS) {
             //puts("error loading map!!!!!\n");
-            if(num_loaded_bytes == sizeof(level)*NUM_LEVELS) {
+            debug_printf("Uncompressed size doesn't match expectations");
+            exit(1);
 
-            }
             //exit(1);
         }
         //u8* decompressed = decompress(comp);
-        levels = (level*)decompress(comp);
+        u8* decompressed_ptr;
+        int decompressed_size = decompress(comp, &decompressed_ptr);
+        if(decompressed_size == -1) {
+            printf("failed to decompress, header mismatch? :(");
+        }
+        levels = (level*)decompressed_ptr;
         //levels = my_malloc(sizeof(level)*NUM_LEVELS, "level data");
         //my_memcpy(levels, decompressed, comp->uncompressed_size);
         //free(decompressed);
@@ -1438,6 +1333,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
         }
     }
     
+
     while(!platform_window_should_close()) {
         if(platform_is_key_pressed(KEY_B)) {
             //spawn_entity(FOX, player_x, player_y, player_z, 0, 2);
@@ -1445,6 +1341,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
         if(platform_is_key_pressed(KEY_ENTER) && !entities_woke) {
             wakeup_entities(player_x, player_y, player_z);
             entities_woke = 1;
+        }
+        if(frame == 5) {
+
+            // clean up some cruft
+            SetProcessWorkingSetSize(GetCurrentProcess(), (SIZE_T)-1, (SIZE_T)-1);
         }
         if(frame == 0) {
             //spawn_entity(GATO, 12, 12, 13.5, 0);
@@ -1473,21 +1374,26 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
 
     size_t level_size = sizeof(level)*NUM_LEVELS;
     u8* level_data = (u8*)levels;
-    //compressed* comp = compress(level_data, sizeof(level)*NUM_LEVELS);
-    //size_t comp_size_bytes = ((comp->num_opcodes+7)>>3)+comp->num_operand_bytes;
-    //debug_printf("Compressed %llu down to %llu bytes\n", comp->uncompressed_size, sizeof(compressed)+comp_size_bytes);
 
-    //u8* decomp = decompress(comp);
+    compressed* comp = compress(level_data, sizeof(level)*NUM_LEVELS);
+    size_t comp_size_bytes = ((comp->num_opcodes+7)>>3)+comp->num_operand_bytes;
+    debug_printf("Compressed %i down to %llu bytes\n", comp->uncompressed_size, sizeof(compressed)+comp_size_bytes);
 
-    //for(size_t i = 0; i < level_size; i++) {
-    //    if(level_data[i] != decomp[i]) {
-    //        debug_printf("miscompare at %i\n", i);
-    //        exit(1);
-    //    }
-    //}
+    u8* decomp;
+    int decompressed_bytes = decompress(comp, &decomp);
+    if(decompressed_bytes == -1) {
+        debug_printf("decompress not enough bytes\n");
+        exit(1);
+    }
+    for(size_t i = 0; i < level_size; i++) {
+        if(level_data[i] != decomp[i]) {
+            debug_printf("miscompare at %zu\n", i);
+            exit(1);
+        }
+    }
 
-    //if(!platform_save_file_data(MAP_SAVE_FILE, comp, sizeof(compressed)+comp_size_bytes)) {
-    if(!platform_save_file_data(MAP_SAVE_FILE, levels, sizeof(level)*NUM_LEVELS)) {
+    if(!platform_save_file_data(MAP_SAVE_FILE, comp, sizeof(compressed)+comp_size_bytes)) {
+    //if(!platform_save_file_data(MAP_SAVE_FILE, levels, sizeof(level)*NUM_LEVELS)) {
         debug_printf("Error saving file :(\n");
     }
 

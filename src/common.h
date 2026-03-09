@@ -32,13 +32,6 @@ typedef enum {
 
 
 #define NUM_CELL_TYPES 9
-#define NUM_TEXTURES 9
-#define SKYBOX_TEX_IDX 15
-#define NUM_SPRITES 21
-//#define NUM_DECALS 4
-//#define BLANK_DECAL_IDX 0
-
-#define EMPTY_SPRITE_INDEX 64
 
 #define MAP_SIZE 32
 
@@ -81,7 +74,7 @@ extern int cur_render_scale;
 #elif PLATFORM_WEB
     #define NUM_THREADS 1
 #else
-    #define NUM_THREADS 12
+    #define NUM_THREADS 16
 #endif 
 
 
@@ -90,7 +83,7 @@ extern int cur_render_scale;
 
 #define DOOR_FULLY_OPEN  200
 
-#define NUM_LEVELS 1
+#define NUM_LEVELS 6
 
 typedef struct {
     int start_x, start_y, start_z; // map position on load
@@ -205,9 +198,6 @@ typedef enum {
 } light_levels;
 
 
-
-extern u32** textures;//[16];
-extern u32** sprites;//[NUM_SPRITES];
 
 typedef u32 edit_wall_id;
 

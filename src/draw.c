@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include "common.h"
+
 #include "draw.h"
 #include "my_defs.h"
+#include "resources.h"
 
 const float light_level_mults[4] = {1.0f, 0.50f, 1.5f, 1.5f};
 
@@ -148,11 +150,11 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         g = (g * mult_by_inv_depth) + scaled_fog_g;
         b = (b * mult_by_inv_depth) + scaled_fog_b;
         if(do_alpha_blend) {
-            r = tex_a;
+            //r *= tex_a;
             r += (old_r * inv_tex_a);
-            g *= tex_a;
+            //g *= tex_a;
             g += (old_g * inv_tex_a);
-            b *= tex_a;
+            //b *= tex_a;
             b += (old_b * inv_tex_a);
         }
 
@@ -176,7 +178,7 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
 void draw_lit_fogged_textured_z_buffered_blended_sprite(
     u32* output, float* z_buffer,
     int draw_skybox, 
-    u32 *tex_column, u32* skybox_col,
+    u32 *tex_column, int top_skip, u32* skybox_col,
     int x,
     float y0, float y1, 
     float world_y0, float world_y1, 
@@ -204,9 +206,9 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
         start_v = 32.0f - 4.0f * units;
         //start_v += 0.01f;
     }
-    while(start_v < 0) {
-        start_v += 32.0f;
-    }
+    //while(start_v < 0) {
+    //    start_v += 32.0f;
+    //}
 
     u32 fog_r = (fog_col >> 16)&0xFF;
     u32 fog_g = (fog_col >> 8)&0xFF;
@@ -215,10 +217,16 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
     u32 scaled_fog_g = (depth_scale * fog_g);
     u32 scaled_fog_b = (depth_scale * fog_b);
 
+    int y = clipped_y0;
+
+
     for(int y = clipped_y0; y < clipped_y1; y++) {
         int dy = y-y0;
 
         int idx = (int)(start_v + dy*tex_per_pix)&31;
+        if(top_skip > 0 && idx < top_skip) {
+            continue;
+        }
 
         u32 texel = tex_column[idx];
         u32 texel_a = ((texel >> 24) & 0xFF);
@@ -241,12 +249,15 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
             u32 old_g = ((old_pix >> 8) & 0xFF);
             u32 old_b = ((old_pix >> 0) & 0xFF);
             float tex_a = texel_a/255.0f;
+            //if(texel_a != 255) {
+            //    continue;
+            //} else { tex_a == 1.0f; }
             float inv_tex_a = 1.0f-tex_a;
-            r *= tex_a;
+            //r *= tex_a;
             r += (old_r * inv_tex_a);
-            g *= tex_a;
+            //g *= tex_a;
             g += (old_g * inv_tex_a);
-            b *= tex_a;
+            //b *= tex_a;
             b += (old_b * inv_tex_a);
             if(tex_a == 0) {
                 continue;

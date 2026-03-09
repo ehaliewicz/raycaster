@@ -2,6 +2,7 @@
 #include "common.h"
 #include "collision.h"
 #include "my_defs.h"
+#include "resources.h"
 
 
 float get_height_at_point(float px, float py, float pz, int return_ceil, int check_middle_sprite) {

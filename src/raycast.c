@@ -11,6 +11,7 @@
 #include "draw.h"
 #include "my_defs.h"
 #include "raycast.h"
+#include "resources.h"
 #include "platform_win.h"
 
 
@@ -328,7 +329,7 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
 
 }
 
-void set_byte_in_bitmap(u8* bitmap, int bit_idx) {
+void set_bit_in_bitmap(u8* bitmap, int bit_idx) {
     int byte_idx = bit_idx>>3;
     int bit = bit_idx&0b111;
     bitmap[byte_idx] |= (1 << bit);
@@ -337,7 +338,7 @@ void set_byte_in_bitmap(u8* bitmap, int bit_idx) {
 
 #define MAX_STEPS 128
 // front wall, back wall, floor, ceiling, and middle
-#define MAX_SPRITE_HITS (MAX_STEPS*5)
+#define MAX_SPRITE_HITS (MAX_STEPS*2)
 
 
 /*
@@ -546,7 +547,7 @@ void draw_first_person_level_inner(
             
 
             
-            set_byte_in_bitmap(visited_cell_bitmap, map_idx);
+            set_bit_in_bitmap(visited_cell_bitmap, map_idx);
             int selected_cur_map_idx = editor_selected_map_idx == map_idx;
             cell_types upper_cell_type = this_level->upper_cell_types[map_idx];
             cell_types lower_cell_type = this_level->lower_cell_types[map_idx];
@@ -677,7 +678,9 @@ void draw_first_person_level_inner(
                     exit_sprite_thg = W_SPRITE;
                 }
             }
-            if(hit_enter_sprite != EMPTY_SPRITE_INDEX && !in_start_cell && num_sprites_hit < MAX_SPRITE_HITS) {
+            int can_add_sprite = (num_sprites_hit < MAX_SPRITE_HITS);
+
+            if(can_add_sprite && hit_enter_sprite != EMPTY_SPRITE_INDEX && !in_start_cell && num_sprites_hit < MAX_SPRITE_HITS) {
                 float sprite_bot_y = floor_height;
                 if((lower_cell_type == THIN_WALL_X && enter_sprite_thg == E_SPRITE) ||
                    (lower_cell_type == THIN_WALL_Y && enter_sprite_thg == N_SPRITE) || 
@@ -700,7 +703,7 @@ void draw_first_person_level_inner(
                 sprite_cache[num_sprites_hit].light_factor = 1.0f;
                 sprite_cache[num_sprites_hit++].z0 = perp_dist;
             }
-            if(hit_floor_sprite != EMPTY_SPRITE_INDEX) {
+            if(can_add_sprite && hit_floor_sprite != EMPTY_SPRITE_INDEX) {
                 float sprite_bot_y = floor_height;
                 sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
                 sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
@@ -718,7 +721,7 @@ void draw_first_person_level_inner(
                 sprite_cache[num_sprites_hit++].z1 = perp_dist;
 
             }
-            if (hit_ceiling_sprite != EMPTY_SPRITE_INDEX) {
+            if(can_add_sprite && hit_ceiling_sprite != EMPTY_SPRITE_INDEX) {
                 float sprite_bot_y = ceil_height;
                 sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
                 sprite_cache[num_sprites_hit].prev_drawn_top = prev_drawn_top;
@@ -735,7 +738,7 @@ void draw_first_person_level_inner(
                 sprite_cache[num_sprites_hit].z0 = perp_dist;
                 sprite_cache[num_sprites_hit++].z1 = next_perp_dist;
             }
-            if(hit_middle_sprite != EMPTY_SPRITE_INDEX) {
+            if(can_add_sprite && hit_middle_sprite != EMPTY_SPRITE_INDEX) {
                 float sprite_top_y = floor_height + this_level->m_sprite_offset[map_idx];
                 float sprite_bot_y = floor_height + this_level->m_sprite_offset[map_idx]-1.0f;
                 int screen_y_near = project_to_screen(sprite_bot_y, perp_dist, pitch, ray_origin_z);
@@ -786,7 +789,7 @@ void draw_first_person_level_inner(
                     sprite_cache[num_sprites_hit-1].z1 = perp_dist;
                 }
             }
-            if(hit_exit_sprite != EMPTY_SPRITE_INDEX && num_sprites_hit < MAX_SPRITE_HITS) {
+            if(can_add_sprite && hit_exit_sprite != EMPTY_SPRITE_INDEX && num_sprites_hit < MAX_SPRITE_HITS) {
                 float sprite_bot_y = floor_height;
                 if((lower_cell_type == THIN_WALL_X && exit_sprite_thg == E_SPRITE) || 
                    (lower_cell_type == THIN_WALL_Y && exit_sprite_thg == N_SPRITE) || 
@@ -1616,7 +1619,7 @@ void draw_first_person_level_inner(
             }
 
             // adjust clipping for sprites we hit on exit of this cell
-            if(hit_exit_sprite != EMPTY_SPRITE_INDEX) {
+            if(can_add_sprite && hit_exit_sprite != EMPTY_SPRITE_INDEX) {
                 sprite_cache[num_sprites_hit-1].prev_drawn_bot = prev_drawn_bot;
                 sprite_cache[num_sprites_hit-1].prev_drawn_top = prev_drawn_top;
             }
@@ -1694,9 +1697,10 @@ void draw_first_person_level_inner(
                     float unclipped_y1 = project_to_screen(bot_height, z, pitch, ray_origin_z);
                     u32* tex_col = get_texture_column(sprites[spr.sprite_idx], spr.u0);
 
+                    u32 skip = rle_spr_top_skips[spr.sprite_idx*32+(int)(spr.u0*32.0f)];
 
                     draw_lit_fogged_textured_z_buffered_blended_sprite(
-                        output, z_buffer, 0, tex_col, skybox_column, screen_x, 
+                        output, z_buffer, 0, tex_col, skip, skybox_column, screen_x, 
                         unclipped_y0, unclipped_y1, 
                         spr.v0*8.0f, spr.v1*8.0f, TOP_PEGGED,
                         spr.prev_drawn_top, spr.prev_drawn_bot,
@@ -1828,12 +1832,13 @@ void draw_transformed_sprites(u32* output, edit_wall_id* edit_id_buffer, float* 
         float tex_per_pix = 1.0f / (screen_x1-screen_x0);
 
         for(int x = clipped_sprite_left_x; x <= clipped_sprite_right_x; x++) {
-
+            int dx = x-screen_x0;
             if(screen_y1 > 0 && screen_y0 < FP_SCREEN_HEIGHT-1) {
-                u32* tex_col = get_texture_column(sprites[spr_idx], (x-screen_x0)*tex_per_pix);
-
+                float u = (x-screen_x0)*tex_per_pix;
+                u32* tex_col = get_texture_column(sprites[spr_idx], u);
+                u32 skip = rle_spr_top_skips[spr_idx*32+(int)(u*32.0f)];
                 draw_lit_fogged_textured_z_buffered_blended_sprite(
-                    output, z_buffer,  0, tex_col, textures[SKYBOX_TEX_IDX],
+                    output, z_buffer,  0, tex_col, skip, textures[SKYBOX_TEX_IDX],
                     x, screen_y0, screen_y1, sprite.world_y0, sprite.world_y1, TOP_PEGGED, 0, FP_SCREEN_HEIGHT,
                     z, 1.0f, BRIGHT, FOG_COL, NO_REPEAT_TEX, DO_ALPHA_BLEND, DO_DEPTH_TEST
                 );
@@ -1900,8 +1905,7 @@ void draw_first_person_level(
     float player_x, float player_y, float player_z, float player_ang, float pitch,
     int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side) {
 
-
-#
+        
     for(int thd = 0; thd < NUM_THREADS; thd++) {
         for(int i = 0; i < MAP_SIZE*MAP_SIZE/8; i++) {
             visited_cells[thd][i] = 0;

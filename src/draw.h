@@ -44,7 +44,7 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
 void draw_lit_fogged_textured_z_buffered_blended_sprite(
     u32* output, float* z_buffer,
     int draw_skybox,
-    u32 *tex_column, u32* skybox, 
+    u32 *tex_column, int top_skip, u32* skybox, 
     int x,
     float y0, float y1, 
     float world_y0, float world_y1, 
@@ -53,8 +53,9 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
     float world_z, float light_factor, int face_light_level_idx, u32 fog_col, u8 repeat_tex, u8 do_alpha_blend, u8 do_depth_test);
 
 //vertical walls
+// no skip :), that's just for sprites
 #define draw_lit_fogged_clipped_textured_wall(output, z_buffer, draw_skybox, tex_column, skybox_col, x, y0, y1, world_y0, world_y1, peg_type, prev_drawn_top, prev_drawn_bot, world_z, light_factor, face_light_level_idx, fog_col, repeat_tex) \
-    draw_lit_fogged_textured_z_buffered_blended_sprite(output, z_buffer, draw_skybox, tex_column, skybox_col, x, y0, y1, world_y0, world_y1, peg_type, prev_drawn_top, prev_drawn_bot, world_z, light_factor, face_light_level_idx, fog_col, repeat_tex, NO_ALPHA_BLEND, NO_DEPTH_TEST)
+    draw_lit_fogged_textured_z_buffered_blended_sprite(output, z_buffer, draw_skybox, tex_column, 0, skybox_col, x, y0, y1, world_y0, world_y1, peg_type, prev_drawn_top, prev_drawn_bot, world_z, light_factor, face_light_level_idx, fog_col, repeat_tex, NO_ALPHA_BLEND, NO_DEPTH_TEST)
 
     
 

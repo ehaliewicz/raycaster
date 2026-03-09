@@ -296,9 +296,9 @@ void platform_begin_drawing() {
 }
 
 void platform_end_drawing() {
-    end_time = platform_get_time();
     // TODO: need to handle timing and stuff here
     SwapBuffers(g_dc);
+    end_time = platform_get_time();
 }
 
 float platform_get_frame_time() {
@@ -322,7 +322,9 @@ u8 *platform_load_file_data(const char *path, int *out_size) {
     }
     
     DWORD size = GetFileSize(f, NULL);
-    u8 *data = VirtualAlloc(NULL, size, MEM_COMMIT, PAGE_READWRITE);
+    u8* data = my_malloc(size, "file load");
+
+    //u8 *data = VirtualAlloc(NULL, size, MEM_COMMIT, PAGE_READWRITE);
     DWORD bytes_read;
     ReadFile(f, data, size, &bytes_read, NULL);
     CloseHandle(f);
@@ -370,7 +372,7 @@ typedef struct thread_pool_
 static thread_pool* thread_pool_create_inner(int cpu_threads)
 {
     assert(cpu_threads > 0);
-    thread_pool* tp = (thread_pool*)calloc(1, sizeof(thread_pool));
+    thread_pool* tp = (thread_pool*)my_calloc(sizeof(thread_pool), "thread pool");
 
     InitializeThreadpoolEnvironment(&tp->callback_environ);
 
