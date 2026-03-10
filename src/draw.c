@@ -5,8 +5,8 @@
 #include "my_defs.h"
 #include "resources.h"
 
-const float day_light_level_mults[4] = {1.0f, 0.50f, 1.5f, 1.5f};
-const float light_level_mults[4] = {.50f, 0.25f, .75f, .75f};
+const float light_level_mults[4] = {1.0f, 0.50f, 1.5f, 1.5f};
+const float night_light_level_mults[4] = {.50f, 0.25f, .75f, .75f};
 
 void draw_skybox_vline(u32* output, u32 *skybox_column, int x, int y0, int y1) {
     for(int y = y0; y < y1; y++) {
