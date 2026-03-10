@@ -123,9 +123,15 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         float u_per_pix = (next_u-cur_u)/SPAN_LENGTH;
         float v_per_pix = (next_v-cur_v)/SPAN_LENGTH;
 
+        
+        int fix_u = cur_u*65536.0f;
+        int fix_v = cur_v*65536.0f;
+        int fix_u_per_pix = u_per_pix*65536.0f;
+        int fix_v_per_pix = v_per_pix*65536.0f;
+
         for(int j = 0; j < SPAN_LENGTH; j++) {
             int y = base_y + j;
-            float depth_scale = (CLAMP(cur_z*RECIP_DARK_DIST, 0.0f, 1.0f));
+            float depth_scale = cur_z*RECIP_DARK_DIST;
             float inv_depth_scale = 1.0f - depth_scale;
             float mult_by_inv_depth = mult * inv_depth_scale;
 
@@ -133,10 +139,18 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
             u32 scaled_fog_g = (depth_scale * fog_g);
             u32 scaled_fog_b = (depth_scale * fog_b);
 
-            int u = (int)(cur_u*32.0f);
-            int v = (int)(cur_v*32.0f);
+            //int u = (int)(cur_u*32.0f);
+            //int v = (int)(cur_v*32.0f);
+            
+            //int u = (fix_u<<5)>>16; // 16.16, but we also need to multiply by 32
+            //int v = (fix_v<<5)>>16;
 
-            int idx = ((v<<5)+(u));
+            //16.16 u and v
+
+            // for v, we want the top 5 bits shifted into bits 5-through 9
+            int idx = ((fix_v>>6)&0b1111100000)|((fix_u>>11)&0b11111);
+
+            //int idx = ((v<<5)+(u));
 
             u32 texel = texture[idx];
 
@@ -179,8 +193,10 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
             output[x*FP_SCREEN_HEIGHT+y] = lit_texel;
             z_buffer[x*FP_SCREEN_HEIGHT+y] = (u16)(cur_z*FIXED_POINT_MULT);
             cur_z += z_per_pix;
-            cur_u += u_per_pix;
-            cur_v += v_per_pix;
+            //cur_u += u_per_pix;
+            //cur_v += v_per_pix;
+            fix_u += fix_u_per_pix;
+            fix_v += fix_v_per_pix;
         }
         
         cur_z = next_z;
@@ -192,7 +208,6 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
 
     int rem_pixels = (num_pixels-(num_pixel_chunks*SPAN_LENGTH));
     
-    num_pixels = rem_pixels;//-= num_pixel_chunks*SPAN_LENGTH;
     int base_y = clipped_y0 + num_pixel_chunks*SPAN_LENGTH;
     float next_z = 1.0f/(inv_z0 + d_one_over_z * (clipped_y1-y0));
     float next_u = CLAMP((u_over_z + d_u_over_z * (clipped_y1-y0)) * cur_z, 0.0f, 0.999f);
@@ -203,14 +218,15 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
     float v_per_pix = (next_v-cur_v)/rem_pixels;
 
 
+    int fix_u = cur_u*65536.0f;
+    int fix_v = cur_v*65536.0f;
+    int fix_u_per_pix = u_per_pix*65536.0f;
+    int fix_v_per_pix = v_per_pix*65536.0f;
+
+
     for(int j = 0; j < rem_pixels; j++) {
 
         int y = base_y + j;
-
-        
-        //cur_z = 1.0f/(inv_z0 + d_one_over_z * (y-y0));
-        //cur_u = CLAMP((u_over_z + d_u_over_z * (y-y0)) * cur_z, 0.0f, 0.999f);
-        //cur_v = CLAMP((v_over_z + d_v_over_z * (y-y0)) * cur_z, 0.0f, 0.999f);
         
         float depth_scale = (CLAMP(cur_z/DARK_DIST, 0.0f, 1.0f));
         float inv_depth_scale = 1.0f - depth_scale;
@@ -221,10 +237,14 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         u32 scaled_fog_g = (depth_scale * fog_g);
         u32 scaled_fog_b = (depth_scale * fog_b);
 
-        int u = (int)(cur_u*32.0f);
-        int v = (int)(cur_v*32.0f);
 
-        int idx = ((v<<5)+(u));
+        //int u = (int)(cur_u*32.0f);
+        //int v = (int)(cur_v*32.0f);
+        //int u = (fix_u>>11); // 16.16, but we also need to multiply by 32
+        //int v = (fix_v>>11);
+        //int idx = ((v<<5)+(u));
+        int idx = ((fix_v>>6)&0b1111100000)|((fix_u>>11)&0b11111);
+
 
         u32 texel = texture[idx];
 
@@ -265,9 +285,12 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         u32 lit_texel = 0xFF000000|(intr<<16)|(intg<<8)|intb;
         output[x*FP_SCREEN_HEIGHT+y] = lit_texel;
         z_buffer[x*FP_SCREEN_HEIGHT+y] = (u16)(cur_z*FIXED_POINT_MULT);
+        
         cur_z += z_per_pix;
-        cur_u += u_per_pix;
-        cur_v += v_per_pix;
+        fix_u += fix_u_per_pix;
+        fix_v += fix_v_per_pix;
+        //cur_u += u_per_pix;
+        //cur_v += v_per_pix;
     }
 
 

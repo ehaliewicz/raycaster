@@ -2,5 +2,6 @@ out/*.exe
 src/save.dat
 out/release/*
 out/output.map
+out/*.pdb
 *.pdb
 *.map
