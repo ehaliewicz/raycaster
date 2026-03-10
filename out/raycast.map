@@ -1,15 +1,15 @@
 Archive member included to satisfy reference by file (symbol)
 
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_printf.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o (printf)
+                              C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o (printf)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-utility-l1-1-0s00030.o)
-                              C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o (rand)
+                              C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o (rand)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-utility-l1-1-0h.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-utility-l1-1-0s00030.o) (_head_lib64_libapi_ms_win_crt_utility_l1_1_0_a)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-utility-l1-1-0t.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-utility-l1-1-0h.o) (__lib64_libapi_ms_win_crt_utility_l1_1_0_a_iname)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00159.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (memset)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (memset)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0h.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0s00159.o) (_head_lib64_libapi_ms_win_crt_string_l1_1_0_a)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-string-l1-1-0t.o)
@@ -23,167 +23,167 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsv
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-stdio-l1-1-0t.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-stdio-l1-1-0h.o) (__lib64_libapi_ms_win_crt_stdio_l1_1_0_a_iname)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0s00018.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp__assert)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp__assert)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0s00088.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o (exit)
+                              C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o (exit)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0h.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0s00018.o) (_head_lib64_libapi_ms_win_crt_runtime_l1_1_0_a)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0t.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-runtime-l1-1-0h.o) (__lib64_libapi_ms_win_crt_runtime_l1_1_0_a_iname)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01143.o)
-                              C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o (memcpy)
+                              C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o (memcpy)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0h.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0s01143.o) (_head_lib64_libapi_ms_win_crt_private_l1_1_0_a)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0t.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-private-l1-1-0h.o) (__lib64_libapi_ms_win_crt_private_l1_1_0_a_iname)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-heap-l1-1-0s00024.o)
-                              C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o (calloc)
+                              C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o (calloc)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-heap-l1-1-0s00025.o)
-                              C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o (free)
+                              C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o (free)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-heap-l1-1-0s00026.o)
-                              C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o (malloc)
+                              C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o (malloc)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-heap-l1-1-0h.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-heap-l1-1-0s00024.o) (_head_lib64_libapi_ms_win_crt_heap_l1_1_0_a)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-heap-l1-1-0t.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-heap-l1-1-0h.o) (__lib64_libapi_ms_win_crt_heap_l1_1_0_a_iname)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00896.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_TranslateMessage)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_TranslateMessage)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00864.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_ShowWindow)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_ShowWindow)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00859.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_ShowCursor)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_ShowCursor)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00847.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_SetWindowPos)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_SetWindowPos)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00842.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_SetWindowLongA)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_SetWindowLongA)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00806.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_SetProcessDPIAware)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_SetProcessDPIAware)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00771.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_SetCursorPos)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_SetCursorPos)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00738.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_ScreenToClient)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_ScreenToClient)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00715.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_RegisterRawInputDevices)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_RegisterRawInputDevices)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00695.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_RegisterClassA)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_RegisterClassA)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00649.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_PeekMessageA)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_PeekMessageA)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00572.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_LoadCursorA)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_LoadCursorA)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00422.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_GetRawInputData)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_GetRawInputData)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00335.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_GetForegroundWindow)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_GetForegroundWindow)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00318.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_GetDC)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_GetDC)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00317.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_GetCursorPos)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_GetCursorPos)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00184.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_DispatchMessageA)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_DispatchMessageA)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00163.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_DefWindowProcA)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_DefWindowProcA)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00114.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_CreateWindowExA)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_CreateWindowExA)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00075.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_ClientToScreen)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_ClientToScreen)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00002.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_AdjustWindowRect)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_AdjustWindowRect)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32h.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32s00896.o) (_head_lib64_libuser32_a)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32t.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a(libuser32h.o) (__lib64_libuser32_a_iname)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00356.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_wglMakeCurrent)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_wglMakeCurrent)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00355.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_wglGetProcAddress)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_wglGetProcAddress)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00345.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_wglCreateContext)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_wglCreateContext)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00342.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glViewport)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glViewport)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00319.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glVertex2f)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glVertex2f)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00316.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glTranslatef)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glTranslatef)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00314.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glTexSubImage2D)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glTexSubImage2D)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00311.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glTexParameteri)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glTexParameteri)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00308.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glTexImage2D)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glTexImage2D)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00274.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glTexCoord2f)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glTexCoord2f)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00257.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glScalef)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glScalef)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00255.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glRotatef)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glRotatef)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00196.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glOrtho)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glOrtho)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00181.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glMatrixMode)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glMatrixMode)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00164.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glLoadIdentity)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glLoadIdentity)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00105.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glGenTextures)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glGenTextures)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00081.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glEnd)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glEnd)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00079.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glEnable)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glEnable)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00011.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glBindTexture)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glBindTexture)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00010.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_glBegin)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_glBegin)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32h.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32s00356.o) (_head_lib64_libopengl32_a)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32t.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a(libopengl32h.o) (__lib64_libopengl32_a_iname)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01563.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_WriteFile)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_WriteFile)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01504.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_WaitForThreadpoolWorkCallbacks)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_WaitForThreadpoolWorkCallbacks)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01413.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_SubmitThreadpoolWork)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_SubmitThreadpoolWork)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01382.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_SetThreadpoolThreadMinimum)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_SetThreadpoolThreadMinimum)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01381.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_SetThreadpoolThreadMaximum)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_SetThreadpoolThreadMaximum)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01351.o)
-                              C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o (__imp_SetProcessWorkingSetSize)
+                              C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o (__imp_SetProcessWorkingSetSize)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01167.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_ReadFile)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_ReadFile)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01129.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_QueryPerformanceFrequency)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_QueryPerformanceFrequency)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01128.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_QueryPerformanceCounter)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_QueryPerformanceCounter)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00648.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_GetModuleHandleA)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_GetModuleHandleA)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00606.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_GetFileSize)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_GetFileSize)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00549.o)
-                              C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o (__imp_GetCurrentProcess)
+                              C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o (__imp_GetCurrentProcess)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00363.o)
-                              C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o (__imp_ExitProcess)
+                              C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o (__imp_ExitProcess)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00255.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_CreateThreadpoolWork)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_CreateThreadpoolWork)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00251.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_CreateThreadpoolCleanupGroup)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_CreateThreadpoolCleanupGroup)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00250.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_CreateThreadpool)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_CreateThreadpool)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00203.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_CreateFileA)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_CreateFileA)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00152.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_CloseThreadpoolWork)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_CloseThreadpoolWork)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s00140.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_CloseHandle)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_CloseHandle)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32h.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32s01563.o) (_head_lib64_libkernel32_a)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32t.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libkernel32.a(libkernel32h.o) (__lib64_libkernel32_a_iname)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libgdi32.a(libgdi32s00933.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_SwapBuffers)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_SwapBuffers)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libgdi32.a(libgdi32s00906.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_SetPixelFormat)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_SetPixelFormat)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libgdi32.a(libgdi32s00025.o)
-                              C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o (__imp_ChoosePixelFormat)
+                              C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o (__imp_ChoosePixelFormat)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libgdi32.a(libgdi32h.o)
                               C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libgdi32.a(libgdi32s00933.o) (_head_lib64_libgdi32_a)
 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libgdi32.a(libgdi32t.o)
@@ -191,81 +191,81 @@ C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libgdi
 
 Discarded input sections
 
- .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccCzGG9n.o
- .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccCzGG9n.o
- .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccCzGG9n.o
- .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
- .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
- .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
- .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
- .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
- .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
+ .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cciLvUNh.o
+ .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cciLvUNh.o
+ .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cciLvUNh.o
+ .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+ .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+ .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+ .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+ .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+ .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
  .text$spawn_entity
-                0x0000000000000000       0x90 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
- .data$p        0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
- .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
- .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
- .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
+                0x0000000000000000       0x90 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+ .data$p        0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+ .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
+ .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
+ .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
  .text$output_adjusted_byte
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
- .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
- .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
- .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
+ .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+ .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+ .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .text$clear_keys
-                0x0000000000000000       0x40 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x0000000000000000       0x40 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .text$platform_draw_text
-                0x0000000000000000       0x20 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x0000000000000000       0x20 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .rdata$__FUNCTION__.0
-                0x0000000000000000       0x20 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
- .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
- .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
- .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
+                0x0000000000000000       0x20 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+ .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+ .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+ .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
  .text$my_memmove
-                0x0000000000000000      0x140 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
+                0x0000000000000000      0x140 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
  .text$nop_printf
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
- .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
- .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
- .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+ .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+ .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+ .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
  .text$console_log
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
- .text$lcg      0x0000000000000000       0x30 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
- .text$urand    0x0000000000000000       0x20 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+ .text$lcg      0x0000000000000000       0x30 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+ .text$urand    0x0000000000000000       0x20 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
  .text$draw_topdown_level
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
  .text$copy_32_map_to_64
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
  .text$draw_player
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
- .text$atexit   0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+ .text$atexit   0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
  .data$udp_conn
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
- .data$skybox   0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
- .data$rseed    0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+ .data$skybox   0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+ .data$rseed    0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
  .rdata$.refptr.textures
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
- .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
- .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
- .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+ .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+ .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+ .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
  .text$downsample_framebuffer
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
  .rdata$door_start_y_offsets
-                0x0000000000000000       0x40 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x0000000000000000       0x40 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
  .rdata$door_start_x_offsets
-                0x0000000000000000       0x40 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x0000000000000000       0x40 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
  .rdata$.refptr.pitch
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
  .rdata$.refptr.player_z
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
  .rdata$.refptr.textures
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
  .rdata$.refptr.cur_render_height
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
- .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
- .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
- .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+ .text          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
+ .data          0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
+ .bss           0x0000000000000000        0x0 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
  .data$texture_types
-                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
+                0x0000000000000000       0x10 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
  .data          0x0000000000000000       0x10 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_printf.o)
  .bss           0x0000000000000000        0x0 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_printf.o)
  .rdata$zzz     0x0000000000000000       0x30 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_printf.o)
@@ -566,15 +566,15 @@ Linker script and memory map
                 0x0000000000001000                __size_of_heap_commit__ = 0x1000
                 0x0000000000000000                __loader_flags__ = 0x0
                 0x0000000000000160                __dll_characteristics__ = 0x160
-LOAD C:\Users\Erik\AppData\Local\Temp\ccCzGG9n.o
-LOAD C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
-LOAD C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
-LOAD C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
-LOAD C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-LOAD C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-LOAD C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-LOAD C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-LOAD C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
+LOAD C:\Users\Erik\AppData\Local\Temp\cciLvUNh.o
+LOAD C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+LOAD C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+LOAD C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
+LOAD C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+LOAD C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+LOAD C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+LOAD C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+LOAD C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
 LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a
 LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libuser32.a
 LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libopengl32.a
@@ -584,7 +584,7 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
                 0x00000000000003b8                . = SIZEOF_HEADERS
                 0x0000000000001000                . = ALIGN (__section_alignment__)
 
-.text           0x0000000140001000     0xd600
+.text           0x0000000140001000     0xd800
  *(SORT_NONE(.init))
  *(.text)
  .text          0x0000000140001000       0x50 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(lib64_libucrt_extra_a-ucrt_printf.o)
@@ -606,315 +606,315 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  .text          0x0000000140001088        0x8 C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/libmsvcrt.a(libapi-ms-win-crt-heap-l1-1-0s00026.o)
                 0x0000000140001088                malloc
  *(SORT_BY_NAME(.text$*))
- .text$WinMain  0x0000000140001090      0x1f0 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+ .text$WinMain  0x0000000140001090      0x1f0 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x0000000140001090                WinMain
  .text$calc_diag_hit
-                0x0000000140001280      0x110 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x0000000140001280      0x110 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
                 0x0000000140001280                calc_diag_hit
  .text$calc_door_hit
-                0x0000000140001390      0x660 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x0000000140001390      0x660 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
                 0x0000000140001390                calc_door_hit
  .text$calc_line_hit
-                0x00000001400019f0      0x3c0 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x00000001400019f0      0x3c0 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
                 0x00000001400019f0                calc_line_hit
  .text$can_raycast_between_points
-                0x0000000140001db0      0x1e0 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
+                0x0000000140001db0      0x1e0 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
                 0x0000000140001db0                can_raycast_between_points
  .text$change_resolution
-                0x0000000140001f90      0x1e0 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x0000000140001f90      0x1e0 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x0000000140001f90                change_resolution
  .text$collides
-                0x0000000140002170      0x430 C:\Users\Erik\AppData\Local\Temp\ccCzGG9n.o
+                0x0000000140002170      0x430 C:\Users\Erik\AppData\Local\Temp\cciLvUNh.o
                 0x0000000140002170                collides
  .text$collides_with_other_entity
-                0x00000001400025a0       0xa0 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
+                0x00000001400025a0       0xa0 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
                 0x00000001400025a0                collides_with_other_entity
  .text$compress
-                0x0000000140002640      0x230 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
+                0x0000000140002640      0x230 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
                 0x0000000140002640                compress
- .text$cos_deg  0x0000000140002870       0x10 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
+ .text$cos_deg  0x0000000140002870       0x10 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
                 0x0000000140002870                cos_deg
  .text$decompress
-                0x0000000140002880      0x220 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
+                0x0000000140002880      0x220 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
                 0x0000000140002880                decompress
  .text$draw_first_person_level
-                0x0000000140002aa0      0x490 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x0000000140002aa0      0x490 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
                 0x0000000140002aa0                draw_first_person_level
  .text$draw_first_person_level_inner
-                0x0000000140002f30     0x52d0 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x0000000140002f30     0x52d0 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
                 0x0000000140002f30                draw_first_person_level_inner
  .text$draw_lit_fogged_textured_z_buffered_blended_flat_sprite
-                0x0000000140008200      0x590 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
+                0x0000000140008200      0x640 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
                 0x0000000140008200                draw_lit_fogged_textured_z_buffered_blended_flat_sprite
  .text$draw_lit_fogged_textured_z_buffered_blended_sprite
-                0x0000000140008790      0x520 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
-                0x0000000140008790                draw_lit_fogged_textured_z_buffered_blended_sprite
+                0x0000000140008840      0x510 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+                0x0000000140008840                draw_lit_fogged_textured_z_buffered_blended_sprite
  .text$draw_skybox_vline
-                0x0000000140008cb0       0x90 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
-                0x0000000140008cb0                draw_skybox_vline
+                0x0000000140008d50       0x90 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+                0x0000000140008d50                draw_skybox_vline
  .text$draw_sprites_wrapper
-                0x0000000140008d40       0x60 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140008d40                draw_sprites_wrapper
+                0x0000000140008de0       0x60 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140008de0                draw_sprites_wrapper
  .text$draw_transformed_sprites
-                0x0000000140008da0      0x470 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140008da0                draw_transformed_sprites
+                0x0000000140008e40      0x470 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140008e40                draw_transformed_sprites
  .text$draw_z_buffered_alpha_edit_vline
-                0x0000000140009210       0xf0 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
-                0x0000000140009210                draw_z_buffered_alpha_edit_vline
+                0x00000001400092b0      0x130 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+                0x00000001400092b0                draw_z_buffered_alpha_edit_vline
  .text$draw_z_buffered_alpha_tint_vline
-                0x0000000140009300      0x110 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
-                0x0000000140009300                draw_z_buffered_alpha_tint_vline
+                0x00000001400093e0      0x130 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+                0x00000001400093e0                draw_z_buffered_alpha_tint_vline
  .text$follow_target
-                0x0000000140009410       0x90 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
-                0x0000000140009410                follow_target
+                0x0000000140009510       0x90 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+                0x0000000140009510                follow_target
  .text$get_abs_time
-                0x00000001400094a0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x00000001400094a0                get_abs_time
+                0x00000001400095a0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x00000001400095a0                get_abs_time
  .text$get_height_at_point
-                0x00000001400094b0      0x320 C:\Users\Erik\AppData\Local\Temp\ccCzGG9n.o
-                0x00000001400094b0                get_height_at_point
+                0x00000001400095b0      0x320 C:\Users\Erik\AppData\Local\Temp\cciLvUNh.o
+                0x00000001400095b0                get_height_at_point
  .text$get_height_at_point_for_sprites
-                0x00000001400097d0       0x30 C:\Users\Erik\AppData\Local\Temp\ccCzGG9n.o
-                0x00000001400097d0                get_height_at_point_for_sprites
+                0x00000001400098d0       0x30 C:\Users\Erik\AppData\Local\Temp\cciLvUNh.o
+                0x00000001400098d0                get_height_at_point_for_sprites
  .text$get_running_time
-                0x0000000140009800       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x0000000140009800                get_running_time
+                0x0000000140009900       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x0000000140009900                get_running_time
  .text$get_texture_column
-                0x0000000140009810       0x40 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
-                0x0000000140009810                get_texture_column
+                0x0000000140009910       0x40 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+                0x0000000140009910                get_texture_column
  .text$handle_click
-                0x0000000140009850       0x40 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x0000000140009850                handle_click
+                0x0000000140009950       0x40 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x0000000140009950                handle_click
  .text$handle_editor
-                0x0000000140009890      0xf70 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x0000000140009890                handle_editor
+                0x0000000140009990      0xf70 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x0000000140009990                handle_editor
  .text$init_entities_module
-                0x000000014000a800       0x30 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
-                0x000000014000a800                init_entities_module
+                0x000000014000a900       0x30 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+                0x000000014000a900                init_entities_module
  .text$init_game
-                0x000000014000a830       0xe0 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x000000014000a830                init_game
+                0x000000014000a930       0xe0 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x000000014000a930                init_game
  .text$init_level
-                0x000000014000a910      0x280 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x000000014000a910                init_level
+                0x000000014000aa10      0x280 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x000000014000aa10                init_level
  .text$init_raycast_module
-                0x000000014000ab90      0x100 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x000000014000ab90                init_raycast_module
- .text$lerp     0x000000014000ac90       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x000000014000ac90                lerp
+                0x000000014000ac90      0x100 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x000000014000ac90                init_raycast_module
+ .text$lerp     0x000000014000ad90       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x000000014000ad90                lerp
  .text$load_resources
-                0x000000014000aca0      0x5b0 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
-                0x000000014000aca0                load_resources
+                0x000000014000ada0      0x5b0 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
+                0x000000014000ada0                load_resources
  .text$look_and_wander
-                0x000000014000b250       0x40 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
-                0x000000014000b250                look_and_wander
+                0x000000014000b350       0x40 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+                0x000000014000b350                look_and_wander
  .text$mainCRTStartup
-                0x000000014000b290       0x30 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x000000014000b290                mainCRTStartup
+                0x000000014000b390       0x30 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x000000014000b390                mainCRTStartup
  .text$move_random_dir
-                0x000000014000b2c0      0x130 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
-                0x000000014000b2c0                move_random_dir
+                0x000000014000b3c0      0x130 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+                0x000000014000b3c0                move_random_dir
  .text$move_towards_last_seen_target_pos
-                0x000000014000b3f0      0x180 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
-                0x000000014000b3f0                move_towards_last_seen_target_pos
+                0x000000014000b4f0      0x180 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+                0x000000014000b4f0                move_towards_last_seen_target_pos
  .text$my_atan2f
-                0x000000014000b570       0x90 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-                0x000000014000b570                my_atan2f
+                0x000000014000b670       0x90 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+                0x000000014000b670                my_atan2f
  .text$my_atanf
-                0x000000014000b600       0xc0 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-                0x000000014000b600                my_atanf
+                0x000000014000b700       0xc0 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+                0x000000014000b700                my_atanf
  .text$my_calloc
-                0x000000014000b6c0       0x30 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x000000014000b6c0                my_calloc
- .text$my_cosf  0x000000014000b6f0       0x10 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-                0x000000014000b6f0                my_cosf
+                0x000000014000b7c0       0x30 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x000000014000b7c0                my_calloc
+ .text$my_cosf  0x000000014000b7f0       0x10 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+                0x000000014000b7f0                my_cosf
  .text$my_fabsf
-                0x000000014000b700       0x30 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-                0x000000014000b700                my_fabsf
+                0x000000014000b800       0x30 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+                0x000000014000b800                my_fabsf
  .text$my_floorf
-                0x000000014000b730       0x30 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-                0x000000014000b730                my_floorf
+                0x000000014000b830       0x30 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+                0x000000014000b830                my_floorf
  .text$my_malloc
-                0x000000014000b760       0x30 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x000000014000b760                my_malloc
+                0x000000014000b860       0x30 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x000000014000b860                my_malloc
  .text$my_memcpy
-                0x000000014000b790      0x100 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-                0x000000014000b790                my_memcpy
+                0x000000014000b890      0x100 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+                0x000000014000b890                my_memcpy
  .text$my_memset
-                0x000000014000b890      0x110 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-                0x000000014000b890                my_memset
- .text$my_sinf  0x000000014000b9a0       0x10 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-                0x000000014000b9a0                my_sinf
+                0x000000014000b990      0x110 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+                0x000000014000b990                my_memset
+ .text$my_sinf  0x000000014000baa0       0x10 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+                0x000000014000baa0                my_sinf
  .text$my_sqrtf
-                0x000000014000b9b0       0x70 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-                0x000000014000b9b0                my_sqrtf
+                0x000000014000bab0       0x70 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+                0x000000014000bab0                my_sqrtf
  .text$output_bit
-                0x000000014000ba20       0x60 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
-                0x000000014000ba20                output_bit
+                0x000000014000bb20       0x60 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
+                0x000000014000bb20                output_bit
  .text$output_byte
-                0x000000014000ba80       0x40 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
-                0x000000014000ba80                output_byte
+                0x000000014000bb80       0x40 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
+                0x000000014000bb80                output_byte
  .text$platform_add_task
-                0x000000014000bac0       0x80 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000bac0                platform_add_task
+                0x000000014000bbc0       0x80 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bbc0                platform_add_task
  .text$platform_begin_drawing
-                0x000000014000bb40       0x20 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000bb40                platform_begin_drawing
+                0x000000014000bc40       0x20 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bc40                platform_begin_drawing
  .text$platform_create_texture
-                0x000000014000bb60       0xa0 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000bb60                platform_create_texture
+                0x000000014000bc60       0xa0 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bc60                platform_create_texture
  .text$platform_draw_texture
-                0x000000014000bc00      0x170 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000bc00                platform_draw_texture
+                0x000000014000bd00      0x170 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bd00                platform_draw_texture
  .text$platform_end_drawing
-                0x000000014000bd70       0x30 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000bd70                platform_end_drawing
+                0x000000014000be70       0x30 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000be70                platform_end_drawing
  .text$platform_get_frame_time
-                0x000000014000bda0       0x20 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000bda0                platform_get_frame_time
+                0x000000014000bea0       0x20 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bea0                platform_get_frame_time
  .text$platform_get_key_pressed
-                0x000000014000bdc0       0x20 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000bdc0                platform_get_key_pressed
+                0x000000014000bec0       0x20 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bec0                platform_get_key_pressed
  .text$platform_get_mouse_delta
-                0x000000014000bde0       0x20 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000bde0                platform_get_mouse_delta
+                0x000000014000bee0       0x20 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bee0                platform_get_mouse_delta
  .text$platform_get_mouse_position
-                0x000000014000be00       0x40 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000be00                platform_get_mouse_position
+                0x000000014000bf00       0x40 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bf00                platform_get_mouse_position
  .text$platform_get_time
-                0x000000014000be40       0x40 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000be40                platform_get_time
+                0x000000014000bf40       0x40 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bf40                platform_get_time
  .text$platform_hide_cursor
-                0x000000014000be80       0x20 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000be80                platform_hide_cursor
+                0x000000014000bf80       0x20 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bf80                platform_hide_cursor
  .text$platform_init_threadpool
-                0x000000014000bea0       0x40 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000bea0                platform_init_threadpool
+                0x000000014000bfa0       0x40 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bfa0                platform_init_threadpool
  .text$platform_init_time
-                0x000000014000bee0       0x30 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000bee0                platform_init_time
+                0x000000014000bfe0       0x30 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000bfe0                platform_init_time
  .text$platform_init_window
-                0x000000014000bf10      0x280 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000bf10                platform_init_window
+                0x000000014000c010      0x280 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c010                platform_init_window
  .text$platform_is_key_down
-                0x000000014000c190       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c190                platform_is_key_down
+                0x000000014000c290       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c290                platform_is_key_down
  .text$platform_is_key_pressed
-                0x000000014000c1a0       0x30 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c1a0                platform_is_key_pressed
+                0x000000014000c2a0       0x30 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c2a0                platform_is_key_pressed
  .text$platform_is_mouse_button_pressed
-                0x000000014000c1d0       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c1d0                platform_is_mouse_button_pressed
+                0x000000014000c2d0       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c2d0                platform_is_mouse_button_pressed
  .text$platform_is_window_focused
-                0x000000014000c1e0       0x40 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c1e0                platform_is_window_focused
+                0x000000014000c2e0       0x40 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c2e0                platform_is_window_focused
  .text$platform_join_threadpool
-                0x000000014000c220       0x70 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c220                platform_join_threadpool
+                0x000000014000c320       0x70 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c320                platform_join_threadpool
  .text$platform_load_file_data
-                0x000000014000c290       0xb0 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c290                platform_load_file_data
+                0x000000014000c390       0xb0 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c390                platform_load_file_data
  .text$platform_load_image
-                0x000000014000c340       0x90 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c340                platform_load_image
+                0x000000014000c440       0x90 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c440                platform_load_image
  .text$platform_save_file_data
-                0x000000014000c3d0       0x70 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c3d0                platform_save_file_data
+                0x000000014000c4d0       0x70 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c4d0                platform_save_file_data
  .text$platform_set_fullscreen
-                0x000000014000c440       0x70 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c440                platform_set_fullscreen
+                0x000000014000c540       0x70 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c540                platform_set_fullscreen
  .text$platform_set_mouse_position
-                0x000000014000c4b0       0x40 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c4b0                platform_set_mouse_position
+                0x000000014000c5b0       0x40 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c5b0                platform_set_mouse_position
  .text$platform_set_vsync
-                0x000000014000c4f0       0x30 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c4f0                platform_set_vsync
+                0x000000014000c5f0       0x30 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c5f0                platform_set_vsync
  .text$platform_set_window_size
-                0x000000014000c520       0x30 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c520                platform_set_window_size
+                0x000000014000c620       0x30 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c620                platform_set_window_size
  .text$platform_set_windowed
-                0x000000014000c550       0xc0 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c550                platform_set_windowed
+                0x000000014000c650       0xc0 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c650                platform_set_windowed
  .text$platform_show_cursor
-                0x000000014000c610       0x30 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c610                platform_show_cursor
+                0x000000014000c710       0x30 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c710                platform_show_cursor
  .text$platform_update_texture
-                0x000000014000c640       0x60 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c640                platform_update_texture
+                0x000000014000c740       0x60 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c740                platform_update_texture
  .text$platform_window_should_close
-                0x000000014000c6a0       0xb0 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000c6a0                platform_window_should_close
+                0x000000014000c7a0       0xb0 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000c7a0                platform_window_should_close
  .text$project_to_screen
-                0x000000014000c750       0x70 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x000000014000c750                project_to_screen
+                0x000000014000c850       0x70 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x000000014000c850                project_to_screen
  .text$raycast_wrapper
-                0x000000014000c7c0       0xb0 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x000000014000c7c0                raycast_wrapper
+                0x000000014000c8c0       0xb0 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x000000014000c8c0                raycast_wrapper
  .text$request_draw_sprite
-                0x000000014000c870       0x40 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x000000014000c870                request_draw_sprite
+                0x000000014000c970       0x40 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x000000014000c970                request_draw_sprite
  .text$run_game
-                0x000000014000c8b0      0x720 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x000000014000c8b0                run_game
+                0x000000014000c9b0      0x8f0 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x000000014000c9b0                run_game
  .text$set_bit_in_bitmap
-                0x000000014000cfd0       0x20 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x000000014000cfd0                set_bit_in_bitmap
- .text$sin_90   0x000000014000cff0       0x60 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
- .text$sin_deg  0x000000014000d050       0xc0 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-                0x000000014000d050                sin_deg
+                0x000000014000d2a0       0x20 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x000000014000d2a0                set_bit_in_bitmap
+ .text$sin_90   0x000000014000d2c0       0x60 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+ .text$sin_deg  0x000000014000d320       0xc0 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+                0x000000014000d320                sin_deg
  .text$sorted_insert_transformed_sprite
-                0x000000014000d110       0xe0 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x000000014000d110                sorted_insert_transformed_sprite
+                0x000000014000d3e0       0xe0 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x000000014000d3e0                sorted_insert_transformed_sprite
  .text$step_entities
-                0x000000014000d1f0      0x100 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
-                0x000000014000d1f0                step_entities
+                0x000000014000d4c0      0x100 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+                0x000000014000d4c0                step_entities
  .text$thread_caller
-                0x000000014000d2f0       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000d2f0                thread_caller
+                0x000000014000d5c0       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000d5c0                thread_caller
  .text$thread_pool_add_work_inner.constprop.0
-                0x000000014000d300       0x30 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000d5d0       0x30 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .text$thread_pool_create_inner
-                0x000000014000d330       0xd0 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000d600       0xd0 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .text$transform_and_submit_sprite
-                0x000000014000d400      0x200 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x000000014000d400                transform_and_submit_sprite
+                0x000000014000d6d0      0x200 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x000000014000d6d0                transform_and_submit_sprite
  .text$update_player
-                0x000000014000d600      0xba0 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x000000014000d600                update_player
+                0x000000014000d8d0      0xba0 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x000000014000d8d0                update_player
  .text$update_viewport
-                0x000000014000e1a0       0x90 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
-                0x000000014000e1a0                update_viewport
+                0x000000014000e470       0x90 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+                0x000000014000e470                update_viewport
  .text$wakeup_entities
-                0x000000014000e230       0x80 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
-                0x000000014000e230                wakeup_entities
+                0x000000014000e500       0x80 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+                0x000000014000e500                wakeup_entities
  .text$wakeup_entity
-                0x000000014000e2b0       0x50 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
-                0x000000014000e2b0                wakeup_entity
+                0x000000014000e580       0x50 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+                0x000000014000e580                wakeup_entity
  .text$wnd_proc
-                0x000000014000e300      0x170 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000e5d0      0x170 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  *(.text.*)
  *(.gnu.linkonce.t.*)
  *(.glue_7t)
  *(.glue_7)
-                0x000000014000e470                . = ALIGN (0x8)
-                0x000000014000e470                ___CTOR_LIST__ = .
-                0x000000014000e470                __CTOR_LIST__ = .
-                0x000000014000e470        0x4 LONG 0xffffffffffffffff
-                0x000000014000e474        0x4 LONG 0xffffffffffffffff
+                0x000000014000e740                . = ALIGN (0x8)
+                0x000000014000e740                ___CTOR_LIST__ = .
+                0x000000014000e740                __CTOR_LIST__ = .
+                0x000000014000e740        0x4 LONG 0xffffffffffffffff
+                0x000000014000e744        0x4 LONG 0xffffffffffffffff
  *(.ctors)
  *(.ctor)
  *(SORT_BY_NAME(.ctors.*))
-                0x000000014000e478        0x4 LONG 0x0
-                0x000000014000e47c        0x4 LONG 0x0
-                0x000000014000e480                ___DTOR_LIST__ = .
-                0x000000014000e480                __DTOR_LIST__ = .
-                0x000000014000e480        0x4 LONG 0xffffffffffffffff
-                0x000000014000e484        0x4 LONG 0xffffffffffffffff
+                0x000000014000e748        0x4 LONG 0x0
+                0x000000014000e74c        0x4 LONG 0x0
+                0x000000014000e750                ___DTOR_LIST__ = .
+                0x000000014000e750                __DTOR_LIST__ = .
+                0x000000014000e750        0x4 LONG 0xffffffffffffffff
+                0x000000014000e754        0x4 LONG 0xffffffffffffffff
  *(.dtors)
  *(.dtor)
  *(SORT_BY_NAME(.dtors.*))
-                0x000000014000e488        0x4 LONG 0x0
-                0x000000014000e48c        0x4 LONG 0x0
+                0x000000014000e758        0x4 LONG 0x0
+                0x000000014000e75c        0x4 LONG 0x0
  *(SORT_NONE(.fini))
  *(.gcc_exc)
                 [!provide]                        PROVIDE (etext = .)
@@ -926,217 +926,217 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
  *(.data2)
  *(SORT_BY_NAME(.data$*))
  .data$camera_texture
-                0x000000014000f000       0x10 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
+                0x000000014000f000       0x10 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
                 0x000000014000f000                camera_texture
- .data$cur_fov  0x000000014000f010       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+ .data$cur_fov  0x000000014000f010       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f010                cur_fov
  .data$cur_level_idx
-                0x000000014000f020       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f020       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f020                cur_level_idx
  .data$cur_output_height
-                0x000000014000f030       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f030       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f030                cur_output_height
  .data$cur_output_width
-                0x000000014000f040       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f040       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f040                cur_output_width
  .data$cur_render_height
-                0x000000014000f050       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f050       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f050                cur_render_height
  .data$cur_render_res_idx
-                0x000000014000f060       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f060       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f060                cur_render_res_idx
  .data$cur_render_scale
-                0x000000014000f070       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f070       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f070                cur_render_scale
  .data$cur_render_width
-                0x000000014000f080       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f080       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f080                cur_render_width
  .data$disable_collision
-                0x000000014000f090       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f090       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f090                disable_collision
  .data$door_timer_running
-                0x000000014000f0a0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f0a0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f0a0                door_timer_running
  .data$draw_pix
-                0x000000014000f0b0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f0b0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f0b0                draw_pix
  .data$draw_tex
-                0x000000014000f0c0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f0c0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f0c0                draw_tex
  .data$edit_id_buffer
-                0x000000014000f0d0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f0d0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f0d0                edit_id_buffer
  .data$editor_mode_enabled
-                0x000000014000f0e0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f0e0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f0e0                editor_mode_enabled
  .data$editor_selected_map_idx
-                0x000000014000f0f0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f0f0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f0f0                editor_selected_map_idx
  .data$editor_selected_side
-                0x000000014000f100       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f100       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f100                editor_selected_side
  .data$end_time
-                0x000000014000f110       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f110       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
                 0x000000014000f110                end_time
  .data$entities
-                0x000000014000f120       0x10 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
+                0x000000014000f120       0x10 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
                 0x000000014000f120                entities
- .data$frame    0x000000014000f130       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+ .data$frame    0x000000014000f130       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f130                frame
  .data$fullscreen
-                0x000000014000f140       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f140       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f140                fullscreen
- .data$g_dc     0x000000014000f150       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
- .data$g_freq   0x000000014000f160       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+ .data$g_dc     0x000000014000f150       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+ .data$g_freq   0x000000014000f160       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .data$g_fullscreen
-                0x000000014000f170       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f170       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
                 0x000000014000f170                g_fullscreen
- .data$g_hwnd   0x000000014000f180       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
- .data$g_keys   0x000000014000f190       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+ .data$g_hwnd   0x000000014000f180       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+ .data$g_keys   0x000000014000f190       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .data$g_keys_prev
-                0x000000014000f1a0       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f1a0       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .data$g_last_key_pressed
-                0x000000014000f1b0       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f1b0       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .data$g_mouse_dx
-                0x000000014000f1c0       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f1c0       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .data$g_mouse_dy
-                0x000000014000f1d0       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f1d0       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .data$g_running
-                0x000000014000f1e0       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f1e0       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .data$g_screen_h
-                0x000000014000f1f0       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f1f0       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .data$g_screen_w
-                0x000000014000f200       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
- .data$g_start  0x000000014000f210       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f200       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+ .data$g_start  0x000000014000f210       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .data$job_slots
-                0x000000014000f220      0x100 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f220      0x100 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
                 0x000000014000f220                job_slots
- .data$levels   0x000000014000f320       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+ .data$levels   0x000000014000f320       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f320                levels
  .data$num_alive_entities
-                0x000000014000f330       0x10 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
+                0x000000014000f330       0x10 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
                 0x000000014000f330                num_alive_entities
  .data$num_bits
-                0x000000014000f340       0x10 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
+                0x000000014000f340       0x10 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
                 0x000000014000f340                num_bits
  .data$num_bytes
-                0x000000014000f350       0x10 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
+                0x000000014000f350       0x10 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
                 0x000000014000f350                num_bytes
  .data$num_opcodes
-                0x000000014000f360       0x10 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
+                0x000000014000f360       0x10 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
                 0x000000014000f360                num_opcodes
  .data$num_requested_sprites
-                0x000000014000f370       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x000000014000f370       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
                 0x000000014000f370                num_requested_sprites
  .data$num_trans_sprites
-                0x000000014000f380       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x000000014000f380       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
                 0x000000014000f380                num_trans_sprites
  *fill*         0x000000014000f390       0x10 
  .data$obj_tmps
-                0x000000014000f3a0       0xa0 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
+                0x000000014000f3a0       0xa0 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
                 0x000000014000f3a0                obj_tmps
  .data$opcode_output_buf
-                0x000000014000f440       0x10 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
+                0x000000014000f440       0x10 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
                 0x000000014000f440                opcode_output_buf
  .data$operand_output_buf
-                0x000000014000f450       0x10 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
+                0x000000014000f450       0x10 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
                 0x000000014000f450                operand_output_buf
  .data$per_thread_sprite_cache
-                0x000000014000f460       0x80 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x000000014000f460       0x80 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
                 0x000000014000f460                per_thread_sprite_cache
- .data$pitch    0x000000014000f4e0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+ .data$pitch    0x000000014000f4e0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f4e0                pitch
  .data$player_ang
-                0x000000014000f4f0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f4f0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f4f0                player_ang
  .data$player_x
-                0x000000014000f500       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f500       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f500                player_x
  .data$player_y
-                0x000000014000f510       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f510       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f510                player_y
  .data$player_z
-                0x000000014000f520       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f520       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f520                player_z
  .data$prev_frame_time
-                0x000000014000f530       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f530       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f530                prev_frame_time
  .data$prev_was_unfocused
-                0x000000014000f540       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f540       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
                 0x000000014000f540                prev_was_unfocused
  .data$render_mode
-                0x000000014000f550       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f550       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f550                render_mode
  .data$requested_fullscreen
-                0x000000014000f560       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f560       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f560                requested_fullscreen
  .data$requested_render_res
-                0x000000014000f570       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f570       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f570                requested_render_res
  .data$requested_render_scale
-                0x000000014000f580       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f580       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f580                requested_render_scale
  .data$requested_sprites
-                0x000000014000f590       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x000000014000f590       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
                 0x000000014000f590                requested_sprites
  .data$requested_use_vsync
-                0x000000014000f5a0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f5a0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f5a0                requested_use_vsync
  .data$rle_spr_top_skips
-                0x000000014000f5b0       0x10 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
+                0x000000014000f5b0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
                 0x000000014000f5b0                rle_spr_top_skips
  .data$rle_tex_top_skips
-                0x000000014000f5c0       0x10 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
+                0x000000014000f5c0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
                 0x000000014000f5c0                rle_tex_top_skips
  .data$running_time
-                0x000000014000f5d0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f5d0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f5d0                running_time
  .data$skybox_u_offset
-                0x000000014000f5e0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f5e0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f5e0                skybox_u_offset
  *fill*         0x000000014000f5f0       0x10 
  .data$sprite_assets
-                0x000000014000f600       0xc0 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
+                0x000000014000f600       0xc0 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
                 0x000000014000f600                sprite_assets
- .data$sprites  0x000000014000f6c0       0x10 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
+ .data$sprites  0x000000014000f6c0       0x10 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
                 0x000000014000f6c0                sprites
  .data$start_open_time
-                0x000000014000f6d0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f6d0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f6d0                start_open_time
  .data$start_time
-                0x000000014000f6e0       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f6e0       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
                 0x000000014000f6e0                start_time
  *fill*         0x000000014000f6f0       0x10 
- .data$states   0x000000014000f700      0x120 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
+ .data$states   0x000000014000f700      0x120 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
                 0x000000014000f700                states
  .data$texture_assets
-                0x000000014000f820       0x40 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
+                0x000000014000f820       0x40 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
                 0x000000014000f820                texture_assets
  .data$textures
-                0x000000014000f860       0x10 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
+                0x000000014000f860       0x10 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
                 0x000000014000f860                textures
  .data$timer_door
-                0x000000014000f870       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f870       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f870                timer_door
- .data$tp       0x000000014000f880       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+ .data$tp       0x000000014000f880       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  .data$transformed_sprites
-                0x000000014000f890       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x000000014000f890       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
                 0x000000014000f890                transformed_sprites
  .data$use_vsync
-                0x000000014000f8a0       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000f8a0       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000f8a0                use_vsync
  *fill*         0x000000014000f8b0       0x10 
  .data$visited_cells
-                0x000000014000f8c0       0x80 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
+                0x000000014000f8c0       0x80 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
                 0x000000014000f8c0                visited_cells
  .data$wglSwapIntervalEXT
-                0x000000014000f940       0x10 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f940       0x10 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
  *fill*         0x000000014000f950       0x10 
  .data$work_handles
-                0x000000014000f960      0x100 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
+                0x000000014000f960      0x100 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
                 0x000000014000f960                work_handles
  .data$z_buffer
-                0x000000014000fa60       0x10 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
+                0x000000014000fa60       0x10 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
                 0x000000014000fa60                z_buffer
  *(.jcr)
                 0x000000014000fa70                __data_end__ = .
@@ -1144,88 +1144,88 @@ LOAD C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../lib/l
 
 .rdata          0x0000000140010000     0x1200
  *(.rdata)
- .rdata         0x0000000140010000       0x30 C:\Users\Erik\AppData\Local\Temp\ccCzGG9n.o
- .rdata         0x0000000140010030       0x40 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
- .rdata         0x0000000140010070       0x30 C:\Users\Erik\AppData\Local\Temp\cckAGk5F.o
- .rdata         0x00000001400100a0       0xd0 C:\Users\Erik\AppData\Local\Temp\ccIROVxU.o
- .rdata         0x0000000140010170      0x170 C:\Users\Erik\AppData\Local\Temp\ccelrkxM.o
- .rdata         0x00000001400102e0       0x60 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
- .rdata         0x0000000140010340      0x330 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
- .rdata         0x0000000140010670      0x140 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
- .rdata         0x00000001400107b0      0x230 C:\Users\Erik\AppData\Local\Temp\cctYucMf.o
+ .rdata         0x0000000140010000       0x30 C:\Users\Erik\AppData\Local\Temp\cciLvUNh.o
+ .rdata         0x0000000140010030       0x50 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+ .rdata         0x0000000140010080       0x30 C:\Users\Erik\AppData\Local\Temp\cc2XGqxL.o
+ .rdata         0x00000001400100b0       0xd0 C:\Users\Erik\AppData\Local\Temp\ccfYTz16.o
+ .rdata         0x0000000140010180      0x170 C:\Users\Erik\AppData\Local\Temp\cccEcRw6.o
+ .rdata         0x00000001400102f0       0x60 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+ .rdata         0x0000000140010350      0x340 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+ .rdata         0x0000000140010690      0x140 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+ .rdata         0x00000001400107d0      0x230 C:\Users\Erik\AppData\Local\Temp\ccpwFS2T.o
  *(SORT_BY_NAME(.rdata$*))
  .rdata$.refptr.cur_level_idx
-                0x00000001400109e0       0x10 C:\Users\Erik\AppData\Local\Temp\ccCzGG9n.o
-                0x00000001400109e0                .refptr.cur_level_idx
+                0x0000000140010a00       0x10 C:\Users\Erik\AppData\Local\Temp\cciLvUNh.o
+                0x0000000140010a00                .refptr.cur_level_idx
  .rdata$.refptr.cur_render_height
-                0x00000001400109f0       0x10 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
-                0x00000001400109f0                .refptr.cur_render_height
+                0x0000000140010a10       0x10 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+                0x0000000140010a10                .refptr.cur_render_height
  .rdata$.refptr.cur_render_width
-                0x0000000140010a00       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140010a00                .refptr.cur_render_width
+                0x0000000140010a20       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140010a20                .refptr.cur_render_width
  .rdata$.refptr.levels
-                0x0000000140010a10       0x10 C:\Users\Erik\AppData\Local\Temp\ccCzGG9n.o
-                0x0000000140010a10                .refptr.levels
+                0x0000000140010a30       0x10 C:\Users\Erik\AppData\Local\Temp\cciLvUNh.o
+                0x0000000140010a30                .refptr.levels
  .rdata$.refptr.pitch
-                0x0000000140010a20       0x10 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
-                0x0000000140010a20                .refptr.pitch
+                0x0000000140010a40       0x10 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+                0x0000000140010a40                .refptr.pitch
  .rdata$.refptr.player_z
-                0x0000000140010a30       0x10 C:\Users\Erik\AppData\Local\Temp\ccCzGG9n.o
-                0x0000000140010a30                .refptr.player_z
+                0x0000000140010a50       0x10 C:\Users\Erik\AppData\Local\Temp\cciLvUNh.o
+                0x0000000140010a50                .refptr.player_z
  .rdata$.refptr.rle_spr_top_skips
-                0x0000000140010a40       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140010a40                .refptr.rle_spr_top_skips
+                0x0000000140010a60       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140010a60                .refptr.rle_spr_top_skips
  .rdata$.refptr.skybox_u_offset
-                0x0000000140010a50       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140010a50                .refptr.skybox_u_offset
+                0x0000000140010a70       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140010a70                .refptr.skybox_u_offset
  .rdata$.refptr.sprites
-                0x0000000140010a60       0x10 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140010a60                .refptr.sprites
+                0x0000000140010a80       0x10 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140010a80                .refptr.sprites
  .rdata$.refptr.textures
-                0x0000000140010a70       0x10 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
-                0x0000000140010a70                .refptr.textures
+                0x0000000140010a90       0x10 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+                0x0000000140010a90                .refptr.textures
  .rdata$diag_dx
-                0x0000000140010a80       0x40 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140010a80                diag_dx
+                0x0000000140010aa0       0x40 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140010aa0                diag_dx
  .rdata$diag_dy
-                0x0000000140010ac0       0x40 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140010ac0                diag_dy
+                0x0000000140010ae0       0x40 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140010ae0                diag_dy
  .rdata$diag_start_x_offsets
-                0x0000000140010b00       0x40 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140010b00                diag_start_x_offsets
+                0x0000000140010b20       0x40 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140010b20                diag_start_x_offsets
  .rdata$diag_start_y_offsets
-                0x0000000140010b40       0x40 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140010b40                diag_start_y_offsets
+                0x0000000140010b60       0x40 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140010b60                diag_start_y_offsets
  .rdata$door_end_x_offsets
-                0x0000000140010b80       0x40 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140010b80                door_end_x_offsets
+                0x0000000140010ba0       0x40 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140010ba0                door_end_x_offsets
  .rdata$door_end_y_offsets
-                0x0000000140010bc0       0x40 C:\Users\Erik\AppData\Local\Temp\cczVfYvq.o
-                0x0000000140010bc0                door_end_y_offsets
+                0x0000000140010be0       0x40 C:\Users\Erik\AppData\Local\Temp\ccA1juH6.o
+                0x0000000140010be0                door_end_y_offsets
  .rdata$light_level_mults
-                0x0000000140010c00       0x10 C:\Users\Erik\AppData\Local\Temp\ccSqv19u.o
-                0x0000000140010c00                light_level_mults
+                0x0000000140010c20       0x10 C:\Users\Erik\AppData\Local\Temp\ccz78dFu.o
+                0x0000000140010c20                light_level_mults
  .rdata$res_is_superwide
-                0x0000000140010c10       0x20 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x0000000140010c10                res_is_superwide
+                0x0000000140010c30       0x20 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x0000000140010c30                res_is_superwide
  .rdata$res_is_wide
-                0x0000000140010c30       0x20 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x0000000140010c30                res_is_wide
- *fill*         0x0000000140010c50       0x10 
+                0x0000000140010c50       0x20 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x0000000140010c50                res_is_wide
+ *fill*         0x0000000140010c70       0x10 
  .rdata$resolutions
-                0x0000000140010c60       0x40 C:\Users\Erik\AppData\Local\Temp\cc3ekBte.o
-                0x0000000140010c60                resolutions
+                0x0000000140010c80       0x40 C:\Users\Erik\AppData\Local\Temp\ccZLUlyO.o
+                0x0000000140010c80                resolutions
  .rdata$sin_table
-                0x0000000140010ca0      0x400 C:\Users\Erik\AppData\Local\Temp\ccaUTvxJ.o
-                0x00000001400110a0                . = ALIGN (0x4)
-                0x00000001400110a0                __rt_psrelocs_start = .
+                0x0000000140010cc0      0x400 C:\Users\Erik\AppData\Local\Temp\ccb7b2Ja.o
+                0x00000001400110c0                . = ALIGN (0x4)
+                0x00000001400110c0                __rt_psrelocs_start = .
  *(.rdata_runtime_pseudo_reloc)
-                0x00000001400110a0                __rt_psrelocs_end = .
+                0x00000001400110c0                __rt_psrelocs_end = .
                 0x0000000000000000                __rt_psrelocs_size = (__rt_psrelocs_end - __rt_psrelocs_start)
-                0x00000001400110a0                ___RUNTIME_PSEUDO_RELOC_LIST_END__ = .
-                0x00000001400110a0                __RUNTIME_PSEUDO_RELOC_LIST_END__ = .
-                0x00000001400110a0                ___RUNTIME_PSEUDO_RELOC_LIST__ = (. - __rt_psrelocs_size)
-                0x00000001400110a0                __RUNTIME_PSEUDO_RELOC_LIST__ = (. - __rt_psrelocs_size)
+                0x00000001400110c0                ___RUNTIME_PSEUDO_RELOC_LIST_END__ = .
+                0x00000001400110c0                __RUNTIME_PSEUDO_RELOC_LIST_END__ = .
+                0x00000001400110c0                ___RUNTIME_PSEUDO_RELOC_LIST__ = (. - __rt_psrelocs_size)
+                0x00000001400110c0                __RUNTIME_PSEUDO_RELOC_LIST__ = (. - __rt_psrelocs_size)
 
 .eh_frame
  *(.eh_frame*)

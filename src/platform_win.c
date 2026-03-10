@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <GL/gl.h>
+#include <GL/glext.h>
 
 #include "common.h"
 #include "my_defs.h"
@@ -257,13 +258,15 @@ unsigned int platform_create_texture(int width, int height) {
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, NULL);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, NULL);
     return (int)tex;
 }
 
 void platform_update_texture(unsigned int tex, void *pixels, int width, int height) {
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pixels);
+    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB,  GL_UNSIGNED_SHORT_5_6_5, pixels);
 }
 
 

@@ -16,7 +16,7 @@ void draw_skybox_vline(u32* output, u32 *skybox_column, int x, int y0, int y1) {
     }
 }
 
-void draw_z_buffered_alpha_tint_vline(u32* output, float* z_buffer, u32 *tex_column, int x, int y0, int y1, float z, int prev_drawn_top, int prev_drawn_bot, int do_depth_test, int do_alpha_test) {
+void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_column, int x, int y0, int y1, float z, int prev_drawn_top, int prev_drawn_bot, int do_depth_test, int do_alpha_test) {
     float tex_per_pix = 32.0f / (y1-y0);
     
     int clipped_y0 = MAX(y0, prev_drawn_top);
@@ -25,7 +25,7 @@ void draw_z_buffered_alpha_tint_vline(u32* output, float* z_buffer, u32 *tex_col
         int dy = y-y0;
         int idx = (int)(dy*tex_per_pix)&31;
         if(do_depth_test) {
-            float pix_z = z_buffer[x*FP_SCREEN_HEIGHT+y];
+            float pix_z = (z_buffer[x*FP_SCREEN_HEIGHT+y])/64.0f; // 10.6 fixed point depth?
             if(pix_z < z) {
                 continue;
             }
@@ -43,7 +43,7 @@ void draw_z_buffered_alpha_tint_vline(u32* output, float* z_buffer, u32 *tex_col
     }
 }
 
-void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buffer, u32 *tex_column, int x, float y0, float y1, float z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test) {
+void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffer, u32 *tex_column, int x, float y0, float y1, float z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test) {
     edit_wall_id id = 0xFF000000 | (side<<16) | (cell_idx << 0); 
     float tex_per_pix = 32.0f / (y1-y0);
     
@@ -59,7 +59,7 @@ void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buf
             if(a == 0) { continue; }
         }
         if(do_depth_test){
-            float pix_z = z_buffer[x*FP_SCREEN_HEIGHT+y];
+            float pix_z = z_buffer[x*FP_SCREEN_HEIGHT+y]/64.0f; // 10.6 fixed point depth?
             if(pix_z < z) {
                 continue;
             }
@@ -75,7 +75,7 @@ void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buf
     ALPHA TEST
 */
 void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
-    u32* output, float* z_buffer, u32* texture,  u32* skybox_col, int x, int y0, int y1, float z0, float z1, float start_u, 
+    u32* output, u16* z_buffer, u32* texture,  u32* skybox_col, int x, int y0, int y1, float z0, float z1, float start_u, 
     float start_v, float end_u, float end_v, int prev_drawn_top, int prev_drawn_bot, 
     float light_factor, int face_light_level_idx, u32 fog_col, u8 do_alpha_blend) {
 
@@ -101,19 +101,17 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
     float mult = light_factor * light_level_mults[face_light_level_idx];
 
 
-    float cur_inv_z = (inv_z0 + d_one_over_z * (clipped_y0-y0));
-    float cur_u_over_z = (u_over_z + d_u_over_z * (clipped_y0-y0));
-    float cur_v_over_z = (v_over_z + d_v_over_z * (clipped_y0-y0));
+    float cur_z = 1.0f/(inv_z0 + d_one_over_z * (clipped_y0-y0));
+    float cur_u = CLAMP((u_over_z + d_u_over_z * (clipped_y0-y0)) * cur_z, 0.0f, 31.0f/32.0f);
+    float cur_v = CLAMP((v_over_z + d_v_over_z * (clipped_y0-y0)) * cur_z, 0.0f, 31.0f/32.0f);
+
 
     for(int y = clipped_y0; y < clipped_y1; y++) {
-        float old_z = z_buffer[x*FP_SCREEN_HEIGHT+y];
-        u32 old_pix = output[x*FP_SCREEN_HEIGHT+y];
+        //float old_z = z_buffer[x*FP_SCREEN_HEIGHT+y]/64.0f; // 10.6 fixed point depth?
         
-        float cur_z = 1.0f / cur_inv_z;
-
-
-        float cur_u = CLAMP(cur_u_over_z * cur_z, 0.0f, 31.0f/32.0f);
-        float cur_v = CLAMP(cur_v_over_z * cur_z, 0.0f, 31.0f/32.0f);
+        float next_z = 1.0f / (inv_z0 + d_one_over_z * ((y+1)-y0));
+        float next_u = CLAMP((u_over_z + d_u_over_z * ((y+1)-y0)) * next_z, 0.0f, 31.0f/32.0f);
+        float next_v = CLAMP((v_over_z + d_v_over_z * ((y+1)-y0)) * next_z, 0.0f, 31.0f/32.0f);
 
 
         float depth_scale = (CLAMP(cur_z/DARK_DIST, 0.0f, 1.0f)) * light_factor;
@@ -135,9 +133,6 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         u32 texel_r = ((texel >> 16) & 0xFF);
         u32 texel_g = ((texel >> 8) & 0xFF);
         u32 texel_b = ((texel >> 0) & 0xFF);
-        u32 old_r = (old_pix >> 16) & 0xFF;
-        u32 old_g = (old_pix >> 8) & 0xFF;
-        u32 old_b = (old_pix >> 0) & 0xFF;
 
         float tex_a = texel_a/255.0f;
         float inv_tex_a = (1.0f-tex_a);
@@ -150,11 +145,12 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         g = (g * mult_by_inv_depth) + scaled_fog_g;
         b = (b * mult_by_inv_depth) + scaled_fog_b;
         if(do_alpha_blend) {
-            //r *= tex_a;
+            u32 old_pix = output[x*FP_SCREEN_HEIGHT+y];
+            u32 old_r = (old_pix >> 16) & 0xFF;
+            u32 old_g = (old_pix >> 8) & 0xFF;
+            u32 old_b = (old_pix >> 0) & 0xFF;
             r += (old_r * inv_tex_a);
-            //g *= tex_a;
             g += (old_g * inv_tex_a);
-            //b *= tex_a;
             b += (old_b * inv_tex_a);
         }
 
@@ -162,21 +158,21 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         u32 intg = CLAMP((int)g, 0, 0xFF);
         u32 intb = CLAMP((int)b, 0, 0xFF);
         u32 lit_texel = 0xFF000000|(intr<<16)|(intg<<8)|intb;
-        float new_z = (texel_a == 0 && cur_z <= old_z) ? old_z : cur_z;
-        u32 new_pixel = (texel_a == 0 && cur_z <= old_z) ? old_pix : lit_texel;
+        
+        float new_z = cur_z;//(texel_a == 0 && cur_z <= old_z) ? old_z : cur_z;
+        u32 new_pixel = lit_texel;//(texel_a == 0 ? old_pix : lit_texel);//(texel_a == 0 && cur_z <= old_z) ? old_pix : lit_texel;
         output[x*FP_SCREEN_HEIGHT+y] = 0xFF000000|(intr<<16)|(intg<<8)|intb;
-        z_buffer[x*FP_SCREEN_HEIGHT+y] = cur_z;
+        z_buffer[x*FP_SCREEN_HEIGHT+y] = (u16)(cur_z*64.0f);
+        cur_z = next_z;
+        cur_u = next_u;
+        cur_v = next_v;
 
-
-        cur_inv_z += d_one_over_z;
-        cur_u_over_z += d_u_over_z;
-        cur_v_over_z += d_v_over_z;
     }
 }
 
 
 void draw_lit_fogged_textured_z_buffered_blended_sprite(
-    u32* output, float* z_buffer,
+    u32* output, u16* z_buffer,
     int draw_skybox, 
     u32 *tex_column, int top_skip, u32* skybox_col,
     int x,
@@ -238,7 +234,7 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
         float b = texel_b * mult + scaled_fog_b;
         float old_z;
         if(do_depth_test) {
-            old_z = z_buffer[x*FP_SCREEN_HEIGHT+y];
+            old_z = z_buffer[x*FP_SCREEN_HEIGHT+y]/64.0f;
             if(old_z < world_z) {
                 continue;
             }
@@ -270,7 +266,7 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
 
 
         output[x*FP_SCREEN_HEIGHT+y] = 0xFF000000|(intr<<16)|(intg<<8)|intb;
-        z_buffer[x*FP_SCREEN_HEIGHT+y] = world_z;
+        z_buffer[x*FP_SCREEN_HEIGHT+y] = (u16)(world_z*64.0f);
     }
 }
 

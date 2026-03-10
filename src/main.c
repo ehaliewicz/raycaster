@@ -934,7 +934,7 @@ int draw_tex;
 int frame;
 
 u32* draw_pix = NULL;
-float* z_buffer = NULL;
+u16* z_buffer = NULL;
 void change_resolution() {
     cur_render_res_idx = requested_render_res;
     cur_render_scale = requested_render_scale;
@@ -973,7 +973,7 @@ void change_resolution() {
     }
     draw_pix = my_malloc(sizeof(u32)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
     edit_id_buffer = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
-    z_buffer = my_malloc(sizeof(float)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
+    z_buffer = my_malloc(sizeof(u16)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
 
     /*
     draw_img = (Image){
@@ -1120,7 +1120,7 @@ void run_game() {
         //}
 
         for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
-            z_buffer[i] = DARK_DIST;
+            z_buffer[i] = 80*64;// DARK_DIST;
         }
         //my_memset(draw_img.data, 0xFFFFFFFF, FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH*4);
         //z_buffer[(screen_x*FP_SCREEN_HEIGHT+y)] = 1024.0f;
@@ -1148,12 +1148,11 @@ void run_game() {
                 //if(platform_is_key_down(KEY_X)) {
                 //    crt_shader(draw_pix);
                 //}
-                //platform_update_texture(draw_tex, (u32*)draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+                platform_update_texture(draw_tex, (u32*)draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
                 break;
             case Z_BUFFER:
-
                 for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
-                    float z = z_buffer[i];
+                    float z = z_buffer[i]/64.0f;
                     float normalized = (z-NEAR_PLANE_DIST)/(DARK_DIST-NEAR_PLANE_DIST);
                     int byte_z = normalized*255;
                     ((u32*)z_buffer)[i] = (0xFF000000 | (byte_z<<16) | (byte_z<<8) | byte_z);
@@ -1163,7 +1162,6 @@ void run_game() {
 
         }
         float scale = ((float)OUTPUT_WIDTH/((float)FP_SCREEN_WIDTH));
-        //platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH,.y=0}, 90.0f, scale, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
         platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
 
 
