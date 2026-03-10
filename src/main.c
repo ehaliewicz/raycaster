@@ -1110,7 +1110,7 @@ void run_game() {
     float quarter_seconds = seconds*4;
     int iquarter_seconds = quarter_seconds;
 
-    skybox_u_offset = (seconds*2); // scrolls every 2 seconds
+    skybox_u_offset = (seconds); // scrolls every 2 seconds
 
     //skybox_u_offset &= SKYBOX_TEX_WIDTH-1;
     int flash_frame = iquarter_seconds&0b1;
@@ -1152,7 +1152,7 @@ void run_game() {
                 break;
             case Z_BUFFER:
                 for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
-                    float z = z_buffer[i]/64.0f;
+                    float z = z_buffer[i]/FIXED_POINT_MULT;
                     float normalized = (z-NEAR_PLANE_DIST)/(DARK_DIST-NEAR_PLANE_DIST);
                     int byte_z = normalized*255;
                     ((u32*)draw_pix)[i] = (0xFF000000 | (byte_z<<16) | (byte_z<<8) | byte_z);

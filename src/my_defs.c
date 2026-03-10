@@ -1,3 +1,4 @@
+#include "common.h"
 
 static const float sin_table[256] = {
     0.00000000f, 0.00615995f, 0.01231966f, 0.01847890f, 0.02463745f, 0.03079506f, 0.03695150f, 0.04310654f, 
@@ -139,4 +140,63 @@ float my_sqrtf(float x) {
 //#define debug_printf debug_printf
 
 void nop_printf(const char* fmt, ...) {
+}
+
+
+s32 max_int32(s32 a, s32 b) {
+    s32 branch1,
+             branch2,
+             branch3,
+             branch4,
+             notBranched,
+             signA = a >> 31 & 1,                   // Get the sign of a
+             signB = b >> 31 & 1;                   // Get the sign of b
+    
+    branch1 = signA & (~signB & 1);                 // branch1 = (signA && !signB)
+    branch2 = signB & (~signA & 1);                 // branch2 = (signB && !signA)
+    notBranched = (~branch1) & (~branch2) & 1;      // notBranched = (!branch1 && !branch2)
+    branch3 = notBranched & ((a - b) >> 31 & 1);    // branch3 = (notBranched && a < b)
+    branch4 = notBranched & (~branch3) & 1;         // branch4 = (notBranched && b > a)
+    
+    return (
+        (b * (branch1 | branch3)) +
+        (a * (branch2 | branch4))
+    );
+}
+
+s32 min_int32(s32 a, s32 b)
+{
+    s32 branch1,
+             branch2,
+             branch3,
+             branch4,
+             notBranched,
+             signA = a >> 31 & 1,                   // Get the sign of a
+             signB = b >> 31 & 1;                   // Get the sign of b
+    
+    /*
+    
+    The logic here is essentially:
+    
+    if a is negative and b is positive:
+        return a
+    elif b is negative and a is positive:
+        return b
+    elif a - b is negative:
+        return a
+    elif b - a is negative:
+        return b
+    
+    */
+    
+    branch1 = signA & (~signB & 1);                 // branch1 = (signA && !signB)
+    branch2 = signB & (~signA & 1);                 // branch2 = (signB && !signA)
+    notBranched = (~branch1) & (~branch2) & 1;      // notBranched = (!branch1 && !branch2)
+    branch3 = notBranched & ((a - b) >> 31 & 1);    // branch3 = (notBranched && a < b)
+    branch4 = notBranched & (~branch3) & 1;         // branch4 = (notBranched && b > a)
+    
+    return (
+        (a * (branch1 | branch3)) +
+        (b * (branch2 | branch4))
+    );
 }

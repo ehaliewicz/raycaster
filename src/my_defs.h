@@ -1,6 +1,8 @@
 #ifndef MY_DEFS_H
 #define MY_DEFS_H
 
+#include "common.h"
+
 float my_sinf(float x);
 float my_cosf(float x);
 float my_atanf(float x);
@@ -20,3 +22,6 @@ void nop_printf(const char* fmt, ...);
 #endif
 //void debug_printf(const char* fmt, ...);
 #endif
+
+s32 min_int32(s32 a, s32 b);
+s32 max_int32(s32 a, s32 b);

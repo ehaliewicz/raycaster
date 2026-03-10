@@ -62,11 +62,14 @@ extern int cur_render_scale;
 
 #define NUM_LIGHT_LEVELS 4
 
+#define FIXED_POINT_MULT 128.0f // (only up to 512 view distance)
 #define DARK_DIST 16.0f
-#define DARK_DIST_FIXED (DARK_DIST*32.0f)
-#define RECIP_DARK_DIST ((int)(65536.0f/32.0f))
+#define DARK_DIST_FIXED (DARK_DIST*128.0f)
+#define RECIP_DARK_DIST (1.0f/DARK_DIST)
 
-#define SKYBOX_V_PER_PIX (((float)SKYBOX_TEX_HEIGHT/2)/FP_SCREEN_HEIGHT)
+// SLIGHTLY less than 1.0
+#define SKYBOX_V_PER_PIX ((SKYBOX_TEX_HEIGHT*0.9f)/FP_SCREEN_HEIGHT)
+//(((float)SKYBOX_TEX_HEIGHT)/FP_SCREEN_HEIGHT)
 
 
 #ifdef DEBUG
@@ -183,6 +186,8 @@ typedef enum {
     CEIL_SPRITE,
     MIDDLE_SPRITE
 } editor_selected_thing;
+
+
 
 #define MIN(x,y) ((x)<(y)?(x):(y))
 #define MAX(x,y) ((x)>(y)?(x):(y))

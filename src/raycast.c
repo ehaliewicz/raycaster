@@ -431,6 +431,7 @@ void draw_first_person_level_inner(
 
     float start_cam_dir_x = my_cosf(cam_ang);
     float start_cam_dir_y = my_sinf(cam_ang);
+
     for(int ix = start_x; ix < end_x; ix++) {
 
         float cam_dir_x = start_cam_dir_x;
@@ -501,10 +502,9 @@ void draw_first_person_level_inner(
 
             u32* skybox = textures[SKYBOX_TEX_IDX];
 
-            float u = 1024.0f* (0.5f + ray_ang / (2.0f * 3.14159));
-            float flt_u = (u+skybox_u_offset);
-            //float subtex_u = flt_u - my_floorf(flt_u);
-            int int_u = ((int)(flt_u))&(SKYBOX_TEX_WIDTH-1);
+            float u = ((ray_ang) / (6.28f));
+            float flt_u = (1024.0f*u+skybox_u_offset);
+            int int_u = ((int)flt_u)&(SKYBOX_TEX_WIDTH-1);
             skybox_column = &skybox[int_u*SKYBOX_TEX_HEIGHT];
         }
             
@@ -1729,7 +1729,6 @@ void draw_first_person_level_inner(
     }
 
   
-
     return; 
 }
 
