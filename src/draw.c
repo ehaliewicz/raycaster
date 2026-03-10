@@ -204,8 +204,8 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
     
     int base_y = clipped_y0 + num_pixel_chunks*SPAN_LENGTH;
     float next_z = 1.0f/(inv_z0 + d_one_over_z * (clipped_y1-y0));
-    float next_u = CLAMP((u_over_z + d_u_over_z * (clipped_y1-y0)) * cur_z, 0.0f, 0.999f);
-    float next_v = CLAMP((v_over_z + d_v_over_z * (clipped_y1-y0)) * cur_z, 0.0f, 0.999f);
+    float next_u = CLAMP((u_over_z + d_u_over_z * (clipped_y1-y0)) * next_z, 0.0f, 0.999f);
+    float next_v = CLAMP((v_over_z + d_v_over_z * (clipped_y1-y0)) * next_z, 0.0f, 0.999f);
 
     float z_per_pix = (next_z-cur_z)/(clipped_y1-base_y);
     float u_per_pix = (next_u-cur_u)/(clipped_y1-base_y);
