@@ -26,6 +26,7 @@ const char* texture_assets[] = {
     "grass",
     "church"
 };
+
 const char* sprite_assets[] = {
     "tree",
     "moss",
@@ -48,6 +49,7 @@ const char* sprite_assets[] = {
     "GATO10",
     "fox1",
     "fox2",
+    "inventory_box",
 };
 
 
@@ -136,7 +138,7 @@ void load_resources() {
         //}
 
         if(!got_non_zero_alpha && (got_zero_alpha > (0.3*32.0f*32.0f))) {
-            printf("RLE TEXTURE!!!!\n");
+            debug_printf("RLE TEXTURE!!!!\n");
             // rows are drawn as vertical columns on-screen
             for(int row = 0; row < 32; row++) {
                 int base_idx = row*32;
@@ -156,7 +158,7 @@ void load_resources() {
                 }
             }
         } else {
-            printf("NORMAL TEXTURE :(\n");
+            debug_printf("NORMAL TEXTURE :(\n");
         }
 
         

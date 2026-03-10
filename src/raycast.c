@@ -1743,12 +1743,17 @@ typedef struct {
 // tranformed into camera space: x, y0, y1, z (y0 and y1 are not actually transformed)
 transformed_sprite *transformed_sprites; //[MAP_SIZE*MAP_SIZE];
 
+#define MAX_REQUESTED_SPRITES (2048)
+#define MAX_BILLBOARD_SPRITES ((MAP_SIZE*MAP_SIZE) + MAX_REQUESTED_SPRITES)
 int num_trans_sprites = 0;
 
-void sorted_insert_transformed_sprite(float screen_x0, float screen_x1, float screen_y0, float screen_y1, float world_y0, float world_y1, float rot_z, int map_x, int map_y, int image_idx) {
+int sorted_insert_transformed_sprite(float screen_x0, float screen_x1, float screen_y0, float screen_y1, float world_y0, float world_y1, float cam_space_z, int map_x, int map_y, int image_idx) {
+    if(num_trans_sprites >= MAX_BILLBOARD_SPRITES) {
+        return -1;
+    }
     int i = num_trans_sprites++;
     for(int j = i-1; j >= 0; j--) {
-        if(transformed_sprites[j].z >= rot_z) {
+        if(transformed_sprites[j].z >= cam_space_z) {
             break;
         }
         transformed_sprites[i] = transformed_sprites[j];
@@ -1760,9 +1765,10 @@ void sorted_insert_transformed_sprite(float screen_x0, float screen_x1, float sc
     transformed_sprites[i].y1 = screen_y1;
     transformed_sprites[i].world_y0 = world_y0;
     transformed_sprites[i].world_y1 = world_y1;
-    transformed_sprites[i].z = rot_z;
+    transformed_sprites[i].z = cam_space_z;
     transformed_sprites[i].map_idx = (map_y*MAP_SIZE+map_x);
     transformed_sprites[i].image_idx = image_idx;
+    return i;
 }
 
 void transform_and_submit_sprite(float cam_x, float cam_y, float cam_z, float right_x, float right_y, float forward_x, float forward_y, int image_idx, float x, float y, float z, int map_x, int map_y) {
@@ -1784,10 +1790,9 @@ void transform_and_submit_sprite(float cam_x, float cam_y, float cam_z, float ri
 
 
     if(rot_z < NEAR_PLANE_DIST) { return; }
-    float screen_x0, screen_x1;
 
-    screen_x0 = FP_SCREEN_WIDTH/2.0f - ((rot_x-0.62f)*FOCAL_LENGTH/rot_z);
-    screen_x1 = FP_SCREEN_WIDTH/2.0f - ((rot_x+0.62f)*FOCAL_LENGTH/rot_z);
+    float screen_x0 = FP_SCREEN_WIDTH/2.0f - ((rot_x-0.62f)*FOCAL_LENGTH/rot_z);
+    float screen_x1 = FP_SCREEN_WIDTH/2.0f - ((rot_x+0.62f)*FOCAL_LENGTH/rot_z);
 
     if(MAX(screen_x0, screen_x1) < 0 || MIN(screen_x0, screen_x1) > FP_SCREEN_WIDTH-1) {
         return;
@@ -1796,9 +1801,7 @@ void transform_and_submit_sprite(float cam_x, float cam_y, float cam_z, float ri
 
     float screen_y0 = project_to_screen(sprite_world_z0, rot_z, pitch, cam_z);
     float screen_y1 = project_to_screen(sprite_world_z1, rot_z, pitch, cam_z);
-
     // find the correct place to put this transformed sprite
-
     sorted_insert_transformed_sprite(
         screen_x0, screen_x1, screen_y0, screen_y1, sprite_world_z0, sprite_world_z1,
         rot_z, map_x, map_y, image_idx
@@ -1876,25 +1879,37 @@ void draw_sprites_wrapper(void* arg_var) {
     draw_transformed_sprites(tp->output, tp->edit_id_buffer, tp->z_buffer, tp->flash_frame, tp->player_z, tp->start_x, tp->end_x, tp->editor_mode_enabled, tp->editor_selected_map_idx, tp->editor_selected_thg);
 }
 
-#define MAX_REQUESTED_SPRITES 2048
 
 typedef struct { 
     float x, y, z;
-    int image_idx;
+    u8 image_idx;
 } requested_sprite;
 
 int num_requested_sprites = 0;
 requested_sprite *requested_sprites;//[MAX_REQUESTED_SPRITES];
 
-void request_draw_sprite(float x, float y, float z, u8 image_idx) {
+int request_draw_sprite(float x, float y, float z, u8 image_idx) {
     if(num_requested_sprites < MAX_REQUESTED_SPRITES) {
         requested_sprites[num_requested_sprites].x = x;
         requested_sprites[num_requested_sprites].y = y;
         requested_sprites[num_requested_sprites].z = z;
-        requested_sprites[num_requested_sprites++].image_idx = image_idx;
+        requested_sprites[num_requested_sprites].image_idx = image_idx;
+        return num_requested_sprites++;
     }
+    return -1;
 }
 
+int request_draw_screen_space_sprite(float screen_x0, float screen_x1, float screen_y0, float screen_y1, u8 image_idx) {
+    return sorted_insert_transformed_sprite(screen_x0, screen_x1, screen_y0, screen_y1,
+        0, 8, // these don't matter.  just tell the draw routine they're 8 units high so it doesn't repeat the texture
+        NEAR_PLANE_DIST+0.01f,
+        0, 0, image_idx
+    );
+}
+
+void clear_requested_sprites() {
+    num_trans_sprites = 0;
+}
 
 void draw_first_person_level(
     u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer,
@@ -1952,7 +1967,6 @@ void draw_first_person_level(
 #undef PLATFORM_WEB 
 
     {
-        num_trans_sprites = 0;
         float sinang = my_sinf(player_ang);
         float cosang = my_cosf(player_ang);
 
@@ -2014,7 +2028,7 @@ void init_raycast_module() {
         per_thread_sprite_cache[i] = sprite_cache_block + (i*MAX_SPRITE_HITS);
         visited_cells[i] = visited_cells_block + (MAP_SIZE*MAP_SIZE/8);
     }
-    transformed_sprites = my_malloc(sizeof(transformed_sprite)*((MAP_SIZE*MAP_SIZE) + MAX_REQUESTED_SPRITES), "transformed billboard sprite buffer");
+    transformed_sprites = my_malloc(sizeof(transformed_sprite)*(MAX_BILLBOARD_SPRITES), "transformed billboard sprite buffer");
     requested_sprites = my_malloc(sizeof(requested_sprite)*MAX_REQUESTED_SPRITES, "requested sprite buffer");
 }
 

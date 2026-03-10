@@ -951,7 +951,7 @@ void change_resolution() {
     if(prev_use_vsync != use_vsync) {
         platform_set_vsync(use_vsync);
     }
-    printf("vsync %i\n", use_vsync);
+    debug_printf("vsync %i\n", use_vsync);
 
     //SetConfigFlags(FLAG_VSYNC_HINT);
 
@@ -1007,6 +1007,8 @@ float get_abs_time() {
     return platform_get_time();
 #endif
 }
+
+#define DRAW_INVENTORY
 
 void run_game() {
 #ifndef PLATFORM_WEB
@@ -1100,6 +1102,7 @@ void run_game() {
     //}
 
     
+    clear_requested_sprites();
 
     step_entities(player_x, player_y, player_z);
     if(got_other_player_pos) {
@@ -1133,11 +1136,27 @@ void run_game() {
         //    player_ang = 0.01f;
         //}
 
+    #ifdef DRAW_INVENTORY
+        #define NUM_INV_SLOTS 8
+        float inv_box_size = CLAMP((FP_SCREEN_HEIGHT/12.0f), 52.0f, 128.0f);
+        float inventory_size = inv_box_size*NUM_INV_SLOTS;
+        float side_margins = (FP_SCREEN_WIDTH-inventory_size);
+        float side_margin = side_margins/2.0f;
+        float bot_margin = FP_SCREEN_HEIGHT/40.0f;
+        for(int i = 0; i < NUM_INV_SLOTS; i++) {
+            request_draw_screen_space_sprite(
+                FP_SCREEN_WIDTH-i*inv_box_size - side_margin, 
+                FP_SCREEN_WIDTH-(i+1)*inv_box_size - side_margin, 
+                FP_SCREEN_HEIGHT-inv_box_size-bot_margin, FP_SCREEN_HEIGHT-bot_margin, 
+                INVENTORY_BOX_SPRITE);
+        }
+    #endif 
         draw_first_person_level(draw_pix, edit_id_buffer, z_buffer,
             0, FP_SCREEN_WIDTH, flash_frame, 
             &levels[cur_level_idx], player_x, player_y, player_z, -player_ang, pitch,
             editor_mode_enabled, editor_selected_map_idx, editor_selected_side
         );
+
 
         switch(render_mode) {
             case EDITOR_BUFFER:             
@@ -1247,7 +1266,7 @@ void init_game() {
         u8* decompressed_ptr;
         int decompressed_size = decompress(comp, &decompressed_ptr);
         if(decompressed_size == -1) {
-            printf("failed to decompress, header mismatch? :(");
+            debug_printf("failed to decompress, header mismatch? :(");
         }
         levels = (level*)decompressed_ptr;
         //levels = my_malloc(sizeof(level)*NUM_LEVELS, "level data");

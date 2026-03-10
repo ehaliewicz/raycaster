@@ -7,6 +7,7 @@
 //void* thread_pool_create(int cpu_threads);
 //void thread_pool_add_work(void* tp, void (*func)(void*), void* arg_var);
 //void thread_pool_destroy(void* tp);
+void clear_requested_sprites();
 void draw_first_person_level(
     u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer,
     int start_x, int end_x, 
@@ -16,7 +17,8 @@ void draw_first_person_level(
     int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side
 );
 
-void request_draw_sprite(float x, float y, float z, u8 image_idx);
+int request_draw_sprite(float x, float y, float z, u8 image_idx);
+int request_draw_screen_space_sprite(float screen_x0, float screen_x1, float screen_y0, float screen_y1, u8 image_idx);
 
 void init_raycast_module();
 
