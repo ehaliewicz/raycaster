@@ -337,13 +337,13 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
     
     int dy = y-y0;
 
-    int fix_tex_per_pix = (int)(tex_per_pix * 65536.0f); // 5.16
-    int fix_idx = (int)(start_v*65536.0f) + dy*fix_tex_per_pix;
+    int fix_tex_per_pix = (int)(tex_per_pix *64.0f* 65536.0f); // 5.16
+    int fix_idx = (int)(start_v*8.0f*65536.0f) + dy*fix_tex_per_pix;
     
 
     for(;y < clipped_y1; y++) {
 
-        u32 texel = tex_column[(fix_idx>>16)&31];
+        u32 texel = tex_column[(fix_idx>>22)&31];
         fix_idx += fix_tex_per_pix;
 
         u32 texel_a = ((texel >> 24) & 0xFF);
