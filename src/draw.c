@@ -114,7 +114,7 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         float next_v = CLAMP((v_over_z + d_v_over_z * ((y+1)-y0)) * next_z, 0.0f, 31.0f/32.0f);
 
 
-        float depth_scale = (CLAMP(cur_z/DARK_DIST, 0.0f, 1.0f)) * light_factor;
+        float depth_scale = (CLAMP(cur_z/DARK_DIST, 0.0f, 1.0f));
         float inv_depth_scale = 1.0f - depth_scale;
         float mult_by_inv_depth = mult * inv_depth_scale;
 
