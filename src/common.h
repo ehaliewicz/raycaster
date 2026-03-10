@@ -66,6 +66,7 @@ extern int cur_render_scale;
 #define DARK_DIST 32.0f
 #define DARK_DIST_FIXED (DARK_DIST*128.0f)
 #define RECIP_DARK_DIST (1.0f/DARK_DIST)
+#define DARK_DIST_SHIFT 5
 
 // SLIGHTLY less than 1.0
 #define SKYBOX_V_PER_PIX ((SKYBOX_TEX_HEIGHT*0.9f)/FP_SCREEN_HEIGHT)
@@ -77,7 +78,7 @@ extern int cur_render_scale;
 #elif PLATFORM_WEB
     #define NUM_THREADS 1
 #else
-    #define NUM_THREADS 1
+    #define NUM_THREADS 4
 #endif 
 
 
