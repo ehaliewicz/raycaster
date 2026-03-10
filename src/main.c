@@ -249,13 +249,11 @@ void update_player(float frame_time, Vector2 mouse_delta) {
             (collides(player_x, player_y, player_z, probe_x, player_y, player_z, cur_level, disable_collision, editor_mode_enabled) == 0) &&
             (collides(player_x, player_y, player_z, probe_x, player_y + r, player_z, cur_level, disable_collision, editor_mode_enabled) == 0)) {
             player_x = new_x;
-            printf("setting px to %f, probe was %f\n", new_x, probe_x);
         }
         if((collides(player_x, player_y, player_z, player_x - r, probe_y, player_z, cur_level, disable_collision, editor_mode_enabled) == 0) && 
             (collides(player_x, player_y, player_z, player_x,    probe_y, player_z, cur_level, disable_collision, editor_mode_enabled) == 0) &&
             (collides(player_x, player_y, player_z, player_x + r, probe_y, player_z, cur_level, disable_collision, editor_mode_enabled) == 0)) {
             player_y = new_y;
-            printf("setting py to %f, probe was %f\n", new_y, probe_y);
         }
     }
 
@@ -912,7 +910,7 @@ void crt_shader(u32* fb) {
                 float cur_lum = (0.2126*r + 0.7152*g + 0.0722*b)*1.50f;
                 float quarter_cur_lum = cur_lum * 0.25f;
                 float actual_lum = CLAMP((quarter_up_lum + quarter_ul_lum + quarter_l_lum + quarter_cur_lum)/cur_lum, 0.0f, 1.0f);
-                r *= actual_lum;
+                r *= actual_lum;`
                 g *= actual_lum;
                 b *= actual_lum;
                 u32 intr = (r*255.0f);
@@ -1176,7 +1174,7 @@ void run_game() {
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
         //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
-        //debug_printf("%4.0f fps\n", 1000.0f/avg_frame_time);
+        debug_printf("%4.0f fps\n", 1000.0f/avg_frame_time);
     } platform_end_drawing();
 
     int scale_y = FP_SCREEN_HEIGHT/32;

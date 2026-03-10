@@ -141,10 +141,13 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         float b = texel_b;
 
         
-        r = (r * mult_by_inv_depth) + scaled_fog_r;
-        g = (g * mult_by_inv_depth) + scaled_fog_g;
-        b = (b * mult_by_inv_depth) + scaled_fog_b;
+        r = (r * mult_by_inv_depth);
+        g = (g * mult_by_inv_depth);
+        b = (b * mult_by_inv_depth);
         if(do_alpha_blend) {
+            r += scaled_fog_r * tex_a;
+            g += scaled_fog_g * tex_a;
+            b += scaled_fog_b * tex_a;
             u32 old_pix = output[x*FP_SCREEN_HEIGHT+y];
             u32 old_r = (old_pix >> 16) & 0xFF;
             u32 old_g = (old_pix >> 8) & 0xFF;
@@ -152,6 +155,10 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
             r += (old_r * inv_tex_a);
             g += (old_g * inv_tex_a);
             b += (old_b * inv_tex_a);
+        } else {
+            r += scaled_fog_r;
+            g += scaled_fog_g;
+            b += scaled_fog_b;
         }
 
         u32 intr = CLAMP((int)r, 0, 0xFF);
@@ -229,9 +236,9 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
         u32 texel_r = ((texel >> 16) & 0xFF);
         u32 texel_g = ((texel >> 8) & 0xFF);
         u32 texel_b = ((texel >> 0) & 0xFF);
-        float r = texel_r * mult + scaled_fog_r;
-        float g = texel_g * mult + scaled_fog_g;
-        float b = texel_b * mult + scaled_fog_b;
+        float r = texel_r * mult;// + scaled_fog_r;
+        float g = texel_g * mult;// + scaled_fog_g;
+        float b = texel_b * mult;// + scaled_fog_b;
         float old_z;
         if(do_depth_test) {
             old_z = z_buffer[x*FP_SCREEN_HEIGHT+y]/64.0f;
@@ -240,11 +247,15 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
             }
         }
         if(do_alpha_blend) {
+
             u32 old_pix = output[x*FP_SCREEN_HEIGHT+y];
             u32 old_r = ((old_pix >> 16) & 0xFF);
             u32 old_g = ((old_pix >> 8) & 0xFF);
             u32 old_b = ((old_pix >> 0) & 0xFF);
             float tex_a = texel_a/255.0f;
+            r += scaled_fog_r*tex_a;
+            g += scaled_fog_g*tex_a;
+            b += scaled_fog_b*tex_a;
             //if(texel_a != 255) {
             //    continue;
             //} else { tex_a == 1.0f; }
@@ -258,6 +269,10 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
             if(tex_a == 0) {
                 continue;
             }
+        } else {
+            r += scaled_fog_r;
+            g += scaled_fog_g;
+            b += scaled_fog_b;
         }
 
         u32 intr = CLAMP((int)r, 0, 0xFF);

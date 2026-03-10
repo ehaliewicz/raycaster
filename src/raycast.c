@@ -22,8 +22,8 @@
 //(4)
 #define HALF_SCREEN_HEIGHT (FP_SCREEN_HEIGHT/2)
 
-// #define FOG_COL ((255<<24)|(196<<16)|(162<<8)|(103<<0))
-#define FOG_COL ((255<<24)|(103<<16)|(162<<8)|(196<<0))
+#define FOG_COL ((255<<24)|(0<<16)|(0<<8)|(0<<0))
+//#define FOG_COL ((255<<24)|(103<<16)|(162<<8)|(196<<0))
 
 
 int project_to_screen(float height, float dist, float pitch, float player_z) {
