@@ -324,34 +324,26 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
     if(top_skip > 0) {
         int top_skip_pixels = top_skip / tex_per_pix;
         y += top_skip_pixels;
-        //fix_idx += (fix_tex_per_pix*top_skip_pixels);
-
-        //while(idx < top_skip && y < clipped_y1) {
-        //    y++;
-        //    dy = y-y0;
-        //    idx = (int)(start_v + dy*tex_per_pix);
-        //    //idx += tex_per_pix;
-        //}
     }
     
     int dy = y-y0;
 
-    int fix_tex_per_pix = (int)(tex_per_pix * 2048.0f); // 5.16
-    int fix_idx = (int)(start_v*2048.0f) + dy*fix_tex_per_pix;
+    int fix_tex_per_pix = (int)(tex_per_pix * 65536.0f); // 5.16
+    int fix_idx = (int)(start_v*65536.0f) + dy*fix_tex_per_pix;
     
 
     for(;y < clipped_y1; y++) {
 
-        u32 texel = tex_column[(fix_idx>>11)&31];//&31];
+        u32 texel = tex_column[(fix_idx>>16)&31];
         fix_idx += fix_tex_per_pix;
-        //idx += tex_per_pix;
+
         u32 texel_a = ((texel >> 24) & 0xFF);
         u32 texel_r = ((texel >> 16) & 0xFF);
         u32 texel_g = ((texel >> 8) & 0xFF);
         u32 texel_b = ((texel >> 0) & 0xFF);
-        float r = texel_r * mult;// + scaled_fog_r;
-        float g = texel_g * mult;// + scaled_fog_g;
-        float b = texel_b * mult;// + scaled_fog_b;
+        float r = texel_r * mult;
+        float g = texel_g * mult;
+        float b = texel_b * mult;
         float old_z;
         if(do_depth_test) {
             old_z = z_buffer[x*FP_SCREEN_HEIGHT+y]/FIXED_POINT_MULT;
@@ -374,11 +366,8 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
             //    continue;
             //} else { tex_a == 1.0f; }
             float inv_tex_a = 1.0f-tex_a;
-            //r *= tex_a;
             r += (old_r * inv_tex_a);
-            //g *= tex_a;
             g += (old_g * inv_tex_a);
-            //b *= tex_a;
             b += (old_b * inv_tex_a);
             if(tex_a == 0) {
                 continue;
