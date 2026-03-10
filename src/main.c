@@ -246,14 +246,16 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         float probe_y = new_y + (vel_y > 0 ? r : -r);
 
         if((collides(player_x, player_y, player_z, probe_x, player_y - r, player_z, cur_level, disable_collision, editor_mode_enabled) == 0) && 
-            //(collides(player_x, player_y, probe_x, player_y, player_z, cur_level) == 0) &&
+            (collides(player_x, player_y, player_z, probe_x, player_y, player_z, cur_level, disable_collision, editor_mode_enabled) == 0) &&
             (collides(player_x, player_y, player_z, probe_x, player_y + r, player_z, cur_level, disable_collision, editor_mode_enabled) == 0)) {
             player_x = new_x;
+            printf("setting px to %f, probe was %f\n", new_x, probe_x);
         }
         if((collides(player_x, player_y, player_z, player_x - r, probe_y, player_z, cur_level, disable_collision, editor_mode_enabled) == 0) && 
             (collides(player_x, player_y, player_z, player_x,    probe_y, player_z, cur_level, disable_collision, editor_mode_enabled) == 0) &&
             (collides(player_x, player_y, player_z, player_x + r, probe_y, player_z, cur_level, disable_collision, editor_mode_enabled) == 0)) {
             player_y = new_y;
+            printf("setting py to %f, probe was %f\n", new_y, probe_y);
         }
     }
 
@@ -1155,9 +1157,9 @@ void run_game() {
                     float z = z_buffer[i]/64.0f;
                     float normalized = (z-NEAR_PLANE_DIST)/(DARK_DIST-NEAR_PLANE_DIST);
                     int byte_z = normalized*255;
-                    ((u32*)z_buffer)[i] = (0xFF000000 | (byte_z<<16) | (byte_z<<8) | byte_z);
+                    ((u32*)draw_pix)[i] = (0xFF000000 | (byte_z<<16) | (byte_z<<8) | byte_z);
                 }
-                platform_update_texture(draw_tex, (u32*)z_buffer, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+                platform_update_texture(draw_tex, (u32*)draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
                 break;
 
         }
@@ -1174,7 +1176,7 @@ void run_game() {
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
         //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
-        debug_printf("%4.0f fps\n", 1000.0f/avg_frame_time);
+        //debug_printf("%4.0f fps\n", 1000.0f/avg_frame_time);
     } platform_end_drawing();
 
     int scale_y = FP_SCREEN_HEIGHT/32;

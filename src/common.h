@@ -62,8 +62,8 @@ extern int cur_render_scale;
 
 #define NUM_LIGHT_LEVELS 4
 
-#define DARK_DIST 80.0f
-#define DARK_DIST_FIXED (32<<16)
+#define DARK_DIST 32.0f
+#define DARK_DIST_FIXED (DARK_DIST*32.0f)
 #define RECIP_DARK_DIST ((int)(65536.0f/32.0f))
 
 #define SKYBOX_V_PER_PIX (((float)SKYBOX_TEX_HEIGHT/2)/FP_SCREEN_HEIGHT)

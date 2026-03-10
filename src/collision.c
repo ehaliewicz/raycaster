@@ -82,12 +82,15 @@ float get_height_at_point_for_sprites(float px, float py, int return_ceil) {
 
 
 int collides(
-    float spx, float spy, float spz, float px, float py, float pz, level this_level,
+    float start_px, float start_py, float start_pz, float px, float py, float pz, level this_level,
     int disable_collision, int editor_mode_enabled) {
     if (disable_collision || editor_mode_enabled) { return 0; }
+    if(px < 0 || px >= MAP_SIZE || py < 0 || py >= MAP_SIZE) { 
+        return 1; 
+    }
     
-    int source_map_x = my_floorf(spx);
-    int source_map_y = my_floorf(spy);
+    int source_map_x = my_floorf(start_px);
+    int source_map_y = my_floorf(start_py);
     int dst_map_x = my_floorf(px);
     int dst_map_y = my_floorf(py);
     int has_sprite = 0;
@@ -96,7 +99,7 @@ int collides(
     int dst_map_idx = dst_map_y*MAP_SIZE+dst_map_x;
 
     float sprite_pos = 0.0f;
-    float src_floor_height = get_height_at_point(spx, spy, pz, 0, 1);
+    float src_floor_height = get_height_at_point(start_px, start_py, pz, 0, 1);
     float floor_height = get_height_at_point(px, py, pz, 0, 1);
     
     float ceil_height = get_height_at_point(px, py, pz, 1, 1);
@@ -107,7 +110,7 @@ int collides(
             sprite_pos = src_floor_height;
         } else if (levels[cur_level_idx].e_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
             has_sprite = 1;
-            sprite_pos = get_height_at_point(dst_map_x+0.999f, spy, pz, 0, 0);
+            sprite_pos = get_height_at_point(dst_map_x+0.999f, start_py, pz, 0, 0);
         }
     } else if (source_map_x < dst_map_x) {
         // moved right
@@ -116,7 +119,7 @@ int collides(
             sprite_pos = src_floor_height;
         } else if (levels[cur_level_idx].w_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
             has_sprite = 1;
-            sprite_pos = get_height_at_point(dst_map_x, spy, pz, 0, 0);
+            sprite_pos = get_height_at_point(dst_map_x, start_py, pz, 0, 0);
 
         }
     }
@@ -128,7 +131,7 @@ int collides(
 
         } else if (levels[cur_level_idx].s_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
             has_sprite = 1;
-            sprite_pos = get_height_at_point(spx, dst_map_y+0.99f, pz, 0, 0);
+            sprite_pos = get_height_at_point(start_px, dst_map_y+0.99f, pz, 0, 0);
 
         }
     } else if (source_map_y < dst_map_y) {
@@ -138,7 +141,7 @@ int collides(
             sprite_pos = src_floor_height;
         } else if (levels[cur_level_idx].n_sprite_index[dst_map_idx] != EMPTY_SPRITE_INDEX) {
             has_sprite = 1;
-            sprite_pos = get_height_at_point(spx, dst_map_y, pz, 0, 0);
+            sprite_pos = get_height_at_point(start_px, dst_map_y, pz, 0, 0);
         }
     }
 
