@@ -194,15 +194,23 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
     
     num_pixels = rem_pixels;//-= num_pixel_chunks*SPAN_LENGTH;
     int base_y = clipped_y0 + num_pixel_chunks*SPAN_LENGTH;
+    float next_z = 1.0f/(inv_z0 + d_one_over_z * (clipped_y1-y0));
+    float next_u = CLAMP((u_over_z + d_u_over_z * (clipped_y1-y0)) * cur_z, 0.0f, 0.999f);
+    float next_v = CLAMP((v_over_z + d_v_over_z * (clipped_y1-y0)) * cur_z, 0.0f, 0.999f);
+
+    float z_per_pix = (next_z-cur_z)/rem_pixels;
+    float u_per_pix = (next_u-cur_u)/rem_pixels;
+    float v_per_pix = (next_v-cur_v)/rem_pixels;
+
 
     for(int j = 0; j < rem_pixels; j++) {
 
         int y = base_y + j;
 
         
-        cur_z = 1.0f/(inv_z0 + d_one_over_z * (y-y0));
-        cur_u = CLAMP((u_over_z + d_u_over_z * (y-y0)) * cur_z, 0.0f, 0.999f);
-        cur_v = CLAMP((v_over_z + d_v_over_z * (y-y0)) * cur_z, 0.0f, 0.999f);
+        //cur_z = 1.0f/(inv_z0 + d_one_over_z * (y-y0));
+        //cur_u = CLAMP((u_over_z + d_u_over_z * (y-y0)) * cur_z, 0.0f, 0.999f);
+        //cur_v = CLAMP((v_over_z + d_v_over_z * (y-y0)) * cur_z, 0.0f, 0.999f);
         
         float depth_scale = (CLAMP(cur_z/DARK_DIST, 0.0f, 1.0f));
         float inv_depth_scale = 1.0f - depth_scale;
@@ -257,9 +265,9 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         u32 lit_texel = 0xFF000000|(intr<<16)|(intg<<8)|intb;
         output[x*FP_SCREEN_HEIGHT+y] = lit_texel;
         z_buffer[x*FP_SCREEN_HEIGHT+y] = (u16)(cur_z*FIXED_POINT_MULT);
-        //cur_z += z_per_pix;
-        //cur_u += u_per_pix;
-        //cur_v += v_per_pix;
+        cur_z += z_per_pix;
+        cur_u += u_per_pix;
+        cur_v += v_per_pix;
     }
 
 
@@ -311,16 +319,32 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
 
     int y = clipped_y0;
 
+    top_skip -= (clipped_y0-y0);
+    
+    if(top_skip > 0) {
+        int top_skip_pixels = top_skip / tex_per_pix;
+        y += top_skip_pixels;
+        //fix_idx += (fix_tex_per_pix*top_skip_pixels);
 
-    for(int y = clipped_y0; y < clipped_y1; y++) {
-        int dy = y-y0;
+        //while(idx < top_skip && y < clipped_y1) {
+        //    y++;
+        //    dy = y-y0;
+        //    idx = (int)(start_v + dy*tex_per_pix);
+        //    //idx += tex_per_pix;
+        //}
+    }
+    
+    int dy = y-y0;
 
-        int idx = (int)(start_v + dy*tex_per_pix)&31;
-        if(top_skip > 0 && idx < top_skip) {
-            continue;
-        }
+    int fix_tex_per_pix = (int)(tex_per_pix * 2048.0f); // 5.16
+    int fix_idx = (int)(start_v*2048.0f) + dy*fix_tex_per_pix;
+    
 
-        u32 texel = tex_column[idx];
+    for(;y < clipped_y1; y++) {
+
+        u32 texel = tex_column[(fix_idx>>11)&31];//&31];
+        fix_idx += fix_tex_per_pix;
+        //idx += tex_per_pix;
         u32 texel_a = ((texel >> 24) & 0xFF);
         u32 texel_r = ((texel >> 16) & 0xFF);
         u32 texel_g = ((texel >> 8) & 0xFF);

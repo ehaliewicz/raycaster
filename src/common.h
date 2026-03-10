@@ -77,7 +77,7 @@ extern int cur_render_scale;
 #elif PLATFORM_WEB
     #define NUM_THREADS 1
 #else
-    #define NUM_THREADS 16
+    #define NUM_THREADS 8
 #endif 
 
 
