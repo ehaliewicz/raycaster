@@ -921,7 +921,7 @@ void crt_shader(u32* fb) {
                 cur_row_buf[x+1] = quarter_cur_lum;
                 fb[x*FP_SCREEN_HEIGHT+y] = 0xFF000000 | (intr<<16) | (intg << 8) | (intb << 0);
             }
-            float* tmp = cur_row_buf;
+            u16* tmp = cur_row_buf;
             prev_row_buf = cur_row_buf;
             cur_row_buf = tmp;
         }
@@ -936,7 +936,7 @@ unsigned int draw_textures[2];
 int frame;
 
 u32* draw_pix_pointers[2] = {NULL, NULL};
-float* zbuf_pointers[2] = {NULL, NULL};
+u16* zbuf_pointers[2] = {NULL, NULL};
 
 //Image draw_img;
 //Texture2D draw_tex;
@@ -983,8 +983,8 @@ void change_resolution() {
     draw_pix_pointers[1] = my_malloc(sizeof(u32)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
     edit_id_buffer_pointers[0] = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
     edit_id_buffer_pointers[1] = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
-    zbuf_pointers[0] = my_malloc(sizeof(float)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
-    zbuf_pointers[1] = my_malloc(sizeof(float)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
+    zbuf_pointers[0] = my_malloc(sizeof(u16)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
+    zbuf_pointers[1] = my_malloc(sizeof(u16)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
 
     /*
     draw_img = (Image){
@@ -1061,11 +1061,11 @@ void run_game() {
     }
 
     
-    float* zbuffer_prev_pix = zbuf_pointers[(frame+1)&0b1];
+    u16* zbuffer_prev_pix = zbuf_pointers[(frame+1)&0b1];
     edit_wall_id* edit_prev_buf = edit_id_buffer_pointers[(frame+1)&0b1];
 
     u32* render_draw_pix = draw_pix_pointers[frame&0b1];
-    float* zbuffer_draw = zbuf_pointers[frame&0b1];
+    u16* zbuffer_draw = zbuf_pointers[frame&0b1];
     edit_wall_id* edit_draw_buf = edit_id_buffer_pointers[frame&0b1];
 
 
@@ -1076,7 +1076,7 @@ void run_game() {
 
     if(platform_is_mouse_button_pressed(MOUSE_BUTTON_LEFT)) {
         Vector2 mouse_pos = platform_get_mouse_position();
-        handle_click(edit_prev_buf, FP_SCREEN_WIDTH*mouse_pos.x/OUTPUT_WIDTH, FP_SCREEN_HEIGHT*mouse_pos.y/OUTPUT_HEIGHT);
+        handle_click(edit_draw_buf, FP_SCREEN_WIDTH*mouse_pos.x/OUTPUT_WIDTH, FP_SCREEN_HEIGHT*mouse_pos.y/OUTPUT_HEIGHT);
     }
     if (platform_is_key_pressed(KEY_E)) {
         editor_mode_enabled = !editor_mode_enabled;

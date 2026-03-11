@@ -130,7 +130,7 @@ float my_sqrtf(float x) {
     // initial guess using bit hack
     int i = *(int*)&x;
     i = 0x5f3759df - (i >> 1);
-    r = *(float*)&i;
+    r = *(u16*)&i;
     // two iterations of newton-raphson, plenty accurate
     r = r * (1.5f - (x * 0.5f * r * r));
     r = r * (1.5f - (x * 0.5f * r * r));

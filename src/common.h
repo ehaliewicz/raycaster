@@ -62,7 +62,7 @@ extern int cur_render_scale;
 
 #define NUM_LIGHT_LEVELS 4
 
-#define FIXED_POINT_MULT 128.0f // (only up to 512 view distance)
+#define FIXED_POINT_MULT (32768.0f/64.0)  // 5.9
 #define DARK_DIST 64.0f
 #define DARK_DIST_FIXED (DARK_DIST*FIXED_POINT_MULT)
 #define RECIP_DARK_DIST (1.0f/DARK_DIST)

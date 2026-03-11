@@ -394,7 +394,7 @@ u8 *visited_cells[NUM_THREADS];//[MAP_SIZE*MAP_SIZE/8];
 typedef struct {
     u32* output;
     edit_wall_id* edit_id_buffer;
-    float* z_buffer;
+    u16* z_buffer;
     int start_x;
     int end_x;
     int flash_frame; 
@@ -411,7 +411,7 @@ typedef struct {
 
 
 void draw_first_person_level_inner(
-    u32* output, edit_wall_id* edit_id_buffer, float* z_buffer,
+    u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer,
     int start_x, int end_x, 
     int flash_frame, 
     level* this_level, 
@@ -1809,7 +1809,7 @@ void transform_and_submit_sprite(float cam_x, float cam_y, float cam_z, float ri
 }
 
 
-void draw_transformed_sprites(u32* output, edit_wall_id* edit_id_buffer, float* z_buffer, int flash_frame, float camera_z, int start_x, int end_x,
+void draw_transformed_sprites(u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer, int flash_frame, float camera_z, int start_x, int end_x,
                               int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_thg
 ) {
     for(int spr = 0; spr < num_trans_sprites; spr++) {
@@ -1924,7 +1924,7 @@ void render_frame(
 
     u32* output = tp->output;
     edit_wall_id* edit_id_buffer = tp->edit_id_buffer;
-    float* z_buffer = tp->z_buffer;
+    u16* z_buffer = tp->z_buffer;
     int start_x = tp->start_x;
     int end_x = tp->end_x;
     int flash_frame = tp->flash_frame;
@@ -2052,7 +2052,7 @@ thread_params frame_params;
 
 
 void launch_render_frame(
-    u32* output, edit_wall_id* edit_id_buffer, float* z_buffer,
+    u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer,
     int start_x, int end_x, 
     int flash_frame, 
     level* this_level, 

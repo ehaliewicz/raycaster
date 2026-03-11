@@ -21,11 +21,12 @@ void draw_skybox_vline(u32* output, u32 *skybox_column, int x, int y0, int y1) {
 
     tint the pixels selected, we check if the object we're drawing is the one selected from the edit buffer
 */
-void draw_z_buffered_alpha_tint_vline(u32* output, float* z_buffer, u32 *tex_column, int x, int y0, int y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int do_depth_test, int do_alpha_test) {
+void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_column, int x, int y0, int y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int do_depth_test, int do_alpha_test) {
     float tex_per_pix = 32.0f / (y1-y0);
     
     int clipped_y0 = max_int32(y0, prev_drawn_top);
     int clipped_y1 = min_int32(y1, prev_drawn_bot);
+    u16 fix_z = new_z*FIXED_POINT_MULT;
     for(int y = clipped_y0; y < clipped_y1; y++) {
         int dy = y-y0;
         int idx = (int)(dy*tex_per_pix)&31;
@@ -35,8 +36,8 @@ void draw_z_buffered_alpha_tint_vline(u32* output, float* z_buffer, u32 *tex_col
             if(texel_a == 0) { continue; }
         }
         if(do_depth_test) {
-            float old_z = (z_buffer[x*FP_SCREEN_HEIGHT+y])/FIXED_POINT_MULT; // 10.6 fixed point depth?
-            if(old_z < new_z) {
+            float old_z = (z_buffer[x*FP_SCREEN_HEIGHT+y]); // 10.6 fixed point depth?
+            if(old_z < fix_z) {
                 continue;
             }
         }
@@ -53,12 +54,13 @@ void draw_z_buffered_alpha_tint_vline(u32* output, float* z_buffer, u32 *tex_col
     draws an identifier into the edit buffer
     if the user clicks on a pixel, we look up the object via this edit buffer
 */
-void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buffer, u32 *tex_column, int x, float y0, float y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test) {
+void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffer, u32 *tex_column, int x, float y0, float y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test) {
     edit_wall_id id = 0xFF000000 | (side<<16) | (cell_idx << 0); 
     float tex_per_pix = 32.0f / (y1-y0);
     
     int clipped_y0 = max_int32(y0, prev_drawn_top);
     int clipped_y1 = min_int32(y1, prev_drawn_bot);
+    u16 fix_z = new_z*FIXED_POINT_MULT;
     for(int y = clipped_y0; y < clipped_y1; y++) {
         int dy = y-y0;
         int idx = (int)(dy*tex_per_pix)&31;
@@ -69,7 +71,7 @@ void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buf
             if(a == 0) { continue; }
         }
         if(do_depth_test){
-            float old_z = ((float)z_buffer[x*FP_SCREEN_HEIGHT+y])/FIXED_POINT_MULT; 
+            u16 old_z = ((float)z_buffer[x*FP_SCREEN_HEIGHT+y]); 
             if(old_z < new_z) {
                 continue;
             }
@@ -85,7 +87,7 @@ void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buf
     ALPHA TEST
 */
 void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
-    u32* output, float* z_buffer, u32* texture,  u32* skybox_col, int x, int y0, int y1, float z0, float z1, float start_u, 
+    u32* output, u16* z_buffer, u32* texture,  u32* skybox_col, int x, int y0, int y1, float z0, float z1, float start_u, 
     float start_v, float end_u, float end_v, int prev_drawn_top, int prev_drawn_bot, 
     float light_factor, int face_light_level_idx, u32 fog_col, u8 do_alpha_blend) {
 
@@ -297,7 +299,7 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
 
 
 void draw_lit_fogged_textured_z_buffered_blended_sprite(
-    u32* output, float* z_buffer,
+    u32* output, u16* z_buffer,
     int draw_skybox, 
     u32 *tex_column, int top_skip, u32* skybox_col,
     int x,
@@ -364,8 +366,8 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
         float b = texel_b * mult;
         float old_z;
         if(do_depth_test) {
-            old_z = z_buffer[x*FP_SCREEN_HEIGHT+y]/FIXED_POINT_MULT;
-            if(old_z < world_z) {
+            old_z = z_buffer[x*FP_SCREEN_HEIGHT+y];
+            if(old_z < fix_z) {
                 continue;
             }
         }
