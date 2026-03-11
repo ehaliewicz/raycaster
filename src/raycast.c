@@ -1911,13 +1911,32 @@ void clear_requested_sprites() {
     num_trans_sprites = 0;
 }
 
-void draw_first_person_level(
-    u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer,
-    int start_x, int end_x, 
-    int flash_frame, 
-    level* this_level, 
-    float player_x, float player_y, float player_z, float player_ang, float pitch,
-    int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side) {
+
+jobpool* raycast_pool = NULL;
+jobpool* raycast_manager_pool = NULL;
+
+thread_params raycast_parms[NUM_THREADS];
+
+void render_frame(
+    thread_params* tp
+) {
+
+
+    u32* output = tp->output;
+    edit_wall_id* edit_id_buffer = tp->edit_id_buffer;
+    u16* z_buffer = tp->z_buffer;
+    int start_x = tp->start_x;
+    int end_x = tp->end_x;
+    int flash_frame = tp->flash_frame;
+    level* this_level = tp->this_level;
+    float player_x = tp->player_x;
+    float player_y = tp->player_y;
+    float player_z = tp->player_z;
+    float player_ang = tp->player_ang;
+    float pitch = tp->pitch;
+    int editor_mode_enabled = tp->editor_mode_enabled;
+    int editor_selected_map_idx = tp->editor_selected_map_idx;
+    editor_selected_thing editor_selected_side = tp->editor_selected_thg;
 
         
     for(int thd = 0; thd < NUM_THREADS; thd++) {
@@ -1926,34 +1945,33 @@ void draw_first_person_level(
         }
     }
     //my_memset(visited_cells, 0, sizeof(NUM_THREADS*MAP_SIZE*MAP_SIZE/8));
-    thread_params parms[NUM_THREADS];
     for(int i = 0; i < NUM_THREADS; i++) {
-        parms[i].output = output;
-        parms[i].edit_id_buffer = edit_id_buffer;
-        parms[i].z_buffer = z_buffer,
-        parms[i].start_x = (i == 0) ? 0 : parms[i-1].end_x, //i*FP_SCREEN_WIDTH/NUM_THREADS;
-        parms[i].end_x = (i == NUM_THREADS-1) ? FP_SCREEN_WIDTH : parms[i].start_x + FP_SCREEN_WIDTH/NUM_THREADS;
-        parms[i].flash_frame = flash_frame;
-        parms[i].this_level = this_level;
-        parms[i].player_x = player_x;
-        parms[i].player_y = player_y;
-        parms[i].player_z = player_z;
-        parms[i].player_ang = player_ang;
-        parms[i].pitch = pitch;
-        parms[i].editor_mode_enabled = editor_mode_enabled;
-        parms[i].editor_selected_map_idx = editor_selected_map_idx;
-        parms[i].editor_selected_thg = editor_selected_side;
-        parms[i].visited_cell_bitmap = visited_cells[i];
-        parms[i].sprite_cache = per_thread_sprite_cache[i];
+        raycast_parms[i].output = output;
+        raycast_parms[i].edit_id_buffer = edit_id_buffer;
+        raycast_parms[i].z_buffer = z_buffer,
+        raycast_parms[i].start_x = (i == 0) ? 0 : raycast_parms[i-1].end_x, //i*FP_SCREEN_WIDTH/NUM_THREADS;
+        raycast_parms[i].end_x = (i == NUM_THREADS-1) ? FP_SCREEN_WIDTH : raycast_parms[i].start_x + FP_SCREEN_WIDTH/NUM_THREADS;
+        raycast_parms[i].flash_frame = flash_frame;
+        raycast_parms[i].this_level = this_level;
+        raycast_parms[i].player_x = player_x;
+        raycast_parms[i].player_y = player_y;
+        raycast_parms[i].player_z = player_z;
+        raycast_parms[i].player_ang = player_ang;
+        raycast_parms[i].pitch = pitch;
+        raycast_parms[i].editor_mode_enabled = editor_mode_enabled;
+        raycast_parms[i].editor_selected_map_idx = editor_selected_map_idx;
+        raycast_parms[i].editor_selected_thg = editor_selected_side;
+        raycast_parms[i].visited_cell_bitmap = visited_cells[i];
+        raycast_parms[i].sprite_cache = per_thread_sprite_cache[i];
     }
 
 //#define PLATFORM_WEB
 #ifndef PLATFORM_WEB
     for(int i = 0; i < NUM_THREADS; i++) {
-        platform_add_task(raycast_wrapper, &parms[i]);
+        platform_add_task(raycast_pool, raycast_wrapper, &raycast_parms[i]);
     }
+    platform_join_threadpool(raycast_pool);
 
-    platform_join_threadpool();
 #else
     draw_first_person_level_inner(
         output, edit_id_buffer, z_buffer, 
@@ -1964,7 +1982,6 @@ void draw_first_person_level(
 
     );
 #endif
-#undef PLATFORM_WEB 
 
     {
         float sinang = my_sinf(player_ang);
@@ -2002,26 +2019,79 @@ void draw_first_person_level(
         for(int i = 0; i < num_requested_sprites; i++) {
             transform_and_submit_sprite(player_x, player_y, player_z, right_x, right_y, forward_x, forward_y, requested_sprites[i].image_idx, requested_sprites[i].x, requested_sprites[i].y, requested_sprites[i].z, 0, 0);
         }
+
+    #ifndef PLATFORM_WEB
+        for(int i = 0; i < NUM_THREADS; i++) {
+            platform_add_task(raycast_pool, draw_sprites_wrapper, &raycast_parms[i]);
+        }
+        platform_join_threadpool(raycast_pool);
+
+
+    #else 
+        draw_transformed_sprites(output, edit_id_buffer, z_buffer, flash_frame, player_z, start_x, end_x, editor_mode_enabled, editor_selected_map_idx, editor_selected_side);
+    #endif
+
+        num_requested_sprites = 0;
+
+        return;
     }
 
-#ifndef PLATFORM_WEB
-    for(int i = 0; i < NUM_THREADS; i++) {
-        platform_add_task(draw_sprites_wrapper, &parms[i]);
-    }
-    platform_join_threadpool();
-
-
-#else 
-    draw_transformed_sprites(output, edit_id_buffer, z_buffer, flash_frame, player_z, start_x, end_x, editor_mode_enabled, editor_selected_map_idx, editor_selected_side);
-#endif
-
-    num_requested_sprites = 0;
-
-    return;
-        
 }
 
+
+
+void render_frame_wrapper(
+    void* arg_var
+    ) {
+    thread_params* tp = (thread_params*)arg_var;
+    render_frame(tp);
+}
+
+
+thread_params frame_params;
+
+
+void launch_render_frame(
+    u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer,
+    int start_x, int end_x, 
+    int flash_frame, 
+    level* this_level, 
+    float player_x, float player_y, float player_z, float player_ang, float pitch,
+    int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side) {
+
+        frame_params.output = output;
+        frame_params.edit_id_buffer = edit_id_buffer;
+        frame_params.z_buffer = z_buffer,
+        frame_params.start_x = end_x; //i*FP_SCREEN_WIDTH/NUM_THREADS;
+        frame_params.end_x = start_x;
+        frame_params.flash_frame = flash_frame;
+        frame_params.this_level = this_level;
+        frame_params.player_x = player_x;
+        frame_params.player_y = player_y;
+        frame_params.player_z = player_z;
+        frame_params.player_ang = player_ang;
+        frame_params.pitch = pitch;
+        frame_params.editor_mode_enabled = editor_mode_enabled;
+        frame_params.editor_selected_map_idx = editor_selected_map_idx;
+        frame_params.editor_selected_thg = editor_selected_side;
+
+    platform_add_task(
+        raycast_manager_pool,
+        render_frame_wrapper,
+        &frame_params
+    );
+}
+
+void join_render_frame() {
+    platform_join_threadpool(raycast_manager_pool);
+}
+
+
 void init_raycast_module() {
+    
+    raycast_pool = platform_init_threadpool(NUM_THREADS);
+    raycast_manager_pool = platform_init_threadpool(1);
+
     sprite_cache_entry *sprite_cache_block = my_malloc(sizeof(sprite_cache_entry)*NUM_THREADS*MAX_SPRITE_HITS, "raycast sprite cache");
     u8* visited_cells_block = my_malloc(sizeof(u8)*NUM_THREADS*MAP_SIZE*MAP_SIZE/8, "raycast visited cells bitmap");
     for(int i = 0; i < NUM_THREADS; i++) {
@@ -2032,6 +2102,3 @@ void init_raycast_module() {
     requested_sprites = my_malloc(sizeof(requested_sprite)*MAX_REQUESTED_SPRITES, "requested sprite buffer");
 }
 
-void downsample_framebuffer() {
-    //thread_pool_add_work(tp, draw_sprites_wrapper, &parms[i]);
-}

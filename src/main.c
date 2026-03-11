@@ -931,10 +931,11 @@ void crt_shader(u32* fb) {
 
 //Image draw_img;
 //Texture2D draw_tex;
-int draw_tex;
+unsigned int draw_textures[2];
 int frame;
 
-u32* draw_pix = NULL;
+//u32* draw_pix = NULL;
+u32* draw_pix_pointers[2] = {NULL, NULL};
 u16* z_buffer = NULL;
 void change_resolution() {
     cur_render_res_idx = requested_render_res;
@@ -966,13 +967,14 @@ void change_resolution() {
             platform_set_windowed();
         }
     }
-    if(draw_pix != NULL) {
-        free(draw_pix);
+    if(draw_pix_pointers[0] != NULL) {
+        free(draw_pix_pointers[0]);
+        free(draw_pix_pointers[1]);
         free(edit_id_buffer);
-        //UnloadImage(draw_img);
-        //UnloadTexture(draw_tex);
+        platform_release_textures();
     }
-    draw_pix = my_malloc(sizeof(u32)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
+    draw_pix_pointers[0] = my_malloc(sizeof(u32)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
+    draw_pix_pointers[1] = my_malloc(sizeof(u32)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
     edit_id_buffer = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
     z_buffer = my_malloc(sizeof(u16)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
 
@@ -986,10 +988,11 @@ void change_resolution() {
     };
     draw_tex = LoadTextureFromImage(draw_img);
     */
-    draw_tex = platform_create_texture(FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
-
+    unsigned int* tex_handles = platform_create_textures(FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+    draw_textures[0] = tex_handles[0];
+    draw_textures[1] = tex_handles[1];
     // janky framebuffer texture :)
-    textures[NUM_TEXTURES-1] = draw_pix;
+    //textures[NUM_TEXTURES-1] = draw_pix;
 }
 
 
@@ -1152,37 +1155,58 @@ void run_game() {
                 INVENTORY_BOX_SPRITE);
         }
     #endif 
-        draw_first_person_level(draw_pix, edit_id_buffer, z_buffer,
+    
+        u32* render_draw_pix = draw_pix_pointers[frame&0b1];
+        u32* upload_draw_pix = draw_pix_pointers[(frame+1)&0b1];
+        int upload_tex = draw_textures[frame&0b1];
+        int draw_tex = draw_textures[(frame+1)%1];
+        //float before_raycast = platform_get_time();
+
+
+        float scale = ((float)OUTPUT_WIDTH/((float)FP_SCREEN_WIDTH));
+        platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+
+
+
+        launch_render_frame(render_draw_pix, edit_id_buffer, z_buffer,
             0, FP_SCREEN_WIDTH, flash_frame, 
             &levels[cur_level_idx], player_x, player_y, player_z, -player_ang, pitch,
             editor_mode_enabled, editor_selected_map_idx, editor_selected_side
         );
 
-
+        
         switch(render_mode) {
             case EDITOR_BUFFER:             
 
-                platform_update_texture(draw_tex, (u32*)edit_id_buffer, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+                platform_update_texture(upload_tex, (u32*)edit_id_buffer, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
                 break;
             case PIXEL_BUFFER:
                 //if(platform_is_key_down(KEY_X)) {
                 //    crt_shader(draw_pix);
                 //}
-                platform_update_texture(draw_tex, (u32*)draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+                float before_upload = platform_get_time();
+                platform_update_texture(upload_tex, (u32*)upload_draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+                float after_upload = platform_get_time();
+                printf("%4.0f ms upload\n", (after_upload-before_upload)*1000.0f);
                 break;
             case Z_BUFFER:
                 for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
                     float z = z_buffer[i]/FIXED_POINT_MULT;
                     float normalized = (z-NEAR_PLANE_DIST)/(DARK_DIST-NEAR_PLANE_DIST);
                     int byte_z = normalized*255;
-                    ((u32*)draw_pix)[i] = (0xFF000000 | (byte_z<<16) | (byte_z<<8) | byte_z);
+                    ((u32*)upload_draw_pix)[i] = (0xFF000000 | (byte_z<<16) | (byte_z<<8) | byte_z);
                 }
-                platform_update_texture(draw_tex, (u32*)draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+                platform_update_texture(upload_tex, (u32*)upload_draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
                 break;
 
         }
-        float scale = ((float)OUTPUT_WIDTH/((float)FP_SCREEN_WIDTH));
-        platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+
+        join_render_frame();
+
+        //printf("%4.0f ms raycast %4.0fms sprites\n", (after_raycast-before_raycast)*1000.0f, (after_sprites-after_raycast)*1000.0f);
+
+
+
 
 
         float avg_frame_time = (prev_frame_time + frame_time_ms)/2.0f;
@@ -1194,7 +1218,7 @@ void run_game() {
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
         //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
-        debug_printf("%4.0f fps\n", 1000.0f/avg_frame_time);
+        debug_printf("%4.0f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
     } platform_end_drawing();
 
     int scale_y = FP_SCREEN_HEIGHT/32;
@@ -1202,6 +1226,7 @@ void run_game() {
     
 
 
+#ifdef CAMERA_TEXTURE
     if(0) {
         for(int y = 0; y < 32; y++) {
             for(int x = 0; x < 32; x++) {
@@ -1232,6 +1257,7 @@ void run_game() {
             }
         }
     }
+#endif
     
     
     
@@ -1325,7 +1351,6 @@ int mainCRTStartup(void) {
 }
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
-    platform_init_threadpool(NUM_THREADS);
     init_raycast_module();
     init_entities_module();
     init_game();

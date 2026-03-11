@@ -186,8 +186,8 @@ void load_resources() {
         }
     }
 
-    camera_texture = my_calloc(32*32*sizeof(u32), "camera texture");
-    textures[tex_idx++] = camera_texture;
+    //camera_texture = my_calloc(32*32*sizeof(u32), "camera texture");
+    //textures[tex_idx++] = camera_texture;
 
 
     debug_printf("Loading skybox tga\n");

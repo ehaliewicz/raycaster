@@ -2,7 +2,7 @@
 #define RESOURCES_H
 
 
-#define NUM_TEXTURES 9
+#define NUM_TEXTURES 7
 #define SKYBOX_TEX_IDX 15
 #define NUM_SPRITES 22
 //#define NUM_DECALS 4

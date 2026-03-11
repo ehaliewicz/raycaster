@@ -79,7 +79,8 @@ int platform_save_file_data(const char* file, void* data, size_t num_bytes);
 u8* platform_load_file_data(const char* file, int* out_loaded_bytes);
 
 
-unsigned int platform_create_texture(int width, int height);
+void platform_release_textures();
+unsigned int* platform_create_textures(int width, int height);
 void platform_update_texture(unsigned int tex, void *pixels, int width, int height);
 void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float scale, int w, int h);
 
@@ -87,8 +88,29 @@ u8* platform_load_image(const char* file, int expected_width, int expected_heigh
 void platform_unload_image(u8* img_data);
 
 
-void platform_add_task(void (*fp)(void* arg), void* arg_ptr);
-void platform_join_threadpool();
-void platform_init_threadpool(int num_threads);
+
+#define MAX_JOB_SLOTS 16
+
+typedef struct {
+    void (*fp)(void*);
+    void* args;
+} thread_func_and_args;
+
+typedef struct {
+    int in_use;
+    void* work;
+} work_handle;
+
+typedef struct {
+    void* threadpool;
+    thread_func_and_args job_slots[MAX_JOB_SLOTS];
+    work_handle work_handles[MAX_JOB_SLOTS];
+} jobpool;
+
+
+jobpool* platform_init_threadpool(int num_threads);
+
+void platform_add_task(jobpool* jp,void (*fp)(void* arg), void* arg_ptr);
+void platform_join_threadpool(jobpool* jp);
 
 #endif 

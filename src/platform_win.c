@@ -251,15 +251,23 @@ int platform_is_window_focused() {
 }
 
 
-unsigned int platform_create_texture(int width, int height) {
-    unsigned int tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, NULL);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5, width, height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, NULL);
-    return (int)tex;
+unsigned int gpu_textures[2];
+
+void platform_release_textures() { 
+    glDeleteTextures(2, gpu_textures);
+}
+
+unsigned int* platform_create_textures(int width, int height) {
+    unsigned int tex1,tex2;
+    glGenTextures(2, gpu_textures);
+    for(int i = 0; i < 2; i++) {
+        glBindTexture(GL_TEXTURE_2D, gpu_textures[i]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, NULL);
+    }
+    return gpu_textures;
 }
 
 void platform_update_texture(unsigned int tex, void *pixels, int width, int height) {
@@ -411,52 +419,49 @@ static void thread_pool_destroy_inner(thread_pool* tp)
 }
 
 
-typedef struct {
-    void (*fp)(void*);
-    void* args;
-} thread_func_and_args;
+
 
 void CALLBACK thread_caller(PTP_CALLBACK_INSTANCE instance, PVOID arg_var_name, PTP_WORK work) {
     thread_func_and_args* fargs = (thread_func_and_args*)arg_var_name;
     fargs->fp(fargs->args);
 }
 
-static thread_pool* tp;
-#define MAX_JOB_SLOTS 16
-thread_func_and_args job_slots[MAX_JOB_SLOTS];
-typedef struct {
-    int in_use;
-    PTP_WORK work;
-} work_handle;
-work_handle work_handles[MAX_JOB_SLOTS];
 
-void platform_init_threadpool(int num_threads) {
+
+jobpool* platform_init_threadpool(int num_threads) {
+    thread_pool* tp = thread_pool_create_inner(num_threads);
+    jobpool* jp = my_malloc(sizeof(jobpool), "job pool");
     for(int i = 0; i < MAX_JOB_SLOTS; i++) {
-        work_handles[i].in_use = 0;
+        jp->work_handles[i].in_use = 0;
     }
-    tp = thread_pool_create_inner(num_threads);
+    jp->threadpool = tp;
+    return jp;
 }
 
-void platform_add_task(void (*fp)(void* arg), void* arg_ptr) {
+void platform_add_task(jobpool* jp, void (*fp)(void* arg), void* arg_ptr) {
+    thread_pool* tp = (thread_pool*)(jp->threadpool);
+
     for(int i = 0; i < MAX_JOB_SLOTS; i++) {
-        if(work_handles[i].in_use == 0) {
-            job_slots[i].args = arg_ptr;
-            job_slots[i].fp = fp;
-            PTP_WORK work_obj = thread_pool_add_work_inner(tp, thread_caller, &job_slots[i]);
-            work_handles[i].in_use = 1;
-            work_handles[i].work = work_obj;
+        if(jp->work_handles[i].in_use == 0) {
+            jp->job_slots[i].args = arg_ptr;
+            jp->job_slots[i].fp = fp;
+
+            PTP_WORK work_obj = thread_pool_add_work_inner(tp, thread_caller, jp->job_slots+i);
+            jp->work_handles[i].in_use = 1;
+            jp->work_handles[i].work = work_obj;
             return;
         }
     }
 }
 
-void platform_join_threadpool() {
+void platform_join_threadpool(jobpool* jp) {
+    thread_pool* tp = (thread_pool*)jp->threadpool;
     // wait on all in_use work slots
     for(int i = 0; i < MAX_JOB_SLOTS; i++) {
-        if(work_handles[i].in_use) {
-            WaitForThreadpoolWorkCallbacks(work_handles[i].work, FALSE);
-            CloseThreadpoolWork(work_handles[i].work);
-            work_handles[i].in_use = 0;   
+        if(jp->work_handles[i].in_use) {
+            WaitForThreadpoolWorkCallbacks((PTP_WORK)(jp->work_handles[i].work), FALSE);
+            CloseThreadpoolWork((PTP_WORK)(jp->work_handles[i].work));
+            jp->work_handles[i].in_use = 0;   
         }
     }
 }
