@@ -338,7 +338,7 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
     int dy = y-y0;
 
     int fix_tex_per_pix = (int)(tex_per_pix *64.0f* 65536.0f); // 5.16
-    int fix_idx = (int)(start_v*8.0f*65536.0f) + dy*fix_tex_per_pix;
+    int fix_idx = (int)(start_v*64.0f*65536.0f) + dy*fix_tex_per_pix;
     
 
     for(;y < clipped_y1; y++) {

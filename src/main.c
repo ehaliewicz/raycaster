@@ -503,15 +503,15 @@ void handle_editor() {
                 break;
             case WALL_SIDE_UPPER_SOUTH:
                     height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
-                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_map_idx];
+                    anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_map_idx];
                 break;
             case WALL_SIDE_UPPER_WEST: do {
                 if(upper_cell_type == NE_TO_SW_DIAG) {
                     height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_map_idx];
                 } else {
                     height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
-                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_map_idx];
                 }
+                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_map_idx];
             } while(0);
                 break;
             case WALL_SIDE_UPPER_DIAG:
@@ -541,6 +541,7 @@ void handle_editor() {
                 break;
             case WALL_SIDE_LOWER_SOUTH:
                 height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
+                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_map_idx];
                 break;
             case WALL_SIDE_LOWER_WEST: do {
                 if(lower_cell_type == NE_TO_SW_DIAG) {
