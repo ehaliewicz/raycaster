@@ -85,12 +85,12 @@ void console_log(const char *format, ...) {
 
 void* my_malloc(long long unsigned int bytes, char* for_str) {
     debug_printf("Allocating %llu bytes for %s\n", bytes, for_str);
-    return malloc(bytes);
+    return malloc(bytes+64);
 }
 
 void* my_calloc(long long unsigned int bytes, char* for_str) {
     debug_printf("Allocating %llu bytes for %s\n", bytes, for_str);
-    return calloc(bytes, 1);
+    return calloc(bytes+64, 1);
 }
 
 float running_time = 0.0f;
@@ -936,7 +936,7 @@ unsigned int draw_textures[2];
 int frame;
 
 u32* draw_pix_pointers[2] = {NULL, NULL};
-u16* zbuf_pointers[2] = {NULL, NULL};
+float* zbuf_pointers[2] = {NULL, NULL};
 
 //Image draw_img;
 //Texture2D draw_tex;
@@ -983,8 +983,8 @@ void change_resolution() {
     draw_pix_pointers[1] = my_malloc(sizeof(u32)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
     edit_id_buffer_pointers[0] = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
     edit_id_buffer_pointers[1] = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
-    zbuf_pointers[0] = my_malloc(sizeof(u16)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
-    zbuf_pointers[1] = my_malloc(sizeof(u16)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
+    zbuf_pointers[0] = my_malloc(sizeof(float)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
+    zbuf_pointers[1] = my_malloc(sizeof(float)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
 
     /*
     draw_img = (Image){
@@ -1061,11 +1061,11 @@ void run_game() {
     }
 
     
-    u16* zbuffer_prev_pix = zbuf_pointers[(frame+1)&0b1];
+    float* zbuffer_prev_pix = zbuf_pointers[(frame+1)&0b1];
     edit_wall_id* edit_prev_buf = edit_id_buffer_pointers[(frame+1)&0b1];
 
     u32* render_draw_pix = draw_pix_pointers[frame&0b1];
-    u16* zbuffer_draw = zbuf_pointers[frame&0b1];
+    float* zbuffer_draw = zbuf_pointers[frame&0b1];
     edit_wall_id* edit_draw_buf = edit_id_buffer_pointers[frame&0b1];
 
 

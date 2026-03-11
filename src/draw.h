@@ -19,20 +19,20 @@ typedef enum {
 
 void draw_skybox_vline(u32* output, u32 *skybox_column, int x, int y0, int y1);
 
-void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_column, int x, int y0, int y1, float z, int prev_drawn_top, int prev_drawn_bot, int do_depth_test, int do_alpha_test);
+void draw_z_buffered_alpha_tint_vline(u32* output, float* z_buffer, u32 *tex_column, int x, int y0, int y1, float z, int prev_drawn_top, int prev_drawn_bot, int do_depth_test, int do_alpha_test);
 
 #define draw_tint_vline(output,  x,  y0,  y1,  prev_drawn_top,  prev_drawn_bot) draw_z_buffered_alpha_tint_vline(output, NULL, NULL, x, y0, y1, 0.0f, prev_drawn_top, prev_drawn_bot, 0, 0)
 #define draw_alpha_tint_vline(output,  tex_column,  x,  y0,  y1,  prev_drawn_top,  prev_drawn_bot) draw_z_buffered_alpha_tint_vline(output, NULL, tex_column, x, y0, y1, 0.0f, prev_drawn_top, prev_drawn_bot, 0, 1)
 
 
-void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffer, u32 *tex_column, int x, float y0, float y1, float z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test);
+void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buffer, u32 *tex_column, int x, float y0, float y1, float z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test);
 
 #define draw_alpha_edit_vline(edit_id_buffer, tex_column, x, y0, y1, prev_drawn_top, prev_drawn_bot, cell_idx, side) draw_z_buffered_alpha_edit_vline(edit_id_buffer, NULL, tex_column, x, y0, y1, 0.0f, prev_drawn_top, prev_drawn_bot, cell_idx, side, 0, 1)
 #define draw_edit_vline(edit_id_buffer, x, y0, y1, prev_drawn_top, prev_drawn_bot, cell_idx, side) draw_z_buffered_alpha_edit_vline(edit_id_buffer, NULL, NULL, x, y0, y1, 0.0f, prev_drawn_top, prev_drawn_bot, cell_idx, side, 0, 0)
 
 // horizontal sprites
 void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
-    u32* output, u16* z_buffer, u32* texture, u32* skybox, int x, int y0, int y1, float z0, float z1, float start_u, 
+    u32* output, float* z_buffer, u32* texture, u32* skybox, int x, int y0, int y1, float z0, float z1, float start_u, 
     float start_v, float end_u, float end_v, int prev_drawn_top, int prev_drawn_bot, 
     float light_factor, int face_light_level_idx, u32 fog_col, u8 do_alpha_blend);
 
@@ -42,7 +42,7 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
 
 // vertical sprites
 void draw_lit_fogged_textured_z_buffered_blended_sprite(
-    u32* output, u16* z_buffer,
+    u32* output, float* z_buffer,
     int draw_skybox,
     u32 *tex_column, int top_skip, u32* skybox, 
     int x,

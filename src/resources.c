@@ -131,7 +131,7 @@ void load_resources() {
             texel_r *= fa;
             texel_g *= fa;
             texel_b *= fa;
-            pix_data[i] = (0xFF<<24) | (texel_r<<16) | (texel_g<<8) | (texel_b);
+            pix_data[i] = (texel_a<<24) | (texel_r<<16) | (texel_g<<8) | (texel_b);
         }
         debug_printf("pct zero alpha %f pct non-zero alpha %f\n", got_zero_alpha/(32.0f*32.0f), got_non_zero_alpha/(32.0f*32.0f));
         //if(got_zero_alpha && !got_non_zero_alpha) {

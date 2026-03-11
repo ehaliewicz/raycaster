@@ -21,7 +21,7 @@ void draw_skybox_vline(u32* output, u32 *skybox_column, int x, int y0, int y1) {
 
     tint the pixels selected, we check if the object we're drawing is the one selected from the edit buffer
 */
-void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_column, int x, int y0, int y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int do_depth_test, int do_alpha_test) {
+void draw_z_buffered_alpha_tint_vline(u32* output, float* z_buffer, u32 *tex_column, int x, int y0, int y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int do_depth_test, int do_alpha_test) {
     float tex_per_pix = 32.0f / (y1-y0);
     
     int clipped_y0 = max_int32(y0, prev_drawn_top);
@@ -35,7 +35,7 @@ void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_colum
             if(texel_a == 0) { continue; }
         }
         if(do_depth_test) {
-            float old_z = ((float)z_buffer[x*FP_SCREEN_HEIGHT+y])/FIXED_POINT_MULT; // 10.6 fixed point depth?
+            float old_z = (z_buffer[x*FP_SCREEN_HEIGHT+y])/FIXED_POINT_MULT; // 10.6 fixed point depth?
             if(old_z < new_z) {
                 continue;
             }
@@ -53,7 +53,7 @@ void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_colum
     draws an identifier into the edit buffer
     if the user clicks on a pixel, we look up the object via this edit buffer
 */
-void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffer, u32 *tex_column, int x, float y0, float y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test) {
+void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, float* z_buffer, u32 *tex_column, int x, float y0, float y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test) {
     edit_wall_id id = 0xFF000000 | (side<<16) | (cell_idx << 0); 
     float tex_per_pix = 32.0f / (y1-y0);
     
@@ -85,7 +85,7 @@ void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffe
     ALPHA TEST
 */
 void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
-    u32* output, u16* z_buffer, u32* texture,  u32* skybox_col, int x, int y0, int y1, float z0, float z1, float start_u, 
+    u32* output, float* z_buffer, u32* texture,  u32* skybox_col, int x, int y0, int y1, float z0, float z1, float start_u, 
     float start_v, float end_u, float end_v, int prev_drawn_top, int prev_drawn_bot, 
     float light_factor, int face_light_level_idx, u32 fog_col, u8 do_alpha_blend) {
 
@@ -195,7 +195,7 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
             u32 intb = CLAMP((int)b, 0, 0xFF);
             u32 lit_texel = 0xFF000000|(intr<<16)|(intg<<8)|intb;
             output[x*FP_SCREEN_HEIGHT+y] = lit_texel;
-            z_buffer[x*FP_SCREEN_HEIGHT+y] = cur_z*FIXED_POINT_MULT;
+            z_buffer[x*FP_SCREEN_HEIGHT+y] = fix_z;
             cur_z += z_per_pix;
             fix_z += fix_z_per_pix;
             fix_u += fix_u_per_pix;
@@ -217,9 +217,11 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
     float next_u = CLAMP((u_over_z + d_u_over_z * (clipped_y1-y0)) * next_z, 0.0f, 0.999f);
     float next_v = CLAMP((v_over_z + d_v_over_z * (clipped_y1-y0)) * next_z, 0.0f, 0.999f);
 
+    u16 fix_z = cur_z*FIXED_POINT_MULT;
     float z_per_pix = (next_z-cur_z)/(clipped_y1-base_y);
     float u_per_pix = (next_u-cur_u)/(clipped_y1-base_y);
     float v_per_pix = (next_v-cur_v)/(clipped_y1-base_y);
+    int fix_z_per_pix = z_per_pix*FIXED_POINT_MULT;
     float next_depth_scale = next_z*RECIP_DARK_DIST;
     float depth_scale_per_pix = (next_depth_scale-cur_depth_scale)/(clipped_y1-base_y);
 
@@ -281,9 +283,10 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         u32 intb = CLAMP((int)b, 0, 0xFF);
         u32 lit_texel = 0xFF000000|(intr<<16)|(intg<<8)|intb;
         output[x*FP_SCREEN_HEIGHT+y] = lit_texel;
-        z_buffer[x*FP_SCREEN_HEIGHT+y] = (cur_z*FIXED_POINT_MULT);
+        z_buffer[x*FP_SCREEN_HEIGHT+y] = fix_z;
         
         cur_z += z_per_pix;
+        fix_z += fix_z_per_pix;
         fix_u += fix_u_per_pix;
         fix_v += fix_v_per_pix;
         cur_depth_scale += depth_scale_per_pix;
@@ -294,7 +297,7 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
 
 
 void draw_lit_fogged_textured_z_buffered_blended_sprite(
-    u32* output, u16* z_buffer,
+    u32* output, float* z_buffer,
     int draw_skybox, 
     u32 *tex_column, int top_skip, u32* skybox_col,
     int x,
@@ -344,6 +347,7 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
 
     int fix_tex_per_pix = (int)(tex_per_pix *64.0f* 65536.0f); // 5.16
     int fix_idx = (int)(start_v*64.0f*65536.0f) + dy*fix_tex_per_pix;
+    u16 fix_z = world_z * FIXED_POINT_MULT;
     
 
     for(;y < clipped_y1; y++) {
@@ -398,7 +402,7 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
 
 
         output[x*FP_SCREEN_HEIGHT+y] = 0xFF000000|(intr<<16)|(intg<<8)|intb;
-        z_buffer[x*FP_SCREEN_HEIGHT+y] = (u16)(world_z*FIXED_POINT_MULT);
+        z_buffer[x*FP_SCREEN_HEIGHT+y] = fix_z;
     }
 }
 

@@ -62,9 +62,9 @@ extern int cur_render_scale;
 
 #define NUM_LIGHT_LEVELS 4
 
-#define FIXED_POINT_MULT 32.0f // (only up to 512 view distance)
-#define DARK_DIST 32.0f
-#define DARK_DIST_FIXED (DARK_DIST*128.0f)
+#define FIXED_POINT_MULT 128.0f // (only up to 512 view distance)
+#define DARK_DIST 64.0f
+#define DARK_DIST_FIXED (DARK_DIST*FIXED_POINT_MULT)
 #define RECIP_DARK_DIST (1.0f/DARK_DIST)
 #define DARK_DIST_SHIFT 5
 
@@ -78,7 +78,7 @@ extern int cur_render_scale;
 #elif PLATFORM_WEB
     #define NUM_THREADS 1
 #else
-    #define NUM_THREADS 4
+    #define NUM_THREADS 8
 #endif 
 
 

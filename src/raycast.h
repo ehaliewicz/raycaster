@@ -11,7 +11,7 @@ void clear_requested_sprites();
 
 
 void launch_render_frame(
-    u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer,
+    u32* output, edit_wall_id* edit_id_buffer, float* z_buffer,
     int start_x, int end_x, 
     int flash_frame, 
     level* this_level, 
