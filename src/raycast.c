@@ -2075,6 +2075,7 @@ void launch_render_frame(
         frame_params.editor_selected_map_idx = editor_selected_map_idx;
         frame_params.editor_selected_thg = editor_selected_side;
 
+    //render_frame_wrapper(&frame_params);
     platform_add_task(
         raycast_manager_pool,
         render_frame_wrapper,

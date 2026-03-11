@@ -17,7 +17,11 @@ void draw_skybox_vline(u32* output, u32 *skybox_column, int x, int y0, int y1) {
     }
 }
 
-void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_column, int x, int y0, int y1, float z, int prev_drawn_top, int prev_drawn_bot, int do_depth_test, int do_alpha_test) {
+/*
+
+    tint the pixels selected, we check if the object we're drawing is the one selected from the edit buffer
+*/
+void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_column, int x, int y0, int y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int do_depth_test, int do_alpha_test) {
     float tex_per_pix = 32.0f / (y1-y0);
     
     int clipped_y0 = max_int32(y0, prev_drawn_top);
@@ -25,15 +29,16 @@ void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_colum
     for(int y = clipped_y0; y < clipped_y1; y++) {
         int dy = y-y0;
         int idx = (int)(dy*tex_per_pix)&31;
-        if(do_depth_test) {
-            float pix_z = (z_buffer[x*FP_SCREEN_HEIGHT+y])/FIXED_POINT_MULT; // 10.6 fixed point depth?
-            if(pix_z < z) {
-                continue;
-            }
-        }
+        
         if(do_alpha_test) {
             u32 texel_a = ((tex_column[idx] >> 24) & 0xFF);
             if(texel_a == 0) { continue; }
+        }
+        if(do_depth_test) {
+            float old_z = ((float)z_buffer[x*FP_SCREEN_HEIGHT+y])/FIXED_POINT_MULT; // 10.6 fixed point depth?
+            if(old_z < new_z) {
+                continue;
+            }
         }
         u32 pix = output[x*FP_SCREEN_HEIGHT+y];
         u32 r = ((pix>>16)&0xFF)>>1;
@@ -44,7 +49,11 @@ void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_colum
     }
 }
 
-void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffer, u32 *tex_column, int x, float y0, float y1, float z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test) {
+/*
+    draws an identifier into the edit buffer
+    if the user clicks on a pixel, we look up the object via this edit buffer
+*/
+void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffer, u32 *tex_column, int x, float y0, float y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test) {
     edit_wall_id id = 0xFF000000 | (side<<16) | (cell_idx << 0); 
     float tex_per_pix = 32.0f / (y1-y0);
     
@@ -60,8 +69,8 @@ void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffe
             if(a == 0) { continue; }
         }
         if(do_depth_test){
-            float pix_z = z_buffer[x*FP_SCREEN_HEIGHT+y]/FIXED_POINT_MULT; // 10.6 fixed point depth?
-            if(pix_z < z) {
+            float old_z = ((float)z_buffer[x*FP_SCREEN_HEIGHT+y])/FIXED_POINT_MULT; 
+            if(old_z < new_z) {
                 continue;
             }
         }
@@ -186,8 +195,9 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
             u32 intb = CLAMP((int)b, 0, 0xFF);
             u32 lit_texel = 0xFF000000|(intr<<16)|(intg<<8)|intb;
             output[x*FP_SCREEN_HEIGHT+y] = lit_texel;
-            z_buffer[x*FP_SCREEN_HEIGHT+y] = fix_z;
+            z_buffer[x*FP_SCREEN_HEIGHT+y] = cur_z*FIXED_POINT_MULT;
             cur_z += z_per_pix;
+            fix_z += fix_z_per_pix;
             fix_u += fix_u_per_pix;
             fix_v += fix_v_per_pix;
             cur_depth_scale += depth_scale_per_pix;
@@ -271,7 +281,7 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         u32 intb = CLAMP((int)b, 0, 0xFF);
         u32 lit_texel = 0xFF000000|(intr<<16)|(intg<<8)|intb;
         output[x*FP_SCREEN_HEIGHT+y] = lit_texel;
-        z_buffer[x*FP_SCREEN_HEIGHT+y] = (u16)(cur_z*FIXED_POINT_MULT);
+        z_buffer[x*FP_SCREEN_HEIGHT+y] = (cur_z*FIXED_POINT_MULT);
         
         cur_z += z_per_pix;
         fix_u += fix_u_per_pix;
@@ -311,13 +321,8 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
     
 
     if(peg_type == BOTTOM_PEGGED) {
-        //float end_v = 31.0f;
         start_v = 32.0f - 4.0f * units;
-        //start_v += 0.01f;
     }
-    //while(start_v < 0) {
-    //    start_v += 32.0f;
-    //}
 
     u32 fog_r = (fog_col >> 16)&0xFF;
     u32 fog_g = (fog_col >> 8)&0xFF;
