@@ -64,9 +64,11 @@ float cur_fov = 85.0f;
 void handle_click(edit_wall_id* prev_rendered_id_buffer, int render_x, int render_y) {
 
     edit_wall_id id = prev_rendered_id_buffer[(FP_SCREEN_WIDTH-1-render_x)*FP_SCREEN_HEIGHT+(render_y)];
-    editor_selected_map_idx = (id) & 0xFFFF; //id.cell_idx;
+    //editor_selected_map_idx = (id) & 0xFFFF; //id.cell_idx;
+    //editor_selected_side = (id>>16)&0xFF;// id.side;
+    editor_selected_map_idx = id&0b1111111111;
+    editor_selected_side = (id>>10)&0b11111;
 
-    editor_selected_side = (id>>16)&0xFF;// id.side;
 }
 
 
@@ -921,7 +923,7 @@ void crt_shader(u32* fb) {
                 cur_row_buf[x+1] = quarter_cur_lum;
                 fb[x*FP_SCREEN_HEIGHT+y] = 0xFF000000 | (intr<<16) | (intg << 8) | (intb << 0);
             }
-            u16* tmp = cur_row_buf;
+            u8* tmp = cur_row_buf;
             prev_row_buf = cur_row_buf;
             cur_row_buf = tmp;
         }
@@ -974,17 +976,17 @@ void change_resolution() {
         free(draw_pix_pointers[0]);
         free(draw_pix_pointers[1]);
         free(zbuf_pointers[0]);
-        free(zbuf_pointers[1]);
+        //free(zbuf_pointers[1]);
         free(edit_id_buffer_pointers[0]);
-        free(edit_id_buffer_pointers[1]);
+        //free(edit_id_buffer_pointers[1]);
         platform_release_textures();
     }
     draw_pix_pointers[0] = my_malloc(sizeof(u32)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
     draw_pix_pointers[1] = my_malloc(sizeof(u32)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
     edit_id_buffer_pointers[0] = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
-    edit_id_buffer_pointers[1] = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
+    //edit_id_buffer_pointers[1] = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
     zbuf_pointers[0] = my_malloc(sizeof(u16)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
-    zbuf_pointers[1] = my_malloc(sizeof(u16)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
+    //zbuf_pointers[1] = my_malloc(sizeof(u16)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
 
     /*
     draw_img = (Image){
@@ -1061,15 +1063,15 @@ void run_game() {
     }
 
     
-    u16* zbuffer_prev_pix = zbuf_pointers[(frame+1)&0b1];
-    edit_wall_id* edit_prev_buf = edit_id_buffer_pointers[(frame+1)&0b1];
+    //u16* zbuffer_prev_pix = zbuf_pointers[(frame+1)&0b1];
+    //edit_wall_id* edit_prev_buf = edit_id_buffer_pointers[(frame+1)&0b1];
+    u32* upload_draw_pix = draw_pix_pointers[(frame+1)&0b1];
 
     u32* render_draw_pix = draw_pix_pointers[frame&0b1];
-    u16* zbuffer_draw = zbuf_pointers[frame&0b1];
-    edit_wall_id* edit_draw_buf = edit_id_buffer_pointers[frame&0b1];
+    u16* zbuffer_draw = zbuf_pointers[0];//frame&0b1];
+    edit_wall_id* edit_draw_buf = edit_id_buffer_pointers[0];//frame&0b1];
 
 
-    u32* upload_draw_pix = draw_pix_pointers[(frame+1)&0b1];
     int upload_tex = draw_textures[frame&0b1];
     int draw_tex = draw_textures[(frame+1)%1];
 
@@ -1195,24 +1197,33 @@ void run_game() {
             editor_mode_enabled, editor_selected_map_idx, editor_selected_side
         );
 
-        
-        switch(render_mode) {
-            case EDITOR_BUFFER:             
+        int needs_join = 1;
 
-                platform_update_texture(upload_tex, (u32*)edit_prev_buf, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+        switch(render_mode) {
+            case EDITOR_BUFFER:
+                join_render_frame();
+                needs_join = 0;    
+                for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
+                    u16 map_idx = edit_draw_buf[i]&0b1111111111;
+                    u16 side = (edit_draw_buf[i]>>10)&0b11111;
+                    upload_draw_pix[i] = (0xFF<<24)|(side << 16)|map_idx;
+                }
+                platform_update_texture(upload_tex, (u32*)upload_draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
                 break;
             case PIXEL_BUFFER:
                 //if(platform_is_key_down(KEY_X)) {
                 //    crt_shader(draw_pix);
                 //}
-                float before_upload = platform_get_time();
+                //float before_upload = platform_get_time();
                 platform_update_texture(upload_tex, (u32*)upload_draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
-                float after_upload = platform_get_time();
-                printf("%4.0f ms upload\n", (after_upload-before_upload)*1000.0f);
+                //float after_upload = platform_get_time();
+                //printf("%4.0f ms upload\n", (after_upload-before_upload)*1000.0f);
                 break;
             case Z_BUFFER:
+                join_render_frame();
+                needs_join = 0;
                 for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
-                    float z = zbuffer_prev_pix[i]/FIXED_POINT_MULT;
+                    float z = zbuffer_draw[i]/FIXED_POINT_MULT;
                     float normalized = (z-NEAR_PLANE_DIST)/(DARK_DIST-NEAR_PLANE_DIST);
                     int byte_z = normalized*255;
                     ((u32*)upload_draw_pix)[i] = (0xFF000000 | (byte_z<<16) | (byte_z<<8) | byte_z);
@@ -1221,9 +1232,9 @@ void run_game() {
                 break;
 
         }
-
-        join_render_frame();
-
+        if(needs_join) {
+            join_render_frame();
+        }
         //printf("%4.0f ms raycast %4.0fms sprites\n", (after_raycast-before_raycast)*1000.0f, (after_sprites-after_raycast)*1000.0f);
 
 

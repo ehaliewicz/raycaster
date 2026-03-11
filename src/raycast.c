@@ -2093,11 +2093,13 @@ void init_raycast_module() {
     raycast_pool = platform_init_threadpool(NUM_THREADS);
     raycast_manager_pool = platform_init_threadpool(1);
 
-    sprite_cache_entry *sprite_cache_block = my_malloc(sizeof(sprite_cache_entry)*NUM_THREADS*MAX_SPRITE_HITS, "raycast sprite cache");
-    u8* visited_cells_block = my_malloc(sizeof(u8)*NUM_THREADS*MAP_SIZE*MAP_SIZE/8, "raycast visited cells bitmap");
+    //sprite_cache_entry *sprite_cache_block = my_malloc(sizeof(sprite_cache_entry)*NUM_THREADS*MAX_SPRITE_HITS, "raycast sprite cache");
+    //u8* visited_cells_block = my_malloc(sizeof(u8)*NUM_THREADS*MAP_SIZE*MAP_SIZE/8, "raycast visited cells bitmap");
     for(int i = 0; i < NUM_THREADS; i++) {
-        per_thread_sprite_cache[i] = sprite_cache_block + (i*MAX_SPRITE_HITS);
-        visited_cells[i] = visited_cells_block + (MAP_SIZE*MAP_SIZE/8);
+        //per_thread_sprite_cache[i] = sprite_cache_block + (i*MAX_SPRITE_HITS);
+        per_thread_sprite_cache[i] = my_malloc(sizeof(sprite_cache_entry)*MAX_SPRITE_HITS, "sprite cache");
+        visited_cells[i] = my_malloc(sizeof(u8)*MAP_SIZE*MAP_SIZE/8, "raycast visited cells bitmap");
+        //visited_cells[i] = visited_cells_block + (MAP_SIZE*MAP_SIZE/8);
     }
     transformed_sprites = my_malloc(sizeof(transformed_sprite)*(MAX_BILLBOARD_SPRITES), "transformed billboard sprite buffer");
     requested_sprites = my_malloc(sizeof(requested_sprite)*MAX_REQUESTED_SPRITES, "requested sprite buffer");

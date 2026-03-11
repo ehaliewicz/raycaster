@@ -62,8 +62,8 @@ extern int cur_render_scale;
 
 #define NUM_LIGHT_LEVELS 4
 
-#define FIXED_POINT_MULT (32768.0f/64.0)  // 5.9
-#define DARK_DIST 64.0f
+#define FIXED_POINT_MULT (128.0f/32.0)  // 5.9
+#define DARK_DIST 32.0f
 #define DARK_DIST_FIXED (DARK_DIST*FIXED_POINT_MULT)
 #define RECIP_DARK_DIST (1.0f/DARK_DIST)
 #define DARK_DIST_SHIFT 5
@@ -205,7 +205,7 @@ typedef enum {
 
 
 
-typedef u32 edit_wall_id;
+typedef u16 edit_wall_id;
 
 extern float player_x, player_y, player_z;
 extern float player_ang;

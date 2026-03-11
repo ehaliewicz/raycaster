@@ -8,6 +8,10 @@
 const float light_level_mults[4] = {1.0f, 0.50f, 1.5f, 1.5f};
 const float night_light_level_mults[4] = {.50f, 0.25f, .75f, .75f};
 
+// 1:bit entity
+// 0 -> selected_side:5 map_idx:10
+// 1 -> entity_idx:15 (up to 32768)
+
 void draw_skybox_vline(u32* output, u32 *skybox_column, int x, int y0, int y1) {
     for(int y = y0; y < y1; y++) {
         int v = (int)(SKYBOX_TEX_HEIGHT*.5f+(SKYBOX_V_PER_PIX*(y+(-pitch*(float)FP_SCREEN_HEIGHT))))&(SKYBOX_TEX_HEIGHT-1);
@@ -55,7 +59,9 @@ void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_colum
     if the user clicks on a pixel, we look up the object via this edit buffer
 */
 void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffer, u32 *tex_column, int x, float y0, float y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test) {
-    edit_wall_id id = 0xFF000000 | (side<<16) | (cell_idx << 0); 
+    //edit_wall_id id = 0xFF000000 | (side<<16) | (cell_idx << 0); 
+    edit_wall_id id = (side<<10) | cell_idx;
+
     float tex_per_pix = 32.0f / (y1-y0);
     
     int clipped_y0 = max_int32(y0, prev_drawn_top);
@@ -71,8 +77,8 @@ void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffe
             if(a == 0) { continue; }
         }
         if(do_depth_test){
-            u16 old_z = ((float)z_buffer[x*FP_SCREEN_HEIGHT+y]); 
-            if(old_z < new_z) {
+            u16 old_z = z_buffer[x*FP_SCREEN_HEIGHT+y]; 
+            if(old_z < fix_z) {
                 continue;
             }
         }
