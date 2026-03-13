@@ -10,6 +10,8 @@ float get_height_at_point_for_sprites(float px, float py, int return_ceil);
 
 
 
+#define HEAD_MARGIN 0.25f
+
 int collides(
     float spx, float spy, float spz, float px, float py, float pz, level this_level,
     int disable_collision, int editor_mode_enabled);

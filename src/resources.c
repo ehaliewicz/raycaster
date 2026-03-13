@@ -1,6 +1,6 @@
 #include "common.h"
 #include "my_defs.h"
-#include "platform_win.h"
+#include "platform.h"
 #include "resources.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,7 +50,41 @@ const char* sprite_assets[] = {
     "fox1",
     "fox2",
     "inventory_box",
+    "bridge_diag0",
+    "bridge_diag1",
+    "whiskey",
+    "revolver"
 };
+
+float sprite_scales[] = {
+    1.0f, //"tree",
+    1.0f, //"moss",
+    1.0f, //"chandelier",
+    1.0f, //"glass_window2",
+    1.0f, //"glass_window3",
+    1.0f, //"fence",
+    1.0f, //"bush",
+    1.0f, //"glass_window4",
+    1.0f, //"wall_tex0",
+    1.0f, //"GATO1",
+    1.0f, //"GATO2",
+    1.0f, //"GATO3",
+    1.0f, //"GATO4",
+    1.0f, //"GATO5",
+    1.0f, //"GATO6",
+    1.0f, //"GATO7",
+    1.0f, //"GATO8",
+    1.0f, //"GATO9",
+    1.0f, //"GATO10",
+    1.0f, //"fox1",
+    1.0f, //"fox2",
+    1.0f, //"inventory_box",
+    1.0f, //"bridge_diag0",
+    1.0f, //"bridge_diag1",
+    0.3f, //"whiskey",
+    0.25f, //"revolver",
+};
+
 
 
 typedef enum {
@@ -78,7 +112,7 @@ u8* rle_spr_top_skips;
 
 tex_type* texture_types;
 
-void load_resources() {
+int load_resources() {
 
     const int num_sprite_assets = ((sizeof(sprite_assets)) / sizeof(char*));
     const int num_texture_assets = ((sizeof(texture_assets)) / sizeof(char*));
@@ -87,8 +121,8 @@ void load_resources() {
 
     int tex_idx = 0;
     int sprite_idx = 0;
-    size_t tex_num_bytes = sizeof(u8)*4*TEX_SIZE*TEX_SIZE;
-    size_t tex_num_pixels = sizeof(u32)*TEX_SIZE*TEX_SIZE;
+    //size_t tex_num_bytes = sizeof(u8)*4*TEX_SIZE*TEX_SIZE;
+    //size_t tex_num_pixels = sizeof(u32)*TEX_SIZE*TEX_SIZE;
     
     textures = my_malloc(sizeof(u32*)*16, "texture pointer array");
     sprites = my_malloc(sizeof(u32*)*NUM_SPRITES, "sprite pointer array");
@@ -114,6 +148,9 @@ void load_resources() {
 
         debug_printf("Loading %s...\n", buf);
         u8* tex_data = platform_load_image(buf, 32, 32);
+        if(tex_data == NULL) {
+            return 1;
+        }
 
         u32* pix_data = (u32*)tex_data;
         int got_non_zero_alpha = 0;
@@ -168,7 +205,7 @@ void load_resources() {
         
         if(tex_data == NULL) {
             debug_printf("ERROR LOADING ASSET %s\n", buf);
-            exit(1);
+            return 1;
         }
         debug_printf("Loaded.\n");
 
@@ -200,4 +237,5 @@ void load_resources() {
     //Image height_tex = LoadImage("resources/flat_tex_heightmap.tga");
     //my_memcpy(heightmap, height_tex.data, 32*32);
     //UnloadImage(height_tex);
+    return 0;
 }

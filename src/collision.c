@@ -67,7 +67,7 @@ float get_height_at_point(float px, float py, float pz, int return_ceil, int che
         int mid_sprite_height = floor + this_level->m_sprite_offset[map_idx];
         if((!return_ceil) && mid_sprite_height > ret_val && mid_sprite_height <= pz) {
             ret_val = mid_sprite_height;
-        } else if(return_ceil && mid_sprite_height > ret_val && mid_sprite_height >= pz) {
+        } else if(return_ceil && mid_sprite_height < ret_val && mid_sprite_height >= pz) {
             ret_val = mid_sprite_height;
         }
     }
@@ -79,6 +79,7 @@ float get_height_at_point_for_sprites(float px, float py, int return_ceil) {
         0, 0
     );
 }
+
 
 
 int collides(
@@ -148,10 +149,10 @@ int collides(
     if(has_sprite) {
         floor_height = sprite_pos + 8.0f;
     }
-    if(ceil_height < player_z+2 || ceil_height < (floor_height + PLAYER_HEIGHT + 2)) {
+    if(ceil_height < player_z+HEAD_MARGIN || ceil_height < (floor_height + cur_player_height + HEAD_MARGIN)) {
         return 1;
     }
-    if(floor_height >= (player_z-PLAYER_HEIGHT)+MAX_STEP_HEIGHT+0.001f) {
+    if(floor_height >= (player_z-cur_player_height)+MAX_STEP_HEIGHT+0.001f) {
         return 1;
     }
     return 0;

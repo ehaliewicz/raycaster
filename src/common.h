@@ -10,7 +10,13 @@ typedef signed short s16;
 typedef signed long s32;
 typedef signed long long int s64;
 
-#define PLAYER_HEIGHT 5.5f
+#define STANDING_HEIGHT 5.5f
+#define FALL_HEIGHT 5.0f
+#define CROUCHING_HEIGHT 3.5f
+extern float cur_player_height;
+
+#define SPRINT_SPEED 0.040f
+#define WALK_SPEED 0.025f
 
 typedef enum {
     VERTICAL_SIDE = 0,

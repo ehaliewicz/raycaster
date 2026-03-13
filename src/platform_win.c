@@ -6,7 +6,7 @@
 
 #include "common.h"
 #include "my_defs.h"
-#include "platform_win.h"
+#include "platform.h"
 
 static HWND  g_hwnd;
 static HDC   g_dc;
@@ -55,6 +55,7 @@ Vector2 platform_get_mouse_delta() {
 }
 
 void platform_show_cursor() {
+    
     while (ShowCursor(1) < 0);
 }
 
@@ -89,9 +90,7 @@ float platform_get_time() {
     return (float)(now.QuadPart - g_start.QuadPart) / (float)g_freq.QuadPart;
 }
 
-
-int platform_window_should_close() {
-    if(g_keys[VK_ESCAPE]) { g_running = 0; }
+void platform_begin_frame() {
     my_memcpy(g_keys_prev, g_keys, sizeof(int)*256);
     g_mouse_dx = 0; g_mouse_dy = 0;
     MSG msg;
@@ -99,6 +98,15 @@ int platform_window_should_close() {
         TranslateMessage(&msg);
         DispatchMessageA(&msg);
     }
+}
+
+void platform_end_frame() {
+
+}
+
+
+int platform_window_should_close() {
+    if(g_keys[VK_ESCAPE]) { g_running = 0; }
     return !g_running;
 }
 

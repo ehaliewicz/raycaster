@@ -51,7 +51,7 @@ float sin_deg(float deg) {
     if (d < 90)  return  sin_90(d / 90.0f);
     if (d < 180) return  sin_90((180.0f - d) / 90.0f);
     if (d < 270) return -sin_90((d - 180.0f) / 90.0f);
-                 return -sin_90((360.0f - d) / 90.0f);
+    return -sin_90((360.0f - d) / 90.0f);
 }
 
 float cos_deg(float deg) { return sin_deg(deg + 90.0f); }
@@ -199,4 +199,11 @@ s32 min_int32(s32 a, s32 b)
         (a * (branch1 | branch3)) +
         (b * (branch2 | branch4))
     );
+}
+
+
+float lerp(float start, float end, float amount) {
+    float result = start + amount*(end - start);
+
+    return result;
 }

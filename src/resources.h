@@ -4,13 +4,14 @@
 
 #define NUM_TEXTURES 7
 #define SKYBOX_TEX_IDX 15
-#define NUM_SPRITES 22
+#define NUM_SPRITES 26
 //#define NUM_DECALS 4
 //#define BLANK_DECAL_IDX 0
 
 #define EMPTY_SPRITE_INDEX 64
 
-void load_resources();
+int load_resources();
+extern float sprite_scales[];
 extern u32* camera_texture;
 
 extern u32** textures;

@@ -1,4 +1,6 @@
 #include <stdlib.h>
+
+            #include <stdio.h>
 #include "common.h"
 
 #include "draw.h"
@@ -142,11 +144,11 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         float v_per_pix = (next_v-cur_v)/SPAN_LENGTH;
 
         u16 fix_z = cur_z*FIXED_POINT_MULT;
-        int fix_u = cur_u*65536.0f;
-        int fix_v = cur_v*65536.0f;
+        int fix_u = cur_u*64.0f*65536.0f;
+        int fix_v = cur_v*64.0f*65536.0f;
         int fix_z_per_pix = z_per_pix*FIXED_POINT_MULT;
-        int fix_u_per_pix = u_per_pix*65536.0f;
-        int fix_v_per_pix = v_per_pix*65536.0f;
+        int fix_u_per_pix = u_per_pix*64.0f*65536.0f;
+        int fix_v_per_pix = v_per_pix*64.0f*65536.0f;
 
         float next_depth_scale = next_z*RECIP_DARK_DIST;
         float depth_scale_per_pix = (next_depth_scale-cur_depth_scale)/SPAN_LENGTH;
@@ -162,7 +164,7 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
             u32 scaled_fog_b = (depth_scale * fog_b);
 
             // for v, we want the top 5 bits shifted into bits 5-through 9
-            int idx = ((fix_v>>6)&0b1111100000)|((fix_u>>11)&0b11111);
+            int idx = ((fix_v>>12)&0b1111100000)|((fix_u>>17)&0b11111);
 
             u32 texel = texture[idx];
 
@@ -182,6 +184,9 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
             g = (g * mult_by_inv_depth);
             b = (b * mult_by_inv_depth);
             if(do_alpha_blend) {
+                if(texel_a == 0) {
+                    goto loop_end;
+                }
                 r += scaled_fog_r * tex_a;
                 g += scaled_fog_g * tex_a;
                 b += scaled_fog_b * tex_a;
@@ -197,13 +202,13 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
                 g += scaled_fog_g;
                 b += scaled_fog_b;
             }
-
             u32 intr = CLAMP((int)r, 0, 0xFF);
             u32 intg = CLAMP((int)g, 0, 0xFF);
             u32 intb = CLAMP((int)b, 0, 0xFF);
             u32 lit_texel = 0xFF000000|(intr<<16)|(intg<<8)|intb;
             output[x*FP_SCREEN_HEIGHT+y] = lit_texel;
             z_buffer[x*FP_SCREEN_HEIGHT+y] = fix_z;
+        loop_end:
             cur_z += z_per_pix;
             fix_z += fix_z_per_pix;
             fix_u += fix_u_per_pix;
@@ -313,7 +318,10 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
     float world_y0, float world_y1, 
     pegging_type peg_type,
     int prev_drawn_top, int prev_drawn_bot,
-    float world_z, float light_factor, int face_light_level_idx, u32 fog_col, u8 repeat_tex, u8 do_alpha_blend, u8 do_depth_test) {
+    float world_z, float light_factor, int face_light_level_idx, u32 fog_col, 
+    u8 repeat_tex, 
+    u8 do_alpha_blend, 
+    u8 do_depth_test) {
 
     //return;
     int clipped_y0 = max_int32(y0, prev_drawn_top);

@@ -12,7 +12,7 @@
 #include "my_defs.h"
 #include "raycast.h"
 #include "resources.h"
-#include "platform_win.h"
+#include "platform.h"
 
 
 
@@ -22,9 +22,13 @@
 //(4)
 #define HALF_SCREEN_HEIGHT (FP_SCREEN_HEIGHT/2)
 
+#ifdef PLATFORM_WEB
+#define NIGHT_FOG_COL ((0<<24)|(0<<16)|(0<<8)|(255<<0))
+#define FOG_COL ((255<<24)|(196<<16)|(162<<8)|(103<<0))
+#else
 #define NIGHT_FOG_COL ((255<<24)|(0<<16)|(0<<8)|(0<<0))
 #define FOG_COL ((255<<24)|(103<<16)|(162<<8)|(196<<0))
-
+#endif
 
 int project_to_screen(float height, float dist, float pitch, float player_z) {
     return (pitch*(float)cur_render_height) + HALF_SCREEN_HEIGHT - (HEIGHT_SCALE * (((height- player_z) * FOCAL_LENGTH / dist) / MAX_WALL_HEIGHT)); 
@@ -135,13 +139,6 @@ const float door_end_y_offsets[NUM_CELL_TYPES] = {
 };
 
 
-float lerp(float start, float end, float amount)
-{
-    float result = start + amount*(end - start);
-
-    return result;
-}
-
 
 #define CEIL_LIGHT_FACTOR (0.35f)
 #define FLOOR_LIGHT_FACTOR (0.65f)
@@ -156,7 +153,6 @@ int calc_line_hit(
     diag_intersect *result, float ray_dir_x, float ray_dir_y, float cam_dir_x, float cam_dir_y, float player_x, float player_y, 
     int map_x, int map_y, float x1, float y1, float x2, float y2, 
     float perp_dist, float u0, float u1) { 
-    int hits_diag = 0;
     result->mid_flat_u = 0.0f;
     result->mid_flat_v = 0.0f;
     //result->diag_perp_dist = perp_dist;
@@ -242,7 +238,6 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
     if(cell_type == DOOR_X) { lerp_open_amount = 1.0f - lerp_open_amount; }
     float x1 = lerp(map_x+0.01f, map_x+0.01f + door_end_x_offsets[cell_type], lerp_open_amount);
     float y1 = lerp(map_y+0.01f, map_y+0.01f + door_end_y_offsets[cell_type], lerp_open_amount);
-    float cur_thickness = x1-map_x;
     float angle = door_open_amount * (3.14159 / 2.0f);
     float dir_x = my_cosf(angle);
     float dir_y = my_sinf(angle); 
@@ -301,8 +296,6 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
         perp_dist, 0.0f, 4.0f/32.0f
     );
     
-    float hit_diag_mid_u = 0.0f;
-    float hit_diag_mid_v = 0.0f;
     diag_intersect best_hit;
     best_hit.diag_perp_dist = DARK_DIST;
     int got_hit = 0;
@@ -354,6 +347,9 @@ void set_bit_in_bitmap(u8* bitmap, int bit_idx) {
 
 */
 
+/*
+    POSITIONED sprites, raycasted, still in world space
+*/
 typedef struct {
     // screen y coordinates, used to calculate texture v coords in the innermost loop
     //float unclipped_y0, unclipped_y1;
@@ -419,7 +415,6 @@ void draw_first_person_level_inner(
     int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side,
     u8* visited_cell_bitmap, sprite_cache_entry* sprite_cache
 ) {
-    
     ray_origin_x += 1e-6f;
     cam_ang += 1e-4f;
 
@@ -431,7 +426,6 @@ void draw_first_person_level_inner(
 
     float start_cam_dir_x = my_cosf(cam_ang);
     float start_cam_dir_y = my_sinf(cam_ang);
-
     for(int ix = start_x; ix < end_x; ix++) {
 
         float cam_dir_x = start_cam_dir_x;
@@ -440,7 +434,6 @@ void draw_first_person_level_inner(
         float cam_x = 2.0f * (ix) / (float)FP_SCREEN_WIDTH - 1.0f; // -1 to 1
         float ray_dir_x = my_cosf(cam_ang) + cam_x * -my_sinf(cam_ang);
         float ray_dir_y = my_sinf(cam_ang) + cam_x * my_cosf(cam_ang);
-
 
 
 
@@ -546,7 +539,6 @@ void draw_first_person_level_inner(
             int in_start_cell = (map_x == start_map_x && map_y == start_map_y);
             
 
-            
             set_bit_in_bitmap(visited_cell_bitmap, map_idx);
             int selected_cur_map_idx = editor_selected_map_idx == map_idx;
             cell_types upper_cell_type = this_level->upper_cell_types[map_idx];
@@ -740,9 +732,12 @@ void draw_first_person_level_inner(
             }
             if(can_add_sprite && hit_middle_sprite != EMPTY_SPRITE_INDEX) {
                 float sprite_top_y = floor_height + this_level->m_sprite_offset[map_idx];
+            //#define DRAW_FRONT_OF_MIDDLE_SPRITES
+            #ifndef DRAW_FRONT_OF_MIDDLE_SPRITES 
+                float sprite_bot_y = sprite_top_y;
+            #else
                 float sprite_bot_y = floor_height + this_level->m_sprite_offset[map_idx]-1.0f;
                 int screen_y_near = project_to_screen(sprite_bot_y, perp_dist, pitch, ray_origin_z);
-
                 // draw front "wall" of middle sprite
                 sprite_cache[num_sprites_hit].bottom_height = sprite_bot_y;
                 sprite_cache[num_sprites_hit].top_height = sprite_top_y;
@@ -759,6 +754,7 @@ void draw_first_person_level_inner(
                 sprite_cache[num_sprites_hit].flat_sprite = 0;
                 sprite_cache[num_sprites_hit].light_factor = FLOOR_LIGHT_FACTOR;
                 sprite_cache[num_sprites_hit++].z0 = perp_dist;
+            #endif
 
                 
                 // upper half
@@ -789,6 +785,7 @@ void draw_first_person_level_inner(
                     sprite_cache[num_sprites_hit-1].z1 = perp_dist;
                 }
             }
+
             if(can_add_sprite && hit_exit_sprite != EMPTY_SPRITE_INDEX && num_sprites_hit < MAX_SPRITE_HITS) {
                 float sprite_bot_y = floor_height;
                 if((lower_cell_type == THIN_WALL_X && exit_sprite_thg == E_SPRITE) || 
@@ -882,7 +879,7 @@ void draw_first_person_level_inner(
 
                 if(lower_cell_type == NE_TO_SW_DIAG || lower_cell_type ==  NW_TO_SE_DIAG || 
                    lower_cell_type == THIN_WALL_X || lower_cell_type == THIN_WALL_Y) { //} || lower_cell_type == DOOR_Y) {
-                    int draw_upper_first;
+                    int draw_upper_first = 0;
                     if(lower_cell_type == NE_TO_SW_DIAG) {
                         draw_upper_first = (in_start_cell ? in_top_left : (enters_left_side || enters_top_side));
                     } else if (lower_cell_type == NW_TO_SE_DIAG) {
@@ -908,7 +905,7 @@ void draw_first_person_level_inner(
                 if(upper_cell_type == NE_TO_SW_DIAG || upper_cell_type ==  NW_TO_SE_DIAG || 
                    upper_cell_type == THIN_WALL_X || upper_cell_type == THIN_WALL_Y) {
                     // handle diagonal stuff
-                    int draw_upper_first;
+                    int draw_upper_first = 0;
                     if(upper_cell_type == NE_TO_SW_DIAG) {
                         draw_upper_first = (in_start_cell ? in_top_left : (enters_left_side || enters_top_side));
                     } else if(upper_cell_type == NW_TO_SE_DIAG) { // NW_TO_SE_DIAG
@@ -1732,6 +1729,10 @@ void draw_first_person_level_inner(
     return; 
 }
 
+/*
+
+    BILLBOARD SPRITES, transformed to camera space
+*/
 typedef struct {
     float x0, x1;
     float y0, y1;
@@ -1776,11 +1777,15 @@ void transform_and_submit_sprite(float cam_x, float cam_y, float cam_z, float ri
         return;
     }
 
+    float scale = sprite_scales[image_idx];
 
     float sprite_world_x = x;
     float sprite_world_y = y;
+
+    // vertical world coordinate
     float sprite_world_z1 = z;
-    float sprite_world_z0 = sprite_world_z1+8.0f;
+    float sprite_world_z0 = sprite_world_z1+8.0f*scale;
+
     
     float rel_x = sprite_world_x - cam_x;
     float rel_y = sprite_world_y - cam_y; // 2d y axis
@@ -1788,16 +1793,17 @@ void transform_and_submit_sprite(float cam_x, float cam_y, float cam_z, float ri
     float rot_x = rel_x * right_x  + rel_y * right_y;
     float rot_z = rel_x * forward_x + rel_y * forward_y;
 
+    float width = 1.24f*scale;
+    float half_width = width/2.0f;
 
     if(rot_z < NEAR_PLANE_DIST) { return; }
 
-    float screen_x0 = FP_SCREEN_WIDTH/2.0f - ((rot_x-0.62f)*FOCAL_LENGTH/rot_z);
-    float screen_x1 = FP_SCREEN_WIDTH/2.0f - ((rot_x+0.62f)*FOCAL_LENGTH/rot_z);
+    float screen_x0 = FP_SCREEN_WIDTH/2.0f - ((rot_x-half_width)*FOCAL_LENGTH/rot_z);
+    float screen_x1 = FP_SCREEN_WIDTH/2.0f - ((rot_x+half_width)*FOCAL_LENGTH/rot_z);
 
     if(MAX(screen_x0, screen_x1) < 0 || MIN(screen_x0, screen_x1) > FP_SCREEN_WIDTH-1) {
         return;
     }
-
 
     float screen_y0 = project_to_screen(sprite_world_z0, rot_z, pitch, cam_z);
     float screen_y1 = project_to_screen(sprite_world_z1, rot_z, pitch, cam_z);
@@ -1834,7 +1840,7 @@ void draw_transformed_sprites(u32* output, edit_wall_id* edit_id_buffer, u16* z_
         float tex_per_pix = 1.0f / (screen_x1-screen_x0);
 
         for(int x = clipped_sprite_left_x; x <= clipped_sprite_right_x; x++) {
-            int dx = x-screen_x0;
+            //int dx = x-screen_x0;
             if(screen_y1 > 0 && screen_y0 < FP_SCREEN_HEIGHT-1) {
                 float u = (x-screen_x0)*tex_per_pix;
                 u32* tex_col = get_texture_column(sprites[spr_idx], u);
@@ -1937,7 +1943,6 @@ void render_frame(
     int editor_mode_enabled = tp->editor_mode_enabled;
     int editor_selected_map_idx = tp->editor_selected_map_idx;
     editor_selected_thing editor_selected_side = tp->editor_selected_thg;
-
         
     for(int thd = 0; thd < NUM_THREADS; thd++) {
         for(int i = 0; i < MAP_SIZE*MAP_SIZE/8; i++) {
@@ -1965,7 +1970,6 @@ void render_frame(
         raycast_parms[i].sprite_cache = per_thread_sprite_cache[i];
     }
 
-//#define PLATFORM_WEB
 #ifndef PLATFORM_WEB
     for(int i = 0; i < NUM_THREADS; i++) {
         platform_add_task(raycast_pool, raycast_wrapper, &raycast_parms[i]);
@@ -2062,8 +2066,8 @@ void launch_render_frame(
         frame_params.output = output;
         frame_params.edit_id_buffer = edit_id_buffer;
         frame_params.z_buffer = z_buffer,
-        frame_params.start_x = end_x; //i*FP_SCREEN_WIDTH/NUM_THREADS;
-        frame_params.end_x = start_x;
+        frame_params.start_x = start_x; //i*FP_SCREEN_WIDTH/NUM_THREADS;
+        frame_params.end_x = end_x;
         frame_params.flash_frame = flash_frame;
         frame_params.this_level = this_level;
         frame_params.player_x = player_x;

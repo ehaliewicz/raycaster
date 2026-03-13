@@ -61,14 +61,14 @@ compressed* compress(u8* data, int data_len) {
     num_opcodes = 0;
     num_bytes = 0;
     
-    int cur_cap = 8;
-    int cur_len = 0;
+    //int cur_cap = 8;
+    //int cur_len = 0;
 
     int idx = 0;
     
-    int previous_was_copy_literal = 0;
-    int previous_copy_literal_len = 0;
-    int previous_copy_len_idx = 0;
+    //int previous_was_copy_literal = 0;
+    //int previous_copy_literal_len = 0;
+    //int previous_copy_len_idx = 0;
 
     while(idx < data_len) {
 
@@ -108,16 +108,16 @@ compressed* compress(u8* data, int data_len) {
             output_bit(COPY_BIT);
             output_byte(best_match_offset-1);
             output_byte(best_match_len-1);
-            previous_was_copy_literal = 0;
+            //previous_was_copy_literal = 0;
         } else {
             //debug_printf("outputting literal %i\n", data[idx]);
             output_bit(LITERAL_BIT);
-            previous_copy_len_idx = num_bytes;
+            //previous_copy_len_idx = num_bytes;
             //output_byte(0);
             output_byte(data[idx]);
             idx += 1;
-            previous_was_copy_literal = 1;
-            previous_copy_literal_len = 1;
+            //previous_was_copy_literal = 1;
+            //previous_copy_literal_len = 1;
         }
     }
     int num_opcode_bytes = (num_bits+7)>>3;
@@ -138,7 +138,7 @@ int decompress(compressed* comp, u8** output_ptr) {
         return -1;
     }
     int num_opcodes = comp->num_opcodes;
-    int num_operand_bytes = comp->num_operand_bytes;
+    //int num_operand_bytes = comp->num_operand_bytes;
     u8* output = my_malloc(sizeof(u8)*comp->uncompressed_size, "decompressed output");
 
     int num_opcode_bytes = (num_opcodes+7)>>3;

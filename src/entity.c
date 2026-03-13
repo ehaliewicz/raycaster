@@ -195,12 +195,12 @@ void move_random_dir(obj* actor) {
 }
 
 void move_towards_last_seen_target_pos(obj* actor) {
-    int rand_ang = rand()%256;
-    float rang = 6.28f*((float)rand_ang)/256.0f;
+    //int rand_ang = rand()%256;
+    //float rang = 6.28f*((float)rand_ang)/256.0f;
 
     float dx = actor->lstx - actor->x;
     float dy = actor->lsty - actor->y;
-    float dz = actor->lstz - actor->z;
+    //float dz = actor->lstz - actor->z;
     float len = my_sqrtf(dx*dx+dy*dy);
     if(len < 0.1f) {
         return;
@@ -381,11 +381,11 @@ obj_state states[NUM_STATES] = {
 
 
 void step_entities(float player_x, float player_y, float player_z) {
-    int stepped = 0;
+    //int stepped = 0;
     for(int i = 0; i < num_alive_entities; i++) {
         obj_state state = states[entities[i].state_idx];
         if(entities[i].ticks_til_next_state <= 0) {
-            stepped++;
+            //stepped++;
             // execute
             // set ticks based on state
             entities[i].state_idx = state.next_state;

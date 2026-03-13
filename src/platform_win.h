@@ -55,6 +55,8 @@ int platform_get_key_pressed();
 
 void platform_draw_text(const char *text, Vector2 position, float fontSize, float spacing, u32 tint);
 int platform_window_should_close();
+void platform_begin_frame();
+void platform_end_frame();
 
 Vector2 platform_get_mouse_delta();
 void platform_show_cursor();

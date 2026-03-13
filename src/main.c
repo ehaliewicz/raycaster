@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "my_defs.h"
-#include "platform_win.h"
+#include "platform.h"
 
 #include "collision.h"
 #include "common.h"
@@ -34,7 +34,7 @@ const int resolutions[NUM_RESOLUTIONS][2] = {
     {800, 600},
     {1024, 768},
     {1280, 1024},
-    {1280, 720},
+    {1280, 800},
     {1920, 1080},
     {3440, 1300}
 };
@@ -49,8 +49,8 @@ int cur_render_res_idx = -1;
 int requested_render_res = 3;
 int cur_render_scale = 1;
 int requested_render_scale = 1;
-int cur_output_width;
-int cur_output_height;
+int cur_output_width = 1280;
+int cur_output_height = 1024;
 int cur_render_width;
 int cur_render_height;
 int use_vsync = 1;
@@ -75,8 +75,8 @@ void handle_click(edit_wall_id* prev_rendered_id_buffer, int render_x, int rende
 //void log(char* )
 //const char buf[80];
 void console_log(const char *format, ...) {
-    va_list arg;
-    int cnt;
+    //va_list arg;
+    //int cnt;
 
     //va_start(arg, format);
     //vsdebug_printf((char * __restrict__)buf, format, arg);
@@ -134,15 +134,34 @@ int door_timer_running = 0;
 int timer_door = 0; // the map idx of the door we're opening
 float start_open_time; // one second to open, one second open, one second to close?
 
+float cur_player_height = STANDING_HEIGHT;
+float cur_player_speed = WALK_SPEED;
+float player_vel_z = 0.0f;
+
+#define FALL_GRAVITY_ACCEL -0.065f
+#define JUMP_GRAVITY_ACCEL -0.010f
+#define JUMP_VEL 0.15f
+#define FALL_CROUCH_DURATION 0.20f
+
+float player_stand_dur = 0.0f;
+float player_jump_dur = 0.0f;
 
 void update_player(float frame_time, Vector2 mouse_delta) {
+    const float frame_mult = frame_time / 16.0f;
+    const float frame_seconds = frame_time/1000.0f;
+    const float max_fall = FALL_GRAVITY_ACCEL*8.0f*frame_mult;
+    //const float max_fall = GRAVITY_ACCEL*8.0f*frame_mult;
+    
+    cur_player_speed = platform_is_key_down(KEY_SHIFT) ? SPRINT_SPEED : WALK_SPEED;
+
+
     float y = my_sinf(-player_ang);
     float x = my_cosf(-player_ang);
     float strafe_right_x = -y;
     float strafe_right_y = x;
     float strafe_left_x = y;
     float strafe_left_y = -x;
-    float move_speed = 0.04f * frame_time / 16.0f;
+    float move_speed = cur_player_speed * frame_mult;
     level cur_level = levels[cur_level_idx];
     float r = PLAYER_RADIUS;
 
@@ -259,31 +278,79 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         }
     }
 
-    float ct_height = get_height_at_point(player_x, player_y, player_z, 0, 1);
-    float lf_height = get_height_at_point(player_x-PLAYER_RADIUS, player_y, player_z, 0, 1);
-    float rt_height = get_height_at_point(player_x+PLAYER_RADIUS, player_y, player_z, 0, 1);
-    float tp_height = get_height_at_point(player_x, player_y-PLAYER_RADIUS, player_z, 0, 1);
-    float bt_height = get_height_at_point(player_x, player_y+PLAYER_RADIUS, player_z, 0, 1);
 
-    float player_foot = player_z - PLAYER_HEIGHT;
+    float ct_floor_height = get_height_at_point(player_x, player_y, player_z, 0, 1);
+    float lf_floor_height = get_height_at_point(player_x-PLAYER_RADIUS, player_y, player_z, 0, 1);
+    float rt_floor_height = get_height_at_point(player_x+PLAYER_RADIUS, player_y, player_z, 0, 1);
+    float tp_floor_height = get_height_at_point(player_x, player_y-PLAYER_RADIUS, player_z, 0, 1);
+    float bt_floor_height = get_height_at_point(player_x, player_y+PLAYER_RADIUS, player_z, 0, 1);
+
+    float ct_ceiling_height = get_height_at_point(player_x, player_y, player_z, 1, 1);
+    float lf_ceiling_height = get_height_at_point(player_x-PLAYER_RADIUS, player_y, player_z, 1, 1);
+    float rt_ceiling_height = get_height_at_point(player_x+PLAYER_RADIUS, player_y, player_z, 1, 1);
+    float tp_ceiling_height = get_height_at_point(player_x, player_y-PLAYER_RADIUS, player_z, 1, 1);
+    float bt_ceiling_height = get_height_at_point(player_x, player_y+PLAYER_RADIUS, player_z, 1, 1);
+
+    float lowest_height = MIN(MAX_WALL_HEIGHT, 
+        MIN(ct_ceiling_height, MIN(lf_ceiling_height, MIN(rt_ceiling_height, MIN(tp_ceiling_height, bt_ceiling_height))))
+    );
+
+
+    float player_foot = player_z - cur_player_height;
 
     // A probe can only pull you up if it's within step range of where you already are.
     // This stops a corner probe from teleporting you onto a ledge you haven't reached.
-    float max_takeable_step = ct_height;
-    if (lf_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, lf_height);
-    if (rt_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, rt_height);
-    if (tp_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, tp_height);
-    if (bt_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, bt_height);
+    float max_takeable_step = ct_floor_height;
+    if (lf_floor_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, lf_floor_height);
+    if (rt_floor_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, rt_floor_height);
+    if (tp_floor_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, tp_floor_height);
+    if (bt_floor_height - player_foot <= MAX_STEP_HEIGHT) max_takeable_step = MAX(max_takeable_step, bt_floor_height);
 
-    float target_height = max_takeable_step + PLAYER_HEIGHT;
+    float target_height = max_takeable_step + cur_player_height;
 
 
+    float target_dz = 0.0f;
     if(editor_mode_enabled) {
 
     } else {
-        player_z += (target_height - player_z)*0.15;
+        target_dz = (target_height - player_z);
     }
-    player_z = MIN(MAX_WALL_HEIGHT, player_z);
+    if(player_vel_z <= 0.0f && (my_fabsf(target_dz) < 0.01f || target_dz > 0.0f)) {
+        player_stand_dur += frame_seconds;
+        if(player_stand_dur >= 0.0f && player_stand_dur <= FALL_CROUCH_DURATION) {
+            float lerp_dur = MIN(player_stand_dur, FALL_CROUCH_DURATION)/FALL_CROUCH_DURATION;
+            cur_player_height = lerp(FALL_HEIGHT, STANDING_HEIGHT, lerp_dur);
+        } else {
+            cur_player_height = (platform_is_key_down(KEY_CONTROL) && !editor_mode_enabled) ? CROUCHING_HEIGHT : STANDING_HEIGHT;
+            
+        }
+        player_vel_z = 0.0f;
+        player_foot += target_dz*0.05f;
+    } else {
+        player_vel_z += (player_vel_z > 0.0f ? JUMP_GRAVITY_ACCEL : FALL_GRAVITY_ACCEL)*frame_mult;
+        
+        player_vel_z = CLAMP(player_vel_z, max_fall, JUMP_VEL);
+        if(player_vel_z < 0 && -player_vel_z > -target_dz) {
+            player_vel_z = target_dz;
+        }
+
+        player_foot += player_vel_z;
+    }
+    player_z = player_foot + cur_player_height;
+    player_z = MIN(lowest_height-HEAD_MARGIN, player_z);
+
+    int jumped = 0;
+    if(platform_is_key_down(KEY_SPACE) && ((player_stand_dur>.15f) || (player_jump_dur > 0.0f && player_jump_dur < 0.15f))) {
+        player_vel_z += JUMP_VEL*frame_mult;
+        player_stand_dur = 0.0f;
+        player_jump_dur += frame_seconds;
+        jumped = 1;
+    } else {
+        if(player_vel_z > 0.0f) { player_vel_z = 0.0f; }
+        player_jump_dur = 0.0f;
+    }
+
+
 
     if(platform_is_key_down(KEY_LEFT) || platform_is_key_down(KEY_U)) {
         player_ang += 0.0035f*frame_time;
@@ -299,6 +366,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
             player_ang -= mouse_delta.x*.0017f;
         }
     }
+
     // cleanup angle
     if(player_ang < 0.0f) {
         player_ang += 6.28f;
@@ -311,7 +379,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     } else if (platform_is_key_down(KEY_K)) {
         pitch -= .0015f*frame_time;
     } else if (platform_is_key_pressed(KEY_SPACE)) {
-        pitch = 0;
+        //pitch = 0;
     }
     pitch = CLAMP(pitch, -0.5f, 0.5f);
 
@@ -434,7 +502,7 @@ void init_level(int fresh_map) {
         
     }
     
-    player_z = get_height_at_point(player_x, player_y, player_z, 0, 1) + PLAYER_HEIGHT;
+    player_z = get_height_at_point(player_x, player_y, player_z, 0, 1) + cur_player_height + 3.0f;
 
 }
 
@@ -601,7 +669,7 @@ void handle_editor() {
             *height_ptr = nval;
         }
 
-        if(spr_ptr != NULL && (!platform_is_key_down(VK_SHIFT))) {
+        if(spr_ptr != NULL && (!platform_is_key_down(KEY_SHIFT))) {
 
             if(dy == -1) { 
                 if (platform_is_key_down(KEY_CONTROL) && (editor_selected_side == CEIL_SPRITE)) {
@@ -1022,36 +1090,29 @@ float get_abs_time() {
 #endif
 }
 
-#define DRAW_INVENTORY
+//#define DRAW_INVENTORY
+
+float player_height = STANDING_HEIGHT;
 
 void run_game() {
-#ifndef PLATFORM_WEB
+    platform_begin_frame();
     if(!platform_is_window_focused()) {
         platform_begin_drawing();
         platform_end_drawing();
         return;
     }
-#endif
+    //printf("editor mode %i\n", editor_mode_enabled);
     float frame_start_time = get_abs_time();
 
     Vector2 mouse_delta = platform_get_mouse_delta();
 
-#ifdef PLATFORM_WEB
-    if(editor_mode_enabled) {
-        emscripten_exit_pointerlock();
-        ShowCursor();
-        
-    } else {
-        emscripten_request_pointerlock("#canvas", EM_TRUE);
-    }
-#else
+
     if(editor_mode_enabled) {
         platform_show_cursor();
     } else {
         platform_hide_cursor();
         platform_set_mouse_position(OUTPUT_WIDTH/2, OUTPUT_HEIGHT/2);
     }
-#endif
 
     float frame_time_ms = platform_get_frame_time()*1000.0f;
     if(requested_render_res != cur_render_res_idx || requested_render_scale != cur_render_scale || requested_use_vsync != use_vsync || requested_fullscreen != fullscreen) {
@@ -1080,20 +1141,22 @@ void run_game() {
         Vector2 mouse_pos = platform_get_mouse_position();
         handle_click(edit_draw_buf, FP_SCREEN_WIDTH*mouse_pos.x/OUTPUT_WIDTH, FP_SCREEN_HEIGHT*mouse_pos.y/OUTPUT_HEIGHT);
     }
+#ifdef ENABLE_EDITOR
     if (platform_is_key_pressed(KEY_E)) {
         editor_mode_enabled = !editor_mode_enabled;
     }
+#endif
+#if 0
     if (platform_is_key_pressed(KEY_Z)) {
         render_mode++;
         if(render_mode >= NUM_RENDER_MODES) {
             render_mode = 0;
         }
     }
-
+#endif
 
     if(editor_mode_enabled) {
         // clear editor buffer?
-        
         handle_editor();
     } else if (platform_is_key_pressed(KEY_R)) {
         
@@ -1110,8 +1173,10 @@ void run_game() {
         }
         
     } else if (platform_is_key_pressed(KEY_V)) {
+    #if 0
         requested_use_vsync = !requested_use_vsync;
-    } else if (platform_is_key_pressed(KEY_F)) {
+    #endif
+    } else if (platform_is_key_pressed(KEY_F) && platform_is_key_down(KEY_SHIFT)) {
         requested_fullscreen = !requested_fullscreen;
     }
 
@@ -1120,8 +1185,8 @@ void run_game() {
     static float last_other_player_x, last_other_player_y, last_other_player_z;
     static int got_other_player_pos;
     // send and receive every 30 frames
-    float position[4] = {player_x, player_y, player_z, player_ang};
-    float other_position[4];
+    //float position[4] = {player_x, player_y, player_z, player_ang};
+    //float other_position[4];
     //if(udp_frame(udp_conn, position, other_position, 1, ((frame&0b11)==0))) {
     //    got_other_player_pos = 1;
     //    last_other_player_x = other_position[0];
@@ -1135,7 +1200,7 @@ void run_game() {
 
     step_entities(player_x, player_y, player_z);
     if(got_other_player_pos) {
-        request_draw_sprite(last_other_player_x, last_other_player_y, last_other_player_z-PLAYER_HEIGHT, 20);
+        request_draw_sprite(last_other_player_x, last_other_player_y, last_other_player_z-cur_player_height, 20);
     }
 
     float seconds = get_running_time();
@@ -1145,19 +1210,12 @@ void run_game() {
     skybox_u_offset = (seconds); // scrolls every 2 seconds
 
 
-
-    //skybox_u_offset &= SKYBOX_TEX_WIDTH-1;
     int flash_frame = iquarter_seconds&0b1;
     platform_begin_drawing(); {   
-        //if(sixteenth_seconds&1) {
-        //    
-        //}
 
         for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
-            zbuffer_draw[i] = DARK_DIST*FIXED_POINT_MULT;// DARK_DIST;
+            zbuffer_draw[i] = DARK_DIST*FIXED_POINT_MULT;
         }
-        //my_memset(draw_img.data, 0xFFFFFFFF, FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH*4);
-        //z_buffer[(screen_x*FP_SCREEN_HEIGHT+y)] = 1024.0f;
 
         // fixes a bug at angle zero
         // the DDA algorithm had equal distance for both x and y steps
@@ -1183,8 +1241,6 @@ void run_game() {
         }
     #endif 
     
-        //float before_raycast = platform_get_time();
-
 
         float scale = ((float)OUTPUT_WIDTH/((float)FP_SCREEN_WIDTH));
         platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
@@ -1198,7 +1254,6 @@ void run_game() {
         );
 
         int needs_join = 1;
-
         switch(render_mode) {
             case EDITOR_BUFFER:
                 join_render_frame();
@@ -1250,16 +1305,16 @@ void run_game() {
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
         //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
-        debug_printf("%4.0f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
+        //debug_printf("%4.0f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
     } platform_end_drawing();
 
-    int scale_y = FP_SCREEN_HEIGHT/32;
-    int scale_x = FP_SCREEN_WIDTH/32;
     
 
 
 #ifdef CAMERA_TEXTURE
     if(0) {
+        int scale_y = FP_SCREEN_HEIGHT/32;
+        int scale_x = FP_SCREEN_WIDTH/32;
         for(int y = 0; y < 32; y++) {
             for(int x = 0; x < 32; x++) {
                 int cr = 0;
@@ -1267,7 +1322,7 @@ void run_game() {
                 int cb = 0;
                 for(int sy = 0; sy < scale_y; sy++) {
                     for(int sx = 0; sx < scale_x; sx++) {
-                        int fb_y = y*scale_y+sy;
+                        int fb_y = x*scale_y+sy;
                         int fb_x = x*scale_x+sx;
                         u32 sample = draw_pix[fb_x*FP_SCREEN_HEIGHT+fb_y];
                         float r = ((sample>>16)&0xFF);
@@ -1297,14 +1352,17 @@ void run_game() {
     frame++;
     float frame_end_time = get_abs_time();
     running_time += (frame_end_time - frame_start_time);
+    platform_end_frame();
 }
 
 
 #define MAP_SAVE_FILE "map_save"
 void init_game() {
 
-    load_resources();
-    
+    if(load_resources()) {
+        debug_printf("Error loading resources\n");
+
+    } 
     int num_loaded_bytes;
     u8* loaded_bytes = platform_load_file_data(MAP_SAVE_FILE, &num_loaded_bytes);
     
@@ -1351,51 +1409,52 @@ void init_game() {
 }
 
 
+// predeclare 'winmain'
+#ifdef PLATFORM_WEB
+int WinMain();
+#else 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow);
+#endif
 
 
+// entry point
 #ifdef DEBUG
 int main(int argc, char** argv) {
 #elif CL_COMPILER
+int main(int argc, char** argv) {
+#elif PLATFORM_WEB
 int main(int argc, char** argv) {
 #else
 int atexit(void (*fn)(void)) { return 0; }
 int mainCRTStartup(void) { 
 #endif
+
+#ifdef PLATFORM_WEB
+    WinMain();
+#else 
     HINSTANCE hInst = GetModuleHandleA(NULL);
     ExitProcess(WinMain(hInst, NULL, NULL, SW_SHOW));
-//int main(int argc, char** argv) {
-    /*
-    if(argc > 1) {
-        if(strcmp(argv[1], "--client") == 0) {
-            if(argc != 3) {
-                debug_printf("use `raycast.exe --client [ip]`\n");
-                exit(1);
-            }
-            udp_conn = setup_udp(argv[2], 0);
-        } else if (strcmp(argv[1], "--server") ==0) {
-            udp_conn = setup_udp("", 1);;
-        }
-    }
-    */
-
-    //debug_printf("SIZEOF LEVELS %zu\n", sizeof(levels));
+#endif
 }
 
+#ifdef PLATFORM_WEB
+int WinMain() {
+#else
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
+#endif
     init_raycast_module();
     init_entities_module();
     init_game();
+    printf("initting window with %i %i\n", OUTPUT_WIDTH, OUTPUT_HEIGHT);
     platform_init_window(OUTPUT_WIDTH, OUTPUT_HEIGHT, "raycaster");
     //change_resolution();
     frame = 0;
-    int entities_woke = 0;
+    //int entities_woke = 0;
 
     platform_hide_cursor();
-#ifdef PLATFORM_WEB
-    emscripten_set_main_loop(run_game, 0, 1);
-#else 
 
+
+    
     if(0) {
         int ticks = 1;
         for(int x = 1; x < 16; x++) {
@@ -1409,6 +1468,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
     }
     
 
+
+#ifdef PLATFORM_WEB
+    emscripten_set_main_loop(run_game, 0, 1);
+#else 
+    int entities_woke = 0;
     while(!platform_window_should_close()) {
         if(platform_is_key_pressed(KEY_B)) {
             //spawn_entity(FOX, player_x, player_y, player_z, 0, 2);
@@ -1452,26 +1516,29 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
 
     compressed* comp = compress(level_data, sizeof(level)*NUM_LEVELS);
     size_t comp_size_bytes = ((comp->num_opcodes+7)>>3)+comp->num_operand_bytes;
-    debug_printf("Compressed %i down to %llu bytes\n", comp->uncompressed_size, sizeof(compressed)+comp_size_bytes);
+    debug_printf("Compressed %i down to %lu bytes\n", comp->uncompressed_size, sizeof(compressed)+comp_size_bytes);
 
     u8* decomp;
     int decompressed_bytes = decompress(comp, &decomp);
     if(decompressed_bytes == -1) {
         debug_printf("decompress not enough bytes\n");
         exit(1);
+        return 1;
     }
     for(size_t i = 0; i < level_size; i++) {
         if(level_data[i] != decomp[i]) {
             debug_printf("miscompare at %zu\n", i);
             exit(1);
+        return 1;
         }
     }
 
     if(!platform_save_file_data(MAP_SAVE_FILE, comp, sizeof(compressed)+comp_size_bytes)) {
     //if(!platform_save_file_data(MAP_SAVE_FILE, levels, sizeof(level)*NUM_LEVELS)) {
         debug_printf("Error saving file :(\n");
+        return 1;
     }
-
+    return 0;
 
 
 }
