@@ -474,7 +474,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         printf("vertical angle of ray %f\n", pitch_ang);
         printf("world %f %f %f \n", world_x, world_y, world_z);
         printf("player z %f\n", player_z);
-        add_particle(world_x, world_y, world_z, 5, SMOKE_PARTICLE_IDX);
+        add_particle(world_x, world_y, world_z, 20, SMOKE_PARTICLE_IDX);
     } else if (revolver_firing > 0.0f) {
         revolver_firing -= frame_seconds;
         revolver_firing = MAX(0.0f, revolver_firing);
