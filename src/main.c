@@ -20,8 +20,8 @@
 
 typedef enum {
     PIXEL_BUFFER = 0,
-    EDITOR_BUFFER = 1,
-    Z_BUFFER = 2,
+    Z_BUFFER = 1,
+    EDITOR_BUFFER = 2,
 } draw_mode;
 #define NUM_RENDER_MODES 3
 
@@ -116,6 +116,15 @@ u32 urand() {
 }
 
 
+
+edit_wall_id* edit_id_buffer_pointers[2] = {NULL, NULL}; //[FP_SCREEN_WIDTH*FP_SCREEN_HEIGHT];
+
+unsigned int draw_textures[2];
+int frame;
+
+u32* draw_pix_pointers[2] = {NULL, NULL};
+u16* zbuf_pointers[2] = {NULL, NULL};
+
 u32* skybox;
 
 level *levels = NULL;
@@ -124,7 +133,8 @@ float player_x;
 float player_y;
 float player_z;
 float player_ang;
-float pitch = 0;
+float pitch_ang = 0.0f;
+float pitch;
 int cur_level_idx;
 int disable_collision = 0;
 
@@ -139,12 +149,56 @@ float cur_player_speed = WALK_SPEED;
 float player_vel_z = 0.0f;
 
 #define FALL_GRAVITY_ACCEL -0.065f
-#define JUMP_GRAVITY_ACCEL -0.010f
+#define JUMP_GRAVITY_ACCEL -0.008f
 #define JUMP_VEL 0.15f
 #define FALL_CROUCH_DURATION 0.20f
 
 float player_stand_dur = 0.0f;
 float player_jump_dur = 0.0f;
+
+int got_revolver = 0;
+int got_whiskey = 0;
+
+typedef struct {
+    float world_x, world_y, world_z;
+    int ttl;
+    int sprite_idx;
+} particle;
+#define MAX_PARTICLES 32
+particle particles[MAX_PARTICLES];
+void init_particle_system() {
+    for(int i = 0; i < MAX_PARTICLES; i++) {
+        particles[i].ttl = 0;
+    }
+}
+void update_particles() {
+    for(int i = 0; i < MAX_PARTICLES; i++) {
+        if(particles[i].ttl <= 0) { continue; }
+        particles[i].ttl--;
+    }
+}
+void draw_particles() {
+    for(int i = 0; i < MAX_PARTICLES; i++) {
+        if(particles[i].ttl <= 0) { continue; }
+        request_draw_sprite(particles[i].world_x, particles[i].world_y, particles[i].world_z, particles[i].sprite_idx);
+    }
+}
+void add_particle(float x, float y, float z, int ttl, int sprite_idx) {
+    // adds if possible :)
+    // todo: replace particle with smallest TTL
+    for(int i = 0; i < MAX_PARTICLES; i++) {
+        if(particles[i].ttl > 0) { continue; }
+        particles[i].world_x = x;
+        particles[i].world_y = y;
+        particles[i].world_z = z;
+        particles[i].ttl = ttl;
+        particles[i].sprite_idx = sprite_idx;
+        break;
+    }
+}
+
+#define REVOLVER_FIRE_DURATION (.28f)
+float revolver_firing = 0.0f;
 
 void update_player(float frame_time, Vector2 mouse_delta) {
     const float frame_mult = frame_time / 16.0f;
@@ -152,7 +206,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     const float max_fall = FALL_GRAVITY_ACCEL*8.0f*frame_mult;
     //const float max_fall = GRAVITY_ACCEL*8.0f*frame_mult;
     
-    cur_player_speed = platform_is_key_down(KEY_SHIFT) ? SPRINT_SPEED : WALK_SPEED;
+    cur_player_speed = player_stand_dur >= 0.0f ? (platform_is_key_down(KEY_SHIFT) ? SPRINT_SPEED : WALK_SPEED) : AIR_SPEED;
 
 
     float y = my_sinf(-player_ang);
@@ -278,6 +332,20 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         }
     }
 
+    int map_x = my_floorf(player_x);
+    int map_y = my_floorf(player_y);
+    float sub_x = player_x-map_x;
+    float sub_y = player_y-map_y;
+    int cur_cell_sprite_idx = levels[cur_level_idx].sprite_index[map_y*MAP_SIZE+map_x];
+    if(sub_y >= 0.25f && sub_y <= 0.75f && sub_x >= 0.25f && sub_x <= 0.75f) {
+        if(cur_cell_sprite_idx == REVOLVER_SPRITE_INDEX) {
+            got_revolver = 1;
+        } else if (cur_cell_sprite_idx == WHISKEY_SPRITE_INDEX) {
+            got_whiskey = 1;
+        }
+        levels[cur_level_idx].sprite_index[map_y*MAP_SIZE+map_x] = EMPTY_SPRITE_INDEX;
+    }
+
 
     float ct_floor_height = get_height_at_point(player_x, player_y, player_z, 0, 1);
     float lf_floor_height = get_height_at_point(player_x-PLAYER_RADIUS, player_y, player_z, 0, 1);
@@ -317,7 +385,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     }
     if(player_vel_z <= 0.0f && (my_fabsf(target_dz) < 0.01f || target_dz > 0.0f)) {
         player_stand_dur += frame_seconds;
-        if(player_stand_dur >= 0.0f && player_stand_dur <= FALL_CROUCH_DURATION) {
+        if(0) { //player_stand_dur >= 0.0f && player_stand_dur <= FALL_CROUCH_DURATION) {
             float lerp_dur = MIN(player_stand_dur, FALL_CROUCH_DURATION)/FALL_CROUCH_DURATION;
             cur_player_height = lerp(FALL_HEIGHT, STANDING_HEIGHT, lerp_dur);
         } else {
@@ -327,13 +395,13 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         player_vel_z = 0.0f;
         player_foot += target_dz*0.05f;
     } else {
+        player_stand_dur = 0.0f;
         player_vel_z += (player_vel_z > 0.0f ? JUMP_GRAVITY_ACCEL : FALL_GRAVITY_ACCEL)*frame_mult;
         
         player_vel_z = CLAMP(player_vel_z, max_fall, JUMP_VEL);
         if(player_vel_z < 0 && -player_vel_z > -target_dz) {
             player_vel_z = target_dz;
         }
-
         player_foot += player_vel_z;
     }
     player_z = player_foot + cur_player_height;
@@ -346,7 +414,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         player_jump_dur += frame_seconds;
         jumped = 1;
     } else {
-        if(player_vel_z > 0.0f) { player_vel_z = 0.0f; }
+        if(player_vel_z > 0.0f) { player_vel_z = MIN(player_vel_z, 0.1f); }
         player_jump_dur = 0.0f;
     }
 
@@ -358,9 +426,13 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     if(platform_is_key_down(KEY_RIGHT) || platform_is_key_down(KEY_O)) {
         player_ang -= 0.0035f*frame_time;
     }
+    
+//#define MOUSE_SENSITIVITY 0.00003f
+#define PIXELS_PER_RADIAN (FP_SCREEN_HEIGHT)
+
     if(!editor_mode_enabled) {
         if(mouse_delta.y != 0) {
-            pitch -= .0015f*mouse_delta.y;
+            pitch_ang += (-mouse_delta.y) / PIXELS_PER_RADIAN;
         }
         if(mouse_delta.x != 0) {
             player_ang -= mouse_delta.x*.0017f;
@@ -375,13 +447,38 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     }
 
     if (platform_is_key_down(KEY_I)) {
-        pitch += .0015f*frame_time;
+        pitch_ang += .0005f*frame_mult;
     } else if (platform_is_key_down(KEY_K)) {
-        pitch -= .0015f*frame_time;
+        pitch_ang -= .0005f*frame_mult;
     } else if (platform_is_key_pressed(KEY_SPACE)) {
         //pitch = 0;
     }
-    pitch = CLAMP(pitch, -0.5f, 0.5f);
+
+    pitch_ang = CLAMP(pitch_ang, -.40f, .40f);
+    pitch = my_sinf(pitch_ang) * 16.0f * (HEIGHT_SCALE * FOCAL_LENGTH / MAX_WALL_HEIGHT);
+
+
+    if(got_revolver && revolver_firing == 0.0f && platform_is_mouse_button_pressed(MOUSE_BUTTON_LEFT) && !editor_mode_enabled) {
+        platform_play_sound(GUNSHOT_WAV);
+        revolver_firing = REVOLVER_FIRE_DURATION;
+        u16 dist_fixed = zbuf_pointers[0][(FP_SCREEN_WIDTH/2)*FP_SCREEN_HEIGHT+FP_SCREEN_HEIGHT/2];
+        float dist = ((float)dist_fixed/FIXED_POINT_MULT);
+        float dir_x = my_cosf(-player_ang);
+        float dir_y = my_sinf(-player_ang);
+        float dir_z = my_sinf(pitch_ang)*16.0f;
+
+        float world_x = player_x + dir_x * dist;
+        float world_y = player_y + dir_y * dist;
+        float world_z = player_z + dir_z * dist - 1.0f;
+
+        printf("vertical angle of ray %f\n", pitch_ang);
+        printf("world %f %f %f \n", world_x, world_y, world_z);
+        printf("player z %f\n", player_z);
+        add_particle(world_x, world_y, world_z, 5, SMOKE_PARTICLE_IDX);
+    } else if (revolver_firing > 0.0f) {
+        revolver_firing -= frame_seconds;
+        revolver_firing = MAX(0.0f, revolver_firing);
+    }
 
 }
 
@@ -407,6 +504,9 @@ void init_level(int fresh_map) {
     player_x = levels[cur_level_idx].start_x;
     player_y = levels[cur_level_idx].start_y;
     player_z = levels[cur_level_idx].start_z;
+
+    levels[0].sprite_index[17*MAP_SIZE+11] = REVOLVER_SPRITE_INDEX;
+    levels[0].sprite_index[17*MAP_SIZE+10] = WHISKEY_SPRITE_INDEX;
 
     if(fresh_map) {  
         player_x = 16;
@@ -1000,14 +1100,6 @@ void crt_shader(u32* fb) {
 #endif
 
 
-edit_wall_id* edit_id_buffer_pointers[2] = {NULL, NULL}; //[FP_SCREEN_WIDTH*FP_SCREEN_HEIGHT];
-
-unsigned int draw_textures[2];
-int frame;
-
-u32* draw_pix_pointers[2] = {NULL, NULL};
-u16* zbuf_pointers[2] = {NULL, NULL};
-
 //Image draw_img;
 //Texture2D draw_tex;
 void change_resolution() {
@@ -1026,7 +1118,7 @@ void change_resolution() {
     if(prev_use_vsync != use_vsync) {
         platform_set_vsync(use_vsync);
     }
-    debug_printf("vsync %i\n", use_vsync);
+    //debug_printf("vsync %i\n", use_vsync);
 
     //SetConfigFlags(FLAG_VSYNC_HINT);
 
@@ -1116,12 +1208,14 @@ void run_game() {
 
     float frame_time_ms = platform_get_frame_time()*1000.0f;
     if(requested_render_res != cur_render_res_idx || requested_render_scale != cur_render_scale || requested_use_vsync != use_vsync || requested_fullscreen != fullscreen) {
-        float prev_pitch = pitch;
+        float prev_pitch = pitch_ang;
         change_resolution();
-        pitch = prev_pitch;
-    } else {
-        update_player(frame_time_ms, mouse_delta);
+        pitch_ang = prev_pitch;
     }
+
+    update_particles();
+    
+    update_player(frame_time_ms, mouse_delta);
 
     
     //u16* zbuffer_prev_pix = zbuf_pointers[(frame+1)&0b1];
@@ -1141,12 +1235,13 @@ void run_game() {
         Vector2 mouse_pos = platform_get_mouse_position();
         handle_click(edit_draw_buf, FP_SCREEN_WIDTH*mouse_pos.x/OUTPUT_WIDTH, FP_SCREEN_HEIGHT*mouse_pos.y/OUTPUT_HEIGHT);
     }
+#define ENABLE_EDITOR
 #ifdef ENABLE_EDITOR
     if (platform_is_key_pressed(KEY_E)) {
         editor_mode_enabled = !editor_mode_enabled;
     }
 #endif
-#if 0
+#if 1
     if (platform_is_key_pressed(KEY_Z)) {
         render_mode++;
         if(render_mode >= NUM_RENDER_MODES) {
@@ -1213,6 +1308,9 @@ void run_game() {
     int flash_frame = iquarter_seconds&0b1;
     platform_begin_drawing(); {   
 
+        float scale = ((float)OUTPUT_WIDTH/((float)FP_SCREEN_WIDTH));
+        platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+
         for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
             zbuffer_draw[i] = DARK_DIST*FIXED_POINT_MULT;
         }
@@ -1240,10 +1338,22 @@ void run_game() {
                 INVENTORY_BOX_SPRITE);
         }
     #endif 
-    
+        if(got_revolver) {
+            float revolver_size = CLAMP((FP_SCREEN_HEIGHT/2.5f), 128.0f, 512.0f);
+            float base_height = FP_SCREEN_HEIGHT-revolver_size;
+            float recoil_height = base_height-revolver_size;
+            float pos = lerp(base_height, recoil_height, (revolver_firing/REVOLVER_FIRE_DURATION));
 
-        float scale = ((float)OUTPUT_WIDTH/((float)FP_SCREEN_WIDTH));
-        platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+            request_draw_screen_space_sprite(
+                0*revolver_size, 
+                1*revolver_size, 
+                pos,//FP_SCREEN_HEIGHT-revolver_size, 
+                pos+revolver_size,//FP_SCREEN_HEIGHT, 
+                REVOLVER_FIRST_PERSON_SPRITE_INDEX);
+            
+        }
+        draw_particles();
+    
 
 
 
@@ -1361,6 +1471,7 @@ void init_game() {
 
     if(load_resources()) {
         debug_printf("Error loading resources\n");
+        exit(1);
 
     } 
     int num_loaded_bytes;
@@ -1442,10 +1553,11 @@ int WinMain() {
 #else
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
 #endif
+    init_particle_system();
     init_raycast_module();
     init_entities_module();
     init_game();
-    printf("initting window with %i %i\n", OUTPUT_WIDTH, OUTPUT_HEIGHT);
+    //printf("initting window with %i %i\n", OUTPUT_WIDTH, OUTPUT_HEIGHT);
     platform_init_window(OUTPUT_WIDTH, OUTPUT_HEIGHT, "raycaster");
     //change_resolution();
     frame = 0;

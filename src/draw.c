@@ -16,7 +16,7 @@ const float night_light_level_mults[4] = {.50f, 0.25f, .75f, .75f};
 
 void draw_skybox_vline(u32* output, u32 *skybox_column, int x, int y0, int y1) {
     for(int y = y0; y < y1; y++) {
-        int v = (int)(SKYBOX_TEX_HEIGHT*.5f+(SKYBOX_V_PER_PIX*(y+(-pitch*(float)FP_SCREEN_HEIGHT))))&(SKYBOX_TEX_HEIGHT-1);
+        int v = (int)(SKYBOX_TEX_HEIGHT*.5f+(SKYBOX_V_PER_PIX*(y+(-pitch))))&(SKYBOX_TEX_HEIGHT-1);
         u32 texell = skybox_column[v];
 
         output[x*FP_SCREEN_HEIGHT+y] = texell;

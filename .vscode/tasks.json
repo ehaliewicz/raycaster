@@ -103,7 +103,7 @@
                 "-lkernel32",
                 "-lmsvcrt",
                 "-lgdi32",
-                //"-lwinmm",
+                "-lwinmm",
                 //"-lws2_32",
                 "-o",
                 "${workspaceFolder}/out/raycast-debug.exe"
@@ -175,7 +175,7 @@
                 "-lgcc",
                 "-lkernel32",
                 "-lgdi32",
-                //"-lwinmm",
+                "-lwinmm",
                 //"-lws2_32",
                 //"-shared", "-o" ,"${workspaceFolder}/out/raycast.dll",
                 "-o",

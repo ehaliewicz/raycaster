@@ -89,6 +89,8 @@ void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float 
 u8* platform_load_image(const char* file, int expected_width, int expected_height);
 void platform_unload_image(u8* img_data);
 
+void platform_play_sound(const char* sound_path);
+
 
 
 #define MAX_JOB_SLOTS 16

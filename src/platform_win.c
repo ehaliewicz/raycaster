@@ -473,3 +473,8 @@ void platform_join_threadpool(jobpool* jp) {
         }
     }
 }
+
+
+void platform_play_sound(const char* sound_path) {
+    PlaySound(sound_path, NULL, SND_FILENAME|SND_ASYNC);
+}

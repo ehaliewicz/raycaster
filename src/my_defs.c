@@ -58,23 +58,7 @@ float cos_deg(float deg) { return sin_deg(deg + 90.0f); }
 float my_sinf(float x) { return sin_deg(x * 57.29577951f); }
 float my_cosf(float x) { return cos_deg(x * 57.29577951f); }
 
-/*
-
-float my_sinf(float x) {
-    // wrap to -PI..PI
-    x = x - (int)(x / 6.28318530f) * 6.28318530f;
-    if (x > 3.14159265f)  x -= 6.28318530f;
-    if (x < -3.14159265f) x += 6.28318530f;
-    
-    // minimax polynomial approximation
-    float x2 = x * x;
-    return x * (1.0f - x2 * (0.16666667f - x2 * (0.00833333f - x2 * 0.00019841f)));
-}
-
-float my_cosf(float x) {
-    return my_sinf(x + 1.5707963268f);
-}
-*/
+float my_tanf(float x) { return my_sinf(x) / my_cosf(x); }
 
 float my_atanf(float x) {
     float a = x < 0 ? -x : x;

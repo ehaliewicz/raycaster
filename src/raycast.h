@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#define FOCAL_LENGTH (FP_SCREEN_WIDTH / (2.0f * 1.0f)) //tanf(1.57f/2.0f)))
+#define HEIGHT_SCALE (MAX_WALL_HEIGHT/8)
+#define HALF_SCREEN_HEIGHT (FP_SCREEN_HEIGHT/2)
+
 
 //void* thread_pool_create(int cpu_threads);
 //void thread_pool_add_work(void* tp, void (*func)(void*), void* arg_var);

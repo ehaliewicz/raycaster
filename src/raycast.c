@@ -16,12 +16,6 @@
 
 
 
-// MAX_HEIGHT/8
-#define FOCAL_LENGTH (FP_SCREEN_WIDTH / (2.0f * 1.0f)) //tanf(1.57f/2.0f)))
-#define HEIGHT_SCALE (MAX_WALL_HEIGHT/8)
-//(4)
-#define HALF_SCREEN_HEIGHT (FP_SCREEN_HEIGHT/2)
-
 #ifdef PLATFORM_WEB
 #define NIGHT_FOG_COL ((0<<24)|(0<<16)|(0<<8)|(255<<0))
 #define FOG_COL ((255<<24)|(196<<16)|(162<<8)|(103<<0))
@@ -31,7 +25,7 @@
 #endif
 
 int project_to_screen(float height, float dist, float pitch, float player_z) {
-    return (pitch*(float)cur_render_height) + HALF_SCREEN_HEIGHT - (HEIGHT_SCALE * (((height- player_z) * FOCAL_LENGTH / dist) / MAX_WALL_HEIGHT)); 
+    return pitch + HALF_SCREEN_HEIGHT - (HEIGHT_SCALE * (((height- player_z) * FOCAL_LENGTH / dist) / MAX_WALL_HEIGHT)); 
 }
 
 
@@ -1834,6 +1828,9 @@ void draw_transformed_sprites(u32* output, edit_wall_id* edit_id_buffer, u16* z_
             screen_x1 = tmp;
         }
         int map_idx = sprite.map_idx;
+        if(spr_idx >= NUM_SPRITES || spr_idx == EMPTY_SPRITE_INDEX) {
+            continue;
+        }
 
         int clipped_sprite_left_x = MAX(start_x, (int)screen_x0);
         int clipped_sprite_right_x = MIN(end_x-1, (int)screen_x1);
@@ -1844,6 +1841,7 @@ void draw_transformed_sprites(u32* output, edit_wall_id* edit_id_buffer, u16* z_
             if(screen_y1 > 0 && screen_y0 < FP_SCREEN_HEIGHT-1) {
                 float u = (x-screen_x0)*tex_per_pix;
                 u32* tex_col = get_texture_column(sprites[spr_idx], u);
+                
                 u32 skip = rle_spr_top_skips[spr_idx*32+(int)(u*32.0f)];
                 draw_lit_fogged_textured_z_buffered_blended_sprite(
                     output, z_buffer,  0, tex_col, skip, textures[SKYBOX_TEX_IDX],

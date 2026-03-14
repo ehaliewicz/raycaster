@@ -17,6 +17,8 @@ extern float cur_player_height;
 
 #define SPRINT_SPEED 0.040f
 #define WALK_SPEED 0.025f
+#define AIR_SPEED 0.025f
+
 
 typedef enum {
     VERTICAL_SIDE = 0,

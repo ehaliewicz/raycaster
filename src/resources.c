@@ -53,7 +53,9 @@ const char* sprite_assets[] = {
     "bridge_diag0",
     "bridge_diag1",
     "whiskey",
-    "revolver"
+    "revolver",
+    "revolver_first_person",
+    "smoke_particle"
 };
 
 float sprite_scales[] = {
@@ -83,6 +85,8 @@ float sprite_scales[] = {
     1.0f, //"bridge_diag1",
     0.3f, //"whiskey",
     0.25f, //"revolver",
+    1.0f, //"revolver_first_person",
+    0.25f, // "smoke_particle"
 };
 
 
