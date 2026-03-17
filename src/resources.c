@@ -27,7 +27,7 @@ const char* texture_assets[] = {
     "church"
 };
 
-const char* sprite_assets[] = {
+const char* sprite_assets[NUM_SPRITES] = {
     "tree",
     "moss",
     "chandelier",
@@ -55,10 +55,12 @@ const char* sprite_assets[] = {
     "whiskey",
     "revolver",
     "revolver_first_person",
-    "smoke_particle"
+    "smoke_particle",
+    "you_died",
+    "you_win"
 };
 
-float sprite_scales[] = {
+const float sprite_scales[NUM_SPRITES] = {
     1.0f, //"tree",
     1.0f, //"moss",
     1.0f, //"chandelier",
@@ -87,8 +89,15 @@ float sprite_scales[] = {
     0.25f, //"revolver",
     1.0f, //"revolver_first_person",
     0.25f, // "smoke_particle"
+    1.0f, // "you_died"
+    1.0f, // "you_win"
 };
 
+const int extra_big_spr[NUM_SPRITES] = { 
+    0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,1,1
+};
 
 
 typedef enum {
@@ -118,6 +127,7 @@ tex_type* texture_types;
 
 int load_resources() {
 
+    debug_printf("Loading assets...\n");
     const int num_sprite_assets = ((sizeof(sprite_assets)) / sizeof(char*));
     const int num_texture_assets = ((sizeof(texture_assets)) / sizeof(char*));
     const int num_assets = num_sprite_assets+num_texture_assets;
@@ -149,9 +159,13 @@ int load_resources() {
         buf[10+i++] = '\0';
 
 
+        int dim = 32;
+        if(extra_big_spr[sprite_idx]) {
+            dim = 128;
+        }
 
-        debug_printf("Loading %s...\n", buf);
-        u8* tex_data = platform_load_image(buf, 32, 32);
+        //debug_printf("Loading %s...\n", buf);
+        u8* tex_data = platform_load_image(buf, dim, dim);
         if(tex_data == NULL) {
             return 1;
         }
@@ -160,7 +174,7 @@ int load_resources() {
         int got_non_zero_alpha = 0;
         int got_zero_alpha = 0;
 
-        for(int i = 0; i < 32*32; i++) {
+        for(int i = 0; i < dim*dim; i++) {
             u32 texel = pix_data[i];
             u32 texel_a = ((texel >> 24) & 0xFF);
             u32 texel_r = ((texel >> 16) & 0xFF);
@@ -174,17 +188,17 @@ int load_resources() {
             texel_b *= fa;
             pix_data[i] = (texel_a<<24) | (texel_r<<16) | (texel_g<<8) | (texel_b);
         }
-        debug_printf("pct zero alpha %f pct non-zero alpha %f\n", got_zero_alpha/(32.0f*32.0f), got_non_zero_alpha/(32.0f*32.0f));
+        //debug_printf("pct zero alpha %f pct non-zero alpha %f\n", got_zero_alpha/(32.0f*32.0f), got_non_zero_alpha/(32.0f*32.0f));
         //if(got_zero_alpha && !got_non_zero_alpha) {
         //}
 
-        if(!got_non_zero_alpha && (got_zero_alpha > (0.3*32.0f*32.0f))) {
-            debug_printf("RLE TEXTURE!!!!\n");
+        if(dim == 32 && !got_non_zero_alpha && (got_zero_alpha > (0.3*32.0f*32.0f))) {
+            //debug_printf("RLE TEXTURE\n");
             // rows are drawn as vertical columns on-screen
-            for(int row = 0; row < 32; row++) {
-                int base_idx = row*32;
+            for(int row = 0; row < dim; row++) {
+                int base_idx = row*dim;
                 int skip_tex = 0;
-                for(int col = 0; col < 32; col++) {
+                for(int col = 0; col < dim; col++) {
                     u32 texel = pix_data[base_idx+col];
                     u32 texel_a = ((texel >> 24) & 0xFF);
                     if(texel_a != 0) {
@@ -199,7 +213,7 @@ int load_resources() {
                 }
             }
         } else {
-            debug_printf("NORMAL TEXTURE :(\n");
+            //debug_printf("NORMAL TEXTURE\n");
         }
 
         
@@ -208,15 +222,13 @@ int load_resources() {
         //}
         
         if(tex_data == NULL) {
-            debug_printf("ERROR LOADING ASSET %s\n", buf);
+            //debug_printf("ERROR LOADING ASSET %s\n", buf);
             return 1;
         }
-        debug_printf("Loaded.\n");
 
         //u32* data_ptr = backing_texture_data+(tex_num_pixels*asset_idx);
         //my_memcpy(data_ptr, tex_data, tex_num_bytes);
 
-        debug_printf("Copied\n");
 
         
         //platform_unload_image(tex_data);
@@ -231,13 +243,13 @@ int load_resources() {
     //textures[tex_idx++] = camera_texture;
 
 
-    debug_printf("Loading skybox tga\n");
+    //debug_printf("Loading skybox tga\n");
     u8* skybox_tex_data = platform_load_image("resources/skybox.tga", SKYBOX_TEX_HEIGHT, SKYBOX_TEX_WIDTH);
     //skybox = my_calloc(4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT, "skybox");
     //my_memcpy(skybox, skybox_tex_data, 4*SKYBOX_TEX_WIDTH*SKYBOX_TEX_HEIGHT);
     textures[SKYBOX_TEX_IDX] = (u32*)skybox_tex_data;
     //platform_unload_image(skybox_tex_data);
-    debug_printf("Loaded\n");
+    debug_printf("Done.\n");
     //Image height_tex = LoadImage("resources/flat_tex_heightmap.tga");
     //my_memcpy(heightmap, height_tex.data, 32*32);
     //UnloadImage(height_tex);

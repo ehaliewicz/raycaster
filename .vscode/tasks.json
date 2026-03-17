@@ -104,6 +104,7 @@
                 "-lmsvcrt",
                 "-lgdi32",
                 "-lwinmm",
+                "-lshell32",
                 //"-lws2_32",
                 "-o",
                 "${workspaceFolder}/out/raycast-debug.exe"

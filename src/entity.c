@@ -102,7 +102,7 @@ obj_tmpl obj_tmps[NUM_OBJ_TYPES] = {
 
 #define MAX_ENTITIES 2048
 
-int num_alive_entities = 0;
+int num_allocated_entities = 0;
 
 obj *entities = NULL; 
 
@@ -153,7 +153,7 @@ int can_raycast_between_points(int start_x, int start_y, int start_z, int end_x,
 }
 
 int collides_with_other_entity(obj* actor, float test_x, float test_y) {
-    for(int i = 0; i < num_alive_entities; i++) {
+    for(int i = 0; i < num_allocated_entities; i++) {
         if(&entities[i] == actor) {
             continue; // skip
         }
@@ -200,13 +200,20 @@ void move_towards_last_seen_target_pos(obj* actor) {
 
     float dx = actor->lstx - actor->x;
     float dy = actor->lsty - actor->y;
-    //float dz = actor->lstz - actor->z;
-    float len = my_sqrtf(dx*dx+dy*dy);
-    if(len < 0.1f) {
-        return;
+    float dz = actor->lstz - actor->z;
+
+    float sq_len = dx*dx+dy*dy;// sqrtf(dx*dx+dy*dy);
+    float ang = my_atan2f(dy, dx);
+    float vy = my_sinf(ang);
+    float vx = my_cosf(ang); // terrible, use sqrt wtf
+    if(sq_len <= 0.01f && dz <= .1f) {
+        game_over();
     }
-    float vx = dx/len;
-    float vy = dy/len;
+    //if(sq_len < 0.1f) {
+    //    return;
+    //}
+    //float vx = dx/sq_len;
+    //float vy = dy/sq_len;
 
     float y = vy * obj_tmps[actor->type].chase_speed;
     float x = vx * obj_tmps[actor->type].chase_speed;
@@ -257,7 +264,7 @@ void look_and_wander(obj* actor, float player_x, float player_y, float player_z)
 }
 
 void wakeup_entities(float player_x, float player_y, float player_z) {
-    for(int i = 0; i < num_alive_entities; i++) {
+    for(int i = 0; i < num_allocated_entities; i++) {
         wakeup_entity(&entities[i], player_x, player_y, player_z);
     }
 }
@@ -266,7 +273,7 @@ void follow_target(obj* actor, float player_x, float player_y, float player_z) {
     if(actor->target == PLAYER_TARGET && can_raycast_between_points(actor->x, actor->y, actor->z, player_x, player_y, player_z)) {
         actor->lstx = player_x;
         actor->lsty = player_y;
-        actor->lstz = player_z;
+        actor->lstz = player_z - cur_player_height;
     }
 
     move_towards_last_seen_target_pos(actor);
@@ -378,12 +385,27 @@ obj_state states[NUM_STATES] = {
     },
 };
 
+void damage_entity(int damage, int entity_id) {
+    if(entity_id > MAX_ENTITIES) {
+        return;
+    }
+    entities[entity_id].alive = 0;
+    for(int i = 0; i < num_allocated_entities; i++) {
+        if(entities[i].alive) {
+            return;
+        }
+    }
+    you_win();
+}
 
 
 void step_entities(float player_x, float player_y, float player_z) {
     //int stepped = 0;
-    for(int i = 0; i < num_alive_entities; i++) {
+    for(int i = 0; i < num_allocated_entities; i++) {
         obj_state state = states[entities[i].state_idx];
+        if(entities[i].alive == 0) {
+            continue;
+        }
         if(entities[i].ticks_til_next_state <= 0) {
             //stepped++;
             // execute
@@ -399,27 +421,37 @@ void step_entities(float player_x, float player_y, float player_z) {
         } else {
             entities[i].ticks_til_next_state--;
         }
-        request_draw_sprite(entities[i].x, entities[i].y, entities[i].z, state.spr_idx);
     }
-    //debug_printf("stepped %i entities\n", stepped);
+}
+
+void draw_entities() {
+    for(int i = 0; i < num_allocated_entities; i++) {
+        obj_state state = states[entities[i].state_idx];
+        if(entities[i].alive == 0) {
+            continue;
+        }
+        request_draw_sprite(entities[i].x, entities[i].y, entities[i].z, i, state.spr_idx);
+    }
 }
 
 void spawn_entity(int entity_type, float x, float y, float z, float ang, int ticks) {
-    if(num_alive_entities < MAX_ENTITIES) {
-        entities[num_alive_entities].type = entity_type;
-        entities[num_alive_entities].alive = 1;
-        entities[num_alive_entities].in_use = 1;
-        entities[num_alive_entities].state_idx = obj_tmps[entity_type].start_state;
-        entities[num_alive_entities].ticks_til_next_state = ticks;
-        entities[num_alive_entities].x = x;
-        entities[num_alive_entities].y = y;
-        entities[num_alive_entities].z = z;
-        entities[num_alive_entities].ang = ang;
-        entities[num_alive_entities++].target = NO_TARGET;
+    if(num_allocated_entities < MAX_ENTITIES) {
+        entities[num_allocated_entities].type = entity_type;
+        entities[num_allocated_entities].alive = 1;
+        entities[num_allocated_entities].in_use = 1;
+        entities[num_allocated_entities].state_idx = obj_tmps[entity_type].start_state;
+        entities[num_allocated_entities].ticks_til_next_state = ticks;
+        entities[num_allocated_entities].x = x;
+        entities[num_allocated_entities].y = y;
+        entities[num_allocated_entities].z = z;
+        entities[num_allocated_entities].ang = ang;
+        entities[num_allocated_entities++].target = NO_TARGET;
     }
 }
 
 
 void init_entities_module() {
     entities = my_malloc(sizeof(obj)*MAX_ENTITIES, "entities array");
+    num_allocated_entities = 0;
+
 }

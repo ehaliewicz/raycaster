@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/out/raycast-debug.exe",
-            "args": [], //["--client", "192.168.1.1"],
+            "args": ["--editor"], //["--client", "192.168.1.1"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/out",
             "environment": [],

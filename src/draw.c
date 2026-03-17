@@ -23,6 +23,15 @@ void draw_skybox_vline(u32* output, u32 *skybox_column, int x, int y0, int y1) {
     }
 }
 
+void draw_extra_big_sprite_col(u32* output, u32* col, int x) {
+    float tex_per_pix = 128.0f / FP_SCREEN_HEIGHT;
+    for(int y = 0; y < FP_SCREEN_HEIGHT; y++) {
+        float u = tex_per_pix*y;
+        int iu = CLAMP(my_floorf(u), 0, 128);
+        output[x*FP_SCREEN_HEIGHT+y] = col[iu];
+    }
+}
+
 /*
 
     tint the pixels selected, we check if the object we're drawing is the one selected from the edit buffer
@@ -60,10 +69,15 @@ void draw_z_buffered_alpha_tint_vline(u32* output, u16* z_buffer, u32 *tex_colum
     draws an identifier into the edit buffer
     if the user clicks on a pixel, we look up the object via this edit buffer
 */
-void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffer, u32 *tex_column, int x, float y0, float y1, float new_z, int prev_drawn_top, int prev_drawn_bot, int cell_idx, editor_selected_thing side, int do_depth_test, int do_alpha_test) {
+void draw_z_buffered_alpha_edit_vline(
+    edit_wall_id* edit_id_buffer, u16* z_buffer, u32 *tex_column, 
+    int x, float y0, float y1, float new_z, int prev_drawn_top, int prev_drawn_bot, 
+    edit_wall_id id_val,
+    int do_depth_test, int do_alpha_test
+) {
     //edit_wall_id id = 0xFF000000 | (side<<16) | (cell_idx << 0); 
-    edit_wall_id id = (side<<10) | cell_idx;
-
+    //edit_wall_id id = (side<<10) | cell_idx;
+    
     float tex_per_pix = 32.0f / (y1-y0);
     
     int clipped_y0 = max_int32(y0, prev_drawn_top);
@@ -84,7 +98,7 @@ void draw_z_buffered_alpha_edit_vline(edit_wall_id* edit_id_buffer, u16* z_buffe
                 continue;
             }
         }
-        edit_id_buffer[x*FP_SCREEN_HEIGHT+y] = id;
+        edit_id_buffer[x*FP_SCREEN_HEIGHT+y] = id_val;
     }
 }
 
@@ -427,4 +441,10 @@ u32* get_texture_column(u32* texture, float wall_u) {
     float u_scaled_to_tex_size = CLAMP(wall_u * 32.0f, 0.0f, 31.0f);
     int int_u = (int)(u_scaled_to_tex_size);
     return &texture[int_u*TEX_SIZE];
+}
+
+u32* get_extra_big_texture_column(u32* texture, float wall_u) {
+    float u_scaled_to_tex_size = CLAMP(wall_u * 128.0f, 0.0f, 128.0f);
+    int int_u = (int)(u_scaled_to_tex_size);
+    return &texture[int_u*128];
 }

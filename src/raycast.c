@@ -426,6 +426,7 @@ void draw_first_person_level_inner(
         float cam_dir_y = start_cam_dir_y;
         int screen_x = (FP_SCREEN_WIDTH-1)-ix;
         float cam_x = 2.0f * (ix) / (float)FP_SCREEN_WIDTH - 1.0f; // -1 to 1
+
         float ray_dir_x = my_cosf(cam_ang) + cam_x * -my_sinf(cam_ang);
         float ray_dir_y = my_sinf(cam_ang) + cam_x * my_cosf(cam_ang);
 
@@ -726,7 +727,7 @@ void draw_first_person_level_inner(
             }
             if(can_add_sprite && hit_middle_sprite != EMPTY_SPRITE_INDEX) {
                 float sprite_top_y = floor_height + this_level->m_sprite_offset[map_idx];
-            //#define DRAW_FRONT_OF_MIDDLE_SPRITES
+            #define DRAW_FRONT_OF_MIDDLE_SPRITES
             #ifndef DRAW_FRONT_OF_MIDDLE_SPRITES 
                 float sprite_bot_y = sprite_top_y;
             #else
@@ -949,13 +950,13 @@ void draw_first_person_level_inner(
                         FOG_COL, REPEAT_TEX
                     );
 
+                    draw_edit_vline(
+                        edit_id_buffer, screen_x,
+                        proj_floor_first_step_height, proj_zero_height, 
+                        prev_drawn_top, prev_drawn_bot,
+                        MAP_CELL_EDIT_ID(map_idx, lower_intersect_wall_side)
+                    );
                     if(editor_mode_enabled) {
-                        draw_edit_vline(
-                            edit_id_buffer, screen_x,
-                            proj_floor_first_step_height, proj_zero_height, 
-                            prev_drawn_top, prev_drawn_bot,
-                            map_idx, lower_intersect_wall_side
-                        );
                         if(flash_frame && selected_cur_map_idx && editor_selected_side == lower_intersect_wall_side) {
                             draw_tint_vline(
                                 output, screen_x, 
@@ -1010,13 +1011,13 @@ void draw_first_person_level_inner(
                             FOG_COL, REPEAT_TEX
                         );
                         
+                        draw_edit_vline(
+                            edit_id_buffer, screen_x,
+                            proj_slope_start_height, proj_zero_height, 
+                            prev_drawn_top, prev_drawn_bot,
+                            MAP_CELL_EDIT_ID(map_idx, lower_intersect_wall_side)
+                        );
                         if(editor_mode_enabled) {
-                            draw_edit_vline(
-                                edit_id_buffer, screen_x,
-                                proj_slope_start_height, proj_zero_height, 
-                                prev_drawn_top, prev_drawn_bot,
-                                map_idx, lower_intersect_wall_side
-                            );
                             if(flash_frame && selected_cur_map_idx && editor_selected_side == lower_intersect_wall_side) {
                                 draw_tint_vline(
                                     output, screen_x, 
@@ -1048,13 +1049,13 @@ void draw_first_person_level_inner(
                     );
 
                     
+                    draw_edit_vline(
+                        edit_id_buffer, screen_x,
+                        proj_max_height, proj_ceil_first_step_height, 
+                        prev_drawn_top, prev_drawn_bot,
+                        MAP_CELL_EDIT_ID(map_idx, upper_intersect_wall_side)
+                    );
                     if(editor_mode_enabled) {
-                        draw_edit_vline(
-                            edit_id_buffer, screen_x,
-                            proj_max_height, proj_ceil_first_step_height, 
-                            prev_drawn_top, prev_drawn_bot,
-                            map_idx, upper_intersect_wall_side
-                        );
                         if(flash_frame && selected_cur_map_idx && editor_selected_side == upper_intersect_wall_side) {
                             draw_tint_vline(
                                 output, screen_x, 
@@ -1113,13 +1114,13 @@ void draw_first_person_level_inner(
                             FOG_COL, REPEAT_TEX
                         );
                         
+                        draw_edit_vline(
+                            edit_id_buffer, screen_x,
+                            proj_max_height, proj_slope_start_height, 
+                            prev_drawn_top, prev_drawn_bot,
+                            MAP_CELL_EDIT_ID(map_idx, upper_intersect_wall_side)
+                        );
                         if(editor_mode_enabled) {
-                            draw_edit_vline(
-                                edit_id_buffer, screen_x,
-                                proj_max_height, proj_slope_start_height, 
-                                prev_drawn_top, prev_drawn_bot,
-                                map_idx, upper_intersect_wall_side
-                            );
                             if(flash_frame && selected_cur_map_idx && editor_selected_side == upper_intersect_wall_side) {
                                 draw_tint_vline(
                                     output, screen_x, 
@@ -1170,21 +1171,21 @@ void draw_first_person_level_inner(
                             exit_flat_u, exit_flat_v, flat_u, flat_v,
                             prev_drawn_top, prev_drawn_bot, FLOOR_LIGHT_FACTOR, upper_floor_light_level, FOG_COL
                         );
-                            if(editor_mode_enabled) {
-                                draw_edit_vline(
-                                    edit_id_buffer, screen_x,
+                        draw_edit_vline(
+                            edit_id_buffer, screen_x,
+                            proj_slope_end_height, proj_slope_start_height, 
+                            prev_drawn_top, prev_drawn_bot,
+                            MAP_CELL_EDIT_ID(map_idx, WALL_SIDE_UPPER_TOP)
+                        );
+                        if(editor_mode_enabled) {
+                            if(flash_frame && selected_cur_map_idx && editor_selected_side == WALL_SIDE_UPPER_TOP) {
+                                draw_tint_vline(
+                                    output, screen_x, 
                                     proj_slope_end_height, proj_slope_start_height, 
-                                    prev_drawn_top, prev_drawn_bot,
-                                    map_idx, WALL_SIDE_UPPER_TOP
+                                    prev_drawn_top, prev_drawn_bot
                                 );
-                                if(flash_frame && selected_cur_map_idx && editor_selected_side == WALL_SIDE_UPPER_TOP) {
-                                    draw_tint_vline(
-                                        output, screen_x, 
-                                        proj_slope_end_height, proj_slope_start_height, 
-                                        prev_drawn_top, prev_drawn_bot
-                                    );
-                                }
                             }
+                        }
                         prev_drawn_bot = proj_slope_end_height;
                     }
 
@@ -1199,13 +1200,13 @@ void draw_first_person_level_inner(
                             exit_flat_u, exit_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, first_floor_light_level,
                             FOG_COL
                         );
+                        draw_edit_vline(
+                            edit_id_buffer, screen_x,
+                            proj_step_next_height, proj_floor_first_step_height, 
+                            prev_drawn_top, prev_drawn_bot,
+                            MAP_CELL_EDIT_ID(map_idx, WALL_SIDE_TOP)
+                        );
                         if(editor_mode_enabled) {
-                            draw_edit_vline(
-                                edit_id_buffer, screen_x,
-                                proj_step_next_height, proj_floor_first_step_height, 
-                                prev_drawn_top, prev_drawn_bot,
-                                map_idx, WALL_SIDE_TOP
-                            );
                             if(flash_frame && selected_cur_map_idx && editor_selected_side == WALL_SIDE_TOP) {
                                 draw_tint_vline(
                                     output, screen_x, 
@@ -1244,13 +1245,13 @@ void draw_first_person_level_inner(
                                 lower_diag_intersect.mid_flat_u, lower_diag_intersect.mid_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, first_floor_light_level,
                                 FOG_COL
                             );
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_first_height_diag, proj_floor_first_step_height, 
+                                prev_drawn_top, prev_drawn_bot,
+                                MAP_CELL_EDIT_ID(map_idx, first_floor_side)
+                            );
                             if(editor_mode_enabled) {
-                                draw_edit_vline(
-                                    edit_id_buffer, screen_x,
-                                    proj_first_height_diag, proj_floor_first_step_height, 
-                                    prev_drawn_top, prev_drawn_bot,
-                                    map_idx, first_floor_side
-                                );
                                 if(flash_frame && selected_cur_map_idx && editor_selected_side == first_floor_side) {
                                     draw_tint_vline(
                                         output, screen_x, 
@@ -1281,13 +1282,13 @@ void draw_first_person_level_inner(
                                 prev_drawn_top, prev_drawn_bot, lower_diag_intersect.diag_perp_dist, DIAG_LIGHT_FACTOR, lower_diag_light_level, 
                                 FOG_COL, REPEAT_TEX
                             );
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_second_height_diag, proj_zero_height_diag, 
+                                prev_drawn_top, prev_drawn_bot,
+                                MAP_CELL_EDIT_ID(map_idx, WALL_SIDE_LOWER_DIAG)
+                            );
                             if(editor_mode_enabled) {
-                                draw_edit_vline(
-                                    edit_id_buffer, screen_x,
-                                    proj_second_height_diag, proj_zero_height_diag, 
-                                    prev_drawn_top, prev_drawn_bot,
-                                    map_idx, WALL_SIDE_LOWER_DIAG
-                                );
                                 if(flash_frame && selected_cur_map_idx && editor_selected_side == WALL_SIDE_LOWER_DIAG) {
                                     draw_tint_vline(
                                         output, screen_x, 
@@ -1308,13 +1309,13 @@ void draw_first_person_level_inner(
                                 FLOOR_LIGHT_FACTOR, second_floor_light_level,
                                 FOG_COL
                             );
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_second_height_next, proj_second_height_diag, 
+                                prev_drawn_top, prev_drawn_bot,
+                                MAP_CELL_EDIT_ID(map_idx, second_floor_side)
+                            );
                             if(editor_mode_enabled) {
-                                draw_edit_vline(
-                                    edit_id_buffer, screen_x,
-                                    proj_second_height_next, proj_second_height_diag, 
-                                    prev_drawn_top, prev_drawn_bot,
-                                    map_idx, second_floor_side
-                                );
                                 if(flash_frame && selected_cur_map_idx && editor_selected_side == second_floor_side) {
                                     draw_tint_vline(
                                         output, screen_x, 
@@ -1335,13 +1336,13 @@ void draw_first_person_level_inner(
                                 exit_flat_u, exit_flat_v, lower_diag_intersect.mid_flat_u, lower_diag_intersect.mid_flat_v, prev_drawn_top, prev_drawn_bot, FLOOR_LIGHT_FACTOR, first_floor_light_level,
                                 FOG_COL
                             );
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_floor_first_step_height_at_next_dist,  proj_first_height_diag,
+                                prev_drawn_top, prev_drawn_bot,
+                                MAP_CELL_EDIT_ID(map_idx, first_floor_side)
+                            );
                             if(editor_mode_enabled) {
-                                draw_edit_vline(
-                                    edit_id_buffer, screen_x,
-                                    proj_floor_first_step_height_at_next_dist,  proj_first_height_diag,
-                                    prev_drawn_top, prev_drawn_bot,
-                                    map_idx, first_floor_side
-                                );
                                 if(flash_frame && selected_cur_map_idx && editor_selected_side == first_floor_side) {
                                     draw_tint_vline(
                                         output, screen_x, 
@@ -1365,13 +1366,13 @@ void draw_first_person_level_inner(
                                 exit_flat_u, exit_flat_v, flat_u, flat_v, prev_drawn_top, prev_drawn_bot,  FLOOR_LIGHT_FACTOR, first_floor_light_level,
                                 FOG_COL
                             );
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_step_next_height, proj_floor_first_step_height, 
+                                prev_drawn_top, prev_drawn_bot,
+                                MAP_CELL_EDIT_ID(map_idx, first_floor_side)
+                            );
                             if(editor_mode_enabled) {
-                                draw_edit_vline(
-                                    edit_id_buffer, screen_x,
-                                    proj_step_next_height, proj_floor_first_step_height, 
-                                    prev_drawn_top, prev_drawn_bot,
-                                    map_idx, first_floor_side
-                                );
                                 if(flash_frame && selected_cur_map_idx && editor_selected_side == first_floor_side) {
                                     draw_tint_vline(
                                         output, screen_x, 
@@ -1426,13 +1427,14 @@ void draw_first_person_level_inner(
                             flat_u, flat_v, exit_flat_u, exit_flat_v, 
                             prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, upper_ceil_light_level, FOG_COL
                         );
+
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_slope_start_height, proj_slope_end_height, 
+                                prev_drawn_top, prev_drawn_bot,
+                                MAP_CELL_EDIT_ID(map_idx, WALL_SIDE_UPPER_BOTTOM)
+                            );
                             if(editor_mode_enabled) {
-                                draw_edit_vline(
-                                    edit_id_buffer, screen_x,
-                                    proj_slope_start_height, proj_slope_end_height, 
-                                    prev_drawn_top, prev_drawn_bot,
-                                    map_idx, WALL_SIDE_UPPER_BOTTOM
-                                );
                                 if(flash_frame && selected_cur_map_idx && editor_selected_side == WALL_SIDE_UPPER_BOTTOM) {
                                     draw_tint_vline(
                                         output, screen_x, 
@@ -1453,13 +1455,13 @@ void draw_first_person_level_inner(
                             flat_u, flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot,  CEIL_LIGHT_FACTOR, first_ceil_light_level,
                             FOG_COL
                         );
+                        draw_edit_vline(
+                            edit_id_buffer, screen_x,
+                            proj_ceil_first_step_height, proj_step_next_height, 
+                            prev_drawn_top, prev_drawn_bot,
+                            MAP_CELL_EDIT_ID(map_idx, WALL_SIDE_BOTTOM)
+                        );
                         if(editor_mode_enabled) {
-                            draw_edit_vline(
-                                edit_id_buffer, screen_x,
-                                proj_ceil_first_step_height, proj_step_next_height, 
-                                prev_drawn_top, prev_drawn_bot,
-                                map_idx, WALL_SIDE_BOTTOM
-                            );
                             if(flash_frame && selected_cur_map_idx && editor_selected_side == WALL_SIDE_BOTTOM) {
                                 draw_tint_vline(
                                     output, screen_x, 
@@ -1485,13 +1487,13 @@ void draw_first_person_level_inner(
                                 flat_u, flat_v,  upper_diag_intersect.mid_flat_u, upper_diag_intersect.mid_flat_v, prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, first_ceil_light_level,
                                 FOG_COL
                             );
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_ceil_first_step_height, proj_first_height_diag, 
+                                prev_drawn_top, prev_drawn_bot,
+                                MAP_CELL_EDIT_ID(map_idx, first_ceil_side)
+                            );
                             if(editor_mode_enabled) {
-                                draw_edit_vline(
-                                    edit_id_buffer, screen_x,
-                                    proj_ceil_first_step_height, proj_first_height_diag, 
-                                    prev_drawn_top, prev_drawn_bot,
-                                    map_idx, first_ceil_side
-                                );
                                 if(flash_frame && selected_cur_map_idx && editor_selected_side == first_ceil_side) {
                                     draw_tint_vline(
                                         output, screen_x, 
@@ -1525,13 +1527,13 @@ void draw_first_person_level_inner(
                                 FOG_COL, REPEAT_TEX
                             );
 
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_max_height_diag, proj_second_height_diag, 
+                                prev_drawn_top, prev_drawn_bot,
+                                MAP_CELL_EDIT_ID(map_idx, WALL_SIDE_UPPER_DIAG)
+                            );
                             if(editor_mode_enabled) {
-                                draw_edit_vline(
-                                    edit_id_buffer, screen_x,
-                                    proj_max_height_diag, proj_second_height_diag, 
-                                    prev_drawn_top, prev_drawn_bot,
-                                    map_idx, WALL_SIDE_UPPER_DIAG
-                                );
                                 if(flash_frame && selected_cur_map_idx && editor_selected_side == WALL_SIDE_UPPER_DIAG) {
                                     draw_tint_vline(
                                         output, screen_x, 
@@ -1553,13 +1555,13 @@ void draw_first_person_level_inner(
                                 CEIL_LIGHT_FACTOR, second_ceil_light_level,
                                 FOG_COL
                             );
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_second_height_diag, proj_second_height_next, 
+                                prev_drawn_top, prev_drawn_bot,
+                                MAP_CELL_EDIT_ID(map_idx, second_ceil_side)
+                            );
                             if(editor_mode_enabled) {
-                                draw_edit_vline(
-                                    edit_id_buffer, screen_x,
-                                    proj_second_height_diag, proj_second_height_next, 
-                                    prev_drawn_top, prev_drawn_bot,
-                                    map_idx, second_ceil_side
-                                );
                                 if(flash_frame && selected_cur_map_idx && editor_selected_side == second_ceil_side) {
                                     draw_tint_vline(
                                         output, screen_x, 
@@ -1584,13 +1586,13 @@ void draw_first_person_level_inner(
                                 flat_u, flat_v, exit_flat_u, exit_flat_v, prev_drawn_top, prev_drawn_bot, CEIL_LIGHT_FACTOR, first_ceil_light_level,
                                 FOG_COL
                             );
+                            draw_edit_vline(
+                                edit_id_buffer, screen_x,
+                                proj_ceil_first_step_height, proj_step_next_height, 
+                                prev_drawn_top, prev_drawn_bot,
+                                MAP_CELL_EDIT_ID(map_idx, first_ceil_side)
+                            );
                             if(editor_mode_enabled) {
-                                draw_edit_vline(
-                                    edit_id_buffer, screen_x,
-                                    proj_ceil_first_step_height, proj_step_next_height, 
-                                    prev_drawn_top, prev_drawn_bot,
-                                    map_idx, first_ceil_side
-                                );
                                 if(flash_frame && selected_cur_map_idx && editor_selected_side == first_ceil_side) {
                                     draw_tint_vline(
                                         output, screen_x, 
@@ -1663,13 +1665,13 @@ void draw_first_person_level_inner(
                         unclipped_y0, unclipped_y1, 
                         z0, z1, u0, v0, u1, v1, 
                         spr.prev_drawn_top, spr.prev_drawn_bot, spr.light_factor, BRIGHT, FOG_COL, DO_ALPHA_BLEND
+                    );               
+                    draw_edit_vline(
+                        edit_id_buffer, screen_x, 
+                        unclipped_y0, unclipped_y1, spr.prev_drawn_top, spr.prev_drawn_bot,
+                        MAP_CELL_EDIT_ID(spr.map_idx, spr.sprite_thg)
                     );
-                    if(editor_mode_enabled) {                    
-                        draw_edit_vline(
-                            edit_id_buffer, screen_x, 
-                            unclipped_y0, unclipped_y1, spr.prev_drawn_top, spr.prev_drawn_bot,
-                            spr.map_idx, spr.sprite_thg
-                        );
+                    if(editor_mode_enabled) {     
                         if(flash_frame && editor_selected_map_idx == spr.map_idx && editor_selected_side == spr.sprite_thg) {
                             draw_tint_vline(
                                 output, screen_x, 
@@ -1697,15 +1699,13 @@ void draw_first_person_level_inner(
                         spr.prev_drawn_top, spr.prev_drawn_bot,
                         z, spr.light_factor, BRIGHT, FOG_COL, 1, DO_ALPHA_BLEND, NO_DEPTH_TEST
                     );
+                    draw_alpha_edit_vline(
+                        edit_id_buffer, tex_col, screen_x, 
+                        unclipped_y0, unclipped_y1,
+                        spr.prev_drawn_top, spr.prev_drawn_bot,
+                        MAP_CELL_EDIT_ID(spr.map_idx, spr.sprite_thg)
+                    );
                     if(editor_mode_enabled) {
-                        //int clipped_y0 = CLAMP(spr.unclipped_y0, spr.prev_drawn_top, spr.prev_drawn_bot);
-                        //int clipped_y1 = CLAMP(spr.unclipped_y1, spr.prev_drawn_top, spr.prev_drawn_bot);
-                        draw_alpha_edit_vline(
-                            edit_id_buffer, tex_col, screen_x, 
-                            unclipped_y0, unclipped_y1,
-                            spr.prev_drawn_top, spr.prev_drawn_bot,
-                            spr.map_idx, spr.sprite_thg
-                        );
                         if(flash_frame && editor_selected_map_idx == spr.map_idx && editor_selected_side == spr.sprite_thg) {
                             draw_alpha_tint_vline(
                                 output, tex_col, screen_x, 
@@ -1732,8 +1732,9 @@ typedef struct {
     float y0, y1;
     float world_y0, world_y1;
     float z;
-    int map_idx;
+    u16 map_or_entity_idx;
     int image_idx;
+    int is_entity;
 } transformed_sprite;
 // tranformed into camera space: x, y0, y1, z (y0 and y1 are not actually transformed)
 transformed_sprite *transformed_sprites; //[MAP_SIZE*MAP_SIZE];
@@ -1742,7 +1743,11 @@ transformed_sprite *transformed_sprites; //[MAP_SIZE*MAP_SIZE];
 #define MAX_BILLBOARD_SPRITES ((MAP_SIZE*MAP_SIZE) + MAX_REQUESTED_SPRITES)
 int num_trans_sprites = 0;
 
-int sorted_insert_transformed_sprite(float screen_x0, float screen_x1, float screen_y0, float screen_y1, float world_y0, float world_y1, float cam_space_z, int map_x, int map_y, int image_idx) {
+int sorted_insert_transformed_sprite(
+    float screen_x0, float screen_x1, 
+    float screen_y0, float screen_y1, 
+    float world_y0, float world_y1, float cam_space_z, 
+    int image_idx, int map_or_entity_idx, int is_entity) {
     if(num_trans_sprites >= MAX_BILLBOARD_SPRITES) {
         return -1;
     }
@@ -1761,14 +1766,20 @@ int sorted_insert_transformed_sprite(float screen_x0, float screen_x1, float scr
     transformed_sprites[i].world_y0 = world_y0;
     transformed_sprites[i].world_y1 = world_y1;
     transformed_sprites[i].z = cam_space_z;
-    transformed_sprites[i].map_idx = (map_y*MAP_SIZE+map_x);
+    transformed_sprites[i].map_or_entity_idx = map_or_entity_idx;
+    transformed_sprites[i].is_entity = is_entity;
     transformed_sprites[i].image_idx = image_idx;
     return i;
 }
 
-void transform_and_submit_sprite(float cam_x, float cam_y, float cam_z, float right_x, float right_y, float forward_x, float forward_y, int image_idx, float x, float y, float z, int map_x, int map_y) {
+int transform_and_submit_sprite(
+    float cam_x, float cam_y, float cam_z, 
+    float right_x, float right_y, 
+    float forward_x, float forward_y, 
+    int image_idx, float x, float y, float z, 
+    int map_or_entity_idx, int is_entity) {
     if(image_idx == EMPTY_SPRITE_INDEX) {
-        return;
+        return -1;
     }
 
     float scale = sprite_scales[image_idx];
@@ -1790,27 +1801,28 @@ void transform_and_submit_sprite(float cam_x, float cam_y, float cam_z, float ri
     float width = 1.24f*scale;
     float half_width = width/2.0f;
 
-    if(rot_z < NEAR_PLANE_DIST) { return; }
+    if(rot_z < NEAR_PLANE_DIST) { return -1; }
 
     float screen_x0 = FP_SCREEN_WIDTH/2.0f - ((rot_x-half_width)*FOCAL_LENGTH/rot_z);
     float screen_x1 = FP_SCREEN_WIDTH/2.0f - ((rot_x+half_width)*FOCAL_LENGTH/rot_z);
 
     if(MAX(screen_x0, screen_x1) < 0 || MIN(screen_x0, screen_x1) > FP_SCREEN_WIDTH-1) {
-        return;
+        return -1;
     }
 
     float screen_y0 = project_to_screen(sprite_world_z0, rot_z, pitch, cam_z);
     float screen_y1 = project_to_screen(sprite_world_z1, rot_z, pitch, cam_z);
     // find the correct place to put this transformed sprite
-    sorted_insert_transformed_sprite(
+    return sorted_insert_transformed_sprite(
         screen_x0, screen_x1, screen_y0, screen_y1, sprite_world_z0, sprite_world_z1,
-        rot_z, map_x, map_y, image_idx
+        rot_z, image_idx, map_or_entity_idx, is_entity
     );
 }
 
 
-void draw_transformed_sprites(u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer, int flash_frame, float camera_z, int start_x, int end_x,
-                              int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_thg
+void draw_transformed_sprites(
+    u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer, int flash_frame, float camera_z, int start_x, int end_x,
+    int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_thg
 ) {
     for(int spr = 0; spr < num_trans_sprites; spr++) {
         transformed_sprite sprite = transformed_sprites[spr];
@@ -1821,13 +1833,14 @@ void draw_transformed_sprites(u32* output, edit_wall_id* edit_id_buffer, u16* z_
         float screen_y1 = sprite.y1;
         float z = sprite.z;
         int spr_idx = sprite.image_idx;
+        int is_entity = sprite.is_entity;
+        int map_or_entity_idx = sprite.map_or_entity_idx;
 
         if(screen_x0 > screen_x1) {
             float tmp = screen_x0;
             screen_x0 = screen_x1;
             screen_x1 = tmp;
         }
-        int map_idx = sprite.map_idx;
         if(spr_idx >= NUM_SPRITES || spr_idx == EMPTY_SPRITE_INDEX) {
             continue;
         }
@@ -1848,12 +1861,25 @@ void draw_transformed_sprites(u32* output, edit_wall_id* edit_id_buffer, u16* z_
                     x, screen_y0, screen_y1, sprite.world_y0, sprite.world_y1, TOP_PEGGED, 0, FP_SCREEN_HEIGHT,
                     z, 1.0f, BRIGHT, FOG_COL, NO_REPEAT_TEX, DO_ALPHA_BLEND, DO_DEPTH_TEST
                 );
+                edit_wall_id id_val;
+                if(is_entity) {
+                    id_val = ENTITY_EDIT_ID(map_or_entity_idx);
+                } else {
+                    id_val = MAP_CELL_EDIT_ID(map_or_entity_idx, CELL_SPRITE);
+                }
+                draw_z_buffered_alpha_edit_vline(
+                    edit_id_buffer, z_buffer, tex_col,
+                    x, screen_y0, screen_y1, z, 0, FP_SCREEN_HEIGHT, 
+                    id_val,
+                    DO_DEPTH_TEST, DO_ALPHA_TEST
+                );
                 if(editor_mode_enabled) {
-                    draw_z_buffered_alpha_edit_vline(
-                        edit_id_buffer, z_buffer, tex_col,
-                        x, screen_y0, screen_y1, z, 0, FP_SCREEN_HEIGHT, map_idx, CELL_SPRITE, DO_DEPTH_TEST, DO_ALPHA_TEST
+                    int selected = (editor_selected_map_idx == map_or_entity_idx && 
+                        ((is_entity && editor_selected_thg == ENTITY) || 
+                         (!is_entity && editor_selected_thg == CELL_SPRITE))
                     );
-                    if(flash_frame && editor_selected_map_idx == map_idx && editor_selected_thg == CELL_SPRITE) {
+
+                    if(flash_frame && selected) {
                         draw_z_buffered_alpha_tint_vline(
                             output, z_buffer, tex_col,
                             x, screen_y0, screen_y1, z, 0, FP_SCREEN_HEIGHT, DO_DEPTH_TEST, DO_ALPHA_TEST
@@ -1887,27 +1913,38 @@ void draw_sprites_wrapper(void* arg_var) {
 typedef struct { 
     float x, y, z;
     u8 image_idx;
+    u16 entity_id;
 } requested_sprite;
 
 int num_requested_sprites = 0;
 requested_sprite *requested_sprites;//[MAX_REQUESTED_SPRITES];
 
-int request_draw_sprite(float x, float y, float z, u8 image_idx) {
+int request_draw_sprite(float x, float y, float z, int entity_idx, u8 image_idx) {
     if(num_requested_sprites < MAX_REQUESTED_SPRITES) {
         requested_sprites[num_requested_sprites].x = x;
         requested_sprites[num_requested_sprites].y = y;
         requested_sprites[num_requested_sprites].z = z;
         requested_sprites[num_requested_sprites].image_idx = image_idx;
+        if(entity_idx < 0) {
+            entity_idx = INVALID_ENTITY_ID; // invalid entity id
+        }
+        requested_sprites[num_requested_sprites].entity_id = entity_idx;
         return num_requested_sprites++;
     }
     return -1;
 }
 
-int request_draw_screen_space_sprite(float screen_x0, float screen_x1, float screen_y0, float screen_y1, u8 image_idx) {
+int request_draw_screen_space_sprite(
+    float screen_x0, float screen_x1, float screen_y0, float screen_y1, 
+    u8 image_idx, int entity_id
+) {
+    if(entity_id < 0) {
+        entity_id = INVALID_ENTITY_ID;
+    }
     return sorted_insert_transformed_sprite(screen_x0, screen_x1, screen_y0, screen_y1,
         0, 8, // these don't matter.  just tell the draw routine they're 8 units high so it doesn't repeat the texture
         NEAR_PLANE_DIST+0.01f,
-        0, 0, image_idx
+        image_idx, entity_id, 1
     );
 }
 
@@ -1986,6 +2023,9 @@ void render_frame(
 #endif
 
     {
+        // draw the sprites we reached via raycasting
+        // these are not entities but have a map idx
+
         float sinang = my_sinf(player_ang);
         float cosang = my_cosf(player_ang);
 
@@ -2010,16 +2050,34 @@ void render_frame(
 
                 int map_y = sector/MAP_SIZE;
                 int map_x = sector - (map_y*MAP_SIZE);
-                //u8 idx = this_level->sprite_index[sector].index;
                 int image_idx = this_level->sprite_index[sector];
                 float map_z = get_height_at_point_for_sprites(map_x, map_y, 0);
-                transform_and_submit_sprite(player_x, player_y, player_z, right_x, right_y, forward_x, forward_y, image_idx, map_x+0.5f, map_y+0.5f, map_z, map_x, map_y);
+                transform_and_submit_sprite(
+                    player_x, player_y, player_z, 
+                    right_x, right_y, 
+                    forward_x, forward_y, 
+                    image_idx, 
+                    map_x+0.5f, map_y+0.5f, map_z,
+                    map_y*MAP_SIZE+map_x, 
+                    0 // not an entity
+                );
                 
             }
         }
 
+        // next are requested sprites
+        // these do not have a map idx and correspond to entities
         for(int i = 0; i < num_requested_sprites; i++) {
-            transform_and_submit_sprite(player_x, player_y, player_z, right_x, right_y, forward_x, forward_y, requested_sprites[i].image_idx, requested_sprites[i].x, requested_sprites[i].y, requested_sprites[i].z, 0, 0);
+            transform_and_submit_sprite(
+                player_x, player_y, player_z, 
+                right_x, right_y, 
+                forward_x, forward_y, 
+                requested_sprites[i].image_idx, 
+                requested_sprites[i].x, 
+                requested_sprites[i].y, 
+                requested_sprites[i].z, 
+                requested_sprites[i].entity_id, 
+                1);
         }
 
     #ifndef PLATFORM_WEB

@@ -158,7 +158,6 @@ void platform_init_window(int width, int height, const char *title) {
     SetProcessDPIAware();
 
     if(g_keys == NULL) {
-        debug_printf("allocating...\n");
         g_keys = my_calloc(sizeof(int)*256, "key buffer");
     }
     if(g_keys_prev == NULL) {

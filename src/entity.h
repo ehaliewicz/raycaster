@@ -9,7 +9,9 @@ typedef enum {
 
 
 void step_entities(float player_x, float player_y, float player_z);
+void draw_entities();
 void spawn_entity(int entity_type, float x, float y, float z, float ang, int ticks);
+void damage_entity(int damage, int entity_id);
 void wakeup_entities(float player_x, float player_y, float player_z);
 void init_entities_module();
 #endif

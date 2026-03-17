@@ -190,10 +190,14 @@ typedef enum {
     WALL_SIDE_UPPER_DIAG,
     WALL_SIDE_LOWER_DIAG,
     CELL_SPRITE,
-    N_SPRITE, E_SPRITE, S_SPRITE, W_SPRITE,
+    N_SPRITE, 
+    E_SPRITE, 
+    S_SPRITE, 
+    W_SPRITE,
     FLOOR_SPRITE,
     CEIL_SPRITE,
-    MIDDLE_SPRITE
+    MIDDLE_SPRITE,
+    ENTITY
 } editor_selected_thing;
 
 
@@ -211,9 +215,33 @@ typedef enum {
     FLICKER = 3
 } light_levels;
 
+#define INVALID_ENTITY_ID 32767
+#define OTHER_PLAYER_ENTITY_ID 32766
+#define BRANDISHED_ITEM_ENTITY_ID 32765
 
+typedef enum {
+    MAP_CELL_EDIT_ID_TYPE,
+    ENTITY_EDIT_ID_TYPE
+} entity_id_type;
 
-typedef u16 edit_wall_id;
+typedef union {
+    u16 entity_idx:15;
+    struct {
+        u16 wall_side:5;
+        u16 map_idx:10;
+    };
+} entity_or_map_idx;
+
+typedef union {
+    u16 full_val;
+    struct {
+        u16 type:1;
+        u16 idx:15;
+    };
+} edit_wall_id;
+
+#define MAP_CELL_EDIT_ID(map_idx, side) ((edit_wall_id){.type = MAP_CELL_EDIT_ID_TYPE, .idx = (map_idx<<5)|side})
+#define ENTITY_EDIT_ID(entity_idx) ((edit_wall_id){.type = ENTITY_EDIT_ID_TYPE, .idx = (entity_idx)})
 
 extern float player_x, player_y, player_z;
 extern float player_ang;
@@ -262,5 +290,8 @@ typedef struct {
 #define RAD2DEG (57.29577f)
 #define RED (0xFFFF0000)
 #define WHITE (0xFFFFFFFF)
+
+void game_over();
+void you_win();
 
 #endif

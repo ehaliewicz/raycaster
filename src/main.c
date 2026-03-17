@@ -12,6 +12,7 @@
 
 #include "collision.h"
 #include "common.h"
+#include "draw.h"
 #include "entity.h"
 #include "lz.h"
 #include "network.h"
@@ -26,7 +27,7 @@ typedef enum {
 #define NUM_RENDER_MODES 3
 
 int editor_mode_enabled = 0;
-int editor_selected_map_idx = -1;
+int editor_selected_idx = -1;
 editor_selected_thing editor_selected_side;
 
 const int resolutions[NUM_RESOLUTIONS][2] = {
@@ -66,9 +67,16 @@ void handle_click(edit_wall_id* prev_rendered_id_buffer, int render_x, int rende
     edit_wall_id id = prev_rendered_id_buffer[(FP_SCREEN_WIDTH-1-render_x)*FP_SCREEN_HEIGHT+(render_y)];
     //editor_selected_map_idx = (id) & 0xFFFF; //id.cell_idx;
     //editor_selected_side = (id>>16)&0xFF;// id.side;
-    editor_selected_map_idx = id&0b1111111111;
-    editor_selected_side = (id>>10)&0b11111;
-
+    
+    //editor_selected_idx = id&0b1111111111;
+    //editor_selected_side = (id>>10)&0b11111;
+    if(id.type == MAP_CELL_EDIT_ID_TYPE) {
+        editor_selected_idx = id.idx>>5;
+        editor_selected_side = id.idx&0b11111;
+    } else {
+        editor_selected_idx = id.idx;
+        editor_selected_side = ENTITY;
+    }
 }
 
 
@@ -148,7 +156,7 @@ float cur_player_height = STANDING_HEIGHT;
 float cur_player_speed = WALK_SPEED;
 float player_vel_z = 0.0f;
 
-#define FALL_GRAVITY_ACCEL -0.065f
+#define FALL_GRAVITY_ACCEL -0.060f
 #define JUMP_GRAVITY_ACCEL -0.008f
 #define JUMP_VEL 0.15f
 #define FALL_CROUCH_DURATION 0.20f
@@ -180,7 +188,7 @@ void update_particles() {
 void draw_particles() {
     for(int i = 0; i < MAX_PARTICLES; i++) {
         if(particles[i].ttl <= 0) { continue; }
-        request_draw_sprite(particles[i].world_x, particles[i].world_y, particles[i].world_z, particles[i].sprite_idx);
+        request_draw_sprite(particles[i].world_x, particles[i].world_y, particles[i].world_z, INVALID_ENTITY_ID, particles[i].sprite_idx);
     }
 }
 void add_particle(float x, float y, float z, int ttl, int sprite_idx) {
@@ -199,6 +207,37 @@ void add_particle(float x, float y, float z, int ttl, int sprite_idx) {
 
 #define REVOLVER_FIRE_DURATION (.28f)
 float revolver_firing = 0.0f;
+
+typedef enum {
+    FIGHTING,
+    WON,
+    DEAD
+} game_state;
+
+game_state cur_game_state = FIGHTING;
+
+int entities_woke = 0;
+
+float adjust_position_for_door(float pos, int open_amount) {
+    int map_pos = my_floorf(pos);
+    float adjusted = pos;
+    float sub = pos - my_floorf(pos);
+    if(sub >= 0.9f) {
+        adjusted = my_floorf(pos+1.0f)+PLAYER_RADIUS+0.1f;
+    } else if(open_amount >= DOOR_FULLY_OPEN) {
+        float max_in_cell = (((float)open_amount-DOOR_FULLY_OPEN)/(255-DOOR_FULLY_OPEN));
+        if(sub > max_in_cell) {
+            adjusted = my_floorf(pos) + max_in_cell;
+
+            if((int)player_x != map_pos) {
+                adjusted = my_floorf(pos)+(PLAYER_RADIUS-0.1f);
+            }
+        }
+    } else {
+        adjusted = my_floorf(pos)- (PLAYER_RADIUS+0.1f);
+    }
+    return adjusted;
+}
 
 void update_player(float frame_time, Vector2 mouse_delta) {
     const float frame_mult = frame_time / 16.0f;
@@ -240,33 +279,25 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         int_open_amount = CLAMP(int_open_amount, 0, 255);
 
         levels[cur_level_idx].parameter[timer_door] = int_open_amount;
-        int pmx = player_x;
-        int pmy = player_y;
+        int pmx = my_floorf(player_x);
+        int pmy = my_floorf(player_y);
         if(pmy*MAP_SIZE+pmx == timer_door) {
+            cell_types door_type = levels[cur_level_idx].lower_cell_types[timer_door];
+
             // we are *INSIDE* the door
             if(door_closing) {
+                float subx = player_x - my_floorf(player_x);
                 float suby = player_y - my_floorf(player_y);
-                if(suby >= 0.9f) {
-                    player_y = my_floorf(player_y+1.0f)+PLAYER_RADIUS+0.1f;
-                } else if(int_open_amount >= DOOR_FULLY_OPEN) {
-                    float max_y_in_cell = (((float)int_open_amount-DOOR_FULLY_OPEN)/(255-DOOR_FULLY_OPEN));
-                    //debug_printf("open %i max y %f\n", int_open_amount, max_y_in_cell);
-                    if(suby > max_y_in_cell) {
-                        player_y = my_floorf(player_y) + max_y_in_cell;
-
-                        if((int)player_y != pmy) {
-                            player_y = my_floorf(player_y)+(PLAYER_RADIUS-0.1f);
-                        }
-                    }
-                } else {
-                    player_y = my_floorf(player_y)- (PLAYER_RADIUS+0.1f);
+                if(door_type == DOOR_Y) {
+                    player_y = adjust_position_for_door(player_y, int_open_amount);
+                } else if(door_type == DOOR_X) {
+                    player_x = adjust_position_for_door(player_x, int_open_amount);
                 }
             }
-
         }
     }
 
-    if(platform_is_key_down(KEY_ENTER)) {
+    if(platform_is_key_down(KEY_ENTER) || platform_is_mouse_button_pressed(MOUSE_BUTTON_MIDDLE)) {
         if(!door_timer_running) {
             int map_x = player_x;
             int map_y = player_y;
@@ -446,11 +477,11 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         player_ang -= 6.28f;
     }
 
-    if (platform_is_key_down(KEY_I)) {
-        pitch_ang += .0005f*frame_mult;
-    } else if (platform_is_key_down(KEY_K)) {
-        pitch_ang -= .0005f*frame_mult;
-    } else if (platform_is_key_pressed(KEY_SPACE)) {
+    float pitch_speed = 0.01f*frame_mult;
+    float dy = (platform_is_key_down(KEY_I) ? 1.0f : (platform_is_key_down(KEY_K)) ? -1.0f : 0.0f);
+    pitch_ang += dy*pitch_speed;
+
+    if (platform_is_key_pressed(KEY_SPACE)) {
         //pitch = 0;
     }
 
@@ -462,6 +493,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         platform_play_sound(GUNSHOT_WAV);
         revolver_firing = REVOLVER_FIRE_DURATION;
         u16 dist_fixed = zbuf_pointers[0][(FP_SCREEN_WIDTH/2)*FP_SCREEN_HEIGHT+FP_SCREEN_HEIGHT/2];
+        edit_wall_id obj_id = edit_id_buffer_pointers[0][(FP_SCREEN_WIDTH/2)*FP_SCREEN_HEIGHT + FP_SCREEN_HEIGHT/2];
         float dist = ((float)dist_fixed/FIXED_POINT_MULT);
         float dir_x = my_cosf(-player_ang);
         float dir_y = my_sinf(-player_ang);
@@ -471,10 +503,19 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         float world_y = player_y + dir_y * dist;
         float world_z = player_z + dir_z * dist - 1.0f;
 
-        printf("vertical angle of ray %f\n", pitch_ang);
-        printf("world %f %f %f \n", world_x, world_y, world_z);
-        printf("player z %f\n", player_z);
+        //debug_printf("vertical angle of ray %f\n", pitch_ang);
+        //debug_printf("world %f %f %f \n", world_x, world_y, world_z);
+        //debug_printf("player z %f\n", player_z);
         add_particle(world_x, world_y, world_z, 20, SMOKE_PARTICLE_IDX);
+
+        if(obj_id.type == ENTITY_EDIT_ID_TYPE) {
+            damage_entity(10, obj_id.idx);
+            if(!entities_woke) {
+                wakeup_entities(player_x, player_y, player_z);
+                entities_woke = 1;
+            }
+        }
+
     } else if (revolver_firing > 0.0f) {
         revolver_firing -= frame_seconds;
         revolver_firing = MAX(0.0f, revolver_firing);
@@ -645,118 +686,120 @@ void handle_editor() {
         u8* height_ptr = NULL;
         u8* anchor_ptr = NULL;
         u8* spr_ptr = NULL;
-        cell_types lower_cell_type = levels[cur_level_idx].lower_cell_types[editor_selected_map_idx];
-        cell_types upper_cell_type = levels[cur_level_idx].upper_cell_types[editor_selected_map_idx];
+        cell_types lower_cell_type = levels[cur_level_idx].lower_cell_types[editor_selected_idx];
+        cell_types upper_cell_type = levels[cur_level_idx].upper_cell_types[editor_selected_idx];
             switch(editor_selected_side) {
+            case ENTITY:
+                break;
             case WALL_SIDE_BOTTOM:
-                height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
-                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_map_idx];
+                height_ptr = &levels[cur_level_idx].ceil[editor_selected_idx];
+                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_idx];
                 break;
 
             case WALL_SIDE_UPPER_NORTH: do {
                 if(upper_cell_type != NORMAL_CELL) {
-                    height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_idx];
                 } else {
-                    height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].ceil[editor_selected_idx];
                 }
-                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_map_idx];
+                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_idx];
             } while(0);
                 break;
             case WALL_SIDE_UPPER_EAST: do {
                 if(upper_cell_type == NW_TO_SE_DIAG) {
-                    height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_idx];
                 } else {
-                    height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].ceil[editor_selected_idx];
                 }
-                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_map_idx];
+                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_idx];
             } while(0);
                 break;
             case WALL_SIDE_UPPER_SOUTH:
-                    height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
-                    anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].ceil[editor_selected_idx];
+                    anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_WEST: do {
                 if(upper_cell_type == NE_TO_SW_DIAG) {
-                    height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_idx];
                 } else {
-                    height_ptr = &levels[cur_level_idx].ceil[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].ceil[editor_selected_idx];
                 }
-                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_map_idx];
+                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_idx];
             } while(0);
                 break;
             case WALL_SIDE_UPPER_DIAG:
             case WALL_SIDE_UPPER_BOTTOM:
-                height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_map_idx];
-                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_map_idx];
+                height_ptr = &levels[cur_level_idx].upper_ceil[editor_selected_idx];
+                anchor_ptr = &levels[cur_level_idx].ceil_anchor[editor_selected_idx];
                 break;
 
 
             case WALL_SIDE_LOWER_NORTH: do {
                 if(lower_cell_type != NORMAL_CELL) {
-                    height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_idx];
                 } else {
-                    height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].floor[editor_selected_idx];
                 }
-                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_map_idx];
+                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_idx];
             } while(0);
                 break;
             case WALL_SIDE_LOWER_EAST: do {
                 if(lower_cell_type == NW_TO_SE_DIAG) {
-                    height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_idx];
                 } else {
-                    height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].floor[editor_selected_idx];
                 }
-                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_map_idx];
+                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_idx];
             } while(0);
                 break;
             case WALL_SIDE_LOWER_SOUTH:
-                height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
-                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_map_idx];
+                height_ptr = &levels[cur_level_idx].floor[editor_selected_idx];
+                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_idx];
                 break;
             case WALL_SIDE_LOWER_WEST: do {
                 if(lower_cell_type == NE_TO_SW_DIAG) {
-                    height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_idx];
                 } else {
-                    height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
+                    height_ptr = &levels[cur_level_idx].floor[editor_selected_idx];
                 }
-                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_map_idx];
+                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_idx];
             } while(0);
                 break;
 
 
             case WALL_SIDE_TOP:   
-                height_ptr = &levels[cur_level_idx].floor[editor_selected_map_idx];
-                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_map_idx];
+                height_ptr = &levels[cur_level_idx].floor[editor_selected_idx];
+                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_TOP:  
             case WALL_SIDE_LOWER_DIAG:
-                height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_map_idx];
-                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_map_idx];
+                height_ptr = &levels[cur_level_idx].upper_floor[editor_selected_idx];
+                anchor_ptr = &levels[cur_level_idx].floor_anchor[editor_selected_idx];
                 break;
             case FLOOR_SPRITE:
-                spr_ptr = &levels[cur_level_idx].f_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].f_sprite_index[editor_selected_idx];
                 break;
             case CEIL_SPRITE:
-                spr_ptr = &levels[cur_level_idx].c_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].c_sprite_index[editor_selected_idx];
                 break;
             case MIDDLE_SPRITE:
-                spr_ptr = &levels[cur_level_idx].m_sprite_index[editor_selected_map_idx];
-                height_ptr = &levels[cur_level_idx].m_sprite_offset[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].m_sprite_index[editor_selected_idx];
+                height_ptr = &levels[cur_level_idx].m_sprite_offset[editor_selected_idx];
                 break;
             case CELL_SPRITE:
-                spr_ptr = &levels[cur_level_idx].sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].sprite_index[editor_selected_idx];
                 break;
             case N_SPRITE:
-                spr_ptr = &levels[cur_level_idx].n_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].n_sprite_index[editor_selected_idx];
                 break;
             case E_SPRITE:
-                spr_ptr = &levels[cur_level_idx].e_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].e_sprite_index[editor_selected_idx];
                 break;
             case S_SPRITE:
-                spr_ptr = &levels[cur_level_idx].s_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].s_sprite_index[editor_selected_idx];
                 break;
             case W_SPRITE:
-                spr_ptr = &levels[cur_level_idx].w_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].w_sprite_index[editor_selected_idx];
                 break;
         }
         if(anchor_ptr != NULL && platform_is_key_down(KEY_CONTROL)) {
@@ -775,47 +818,47 @@ void handle_editor() {
                 if (platform_is_key_down(KEY_CONTROL) && (editor_selected_side == CEIL_SPRITE)) {
                     // move to ceil position
                     editor_selected_side = MIDDLE_SPRITE;
-                    levels[cur_level_idx].m_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                    levels[cur_level_idx].m_sprite_index[editor_selected_idx] = *spr_ptr;
                     *spr_ptr = EMPTY_SPRITE_INDEX;
                 } else if (platform_is_key_down(KEY_CONTROL) && (editor_selected_side != FLOOR_SPRITE)) {
                     // move to middle position
                     editor_selected_side = FLOOR_SPRITE;
-                    levels[cur_level_idx].f_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                    levels[cur_level_idx].f_sprite_index[editor_selected_idx] = *spr_ptr;
                     *spr_ptr = EMPTY_SPRITE_INDEX;
                 } else if ((!platform_is_key_down(KEY_CONTROL)) && editor_selected_side != N_SPRITE) {
                     editor_selected_side = N_SPRITE;
-                    levels[cur_level_idx].n_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                    levels[cur_level_idx].n_sprite_index[editor_selected_idx] = *spr_ptr;
                     *spr_ptr = EMPTY_SPRITE_INDEX;
                 }
             } else if (dy == 1) {
                  if (platform_is_key_down(KEY_CONTROL) && (editor_selected_side == FLOOR_SPRITE)) {
                     // move to middle position
                     editor_selected_side = MIDDLE_SPRITE;
-                    levels[cur_level_idx].m_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                    levels[cur_level_idx].m_sprite_index[editor_selected_idx] = *spr_ptr;
                     *spr_ptr = EMPTY_SPRITE_INDEX;
                 } else if (platform_is_key_down(KEY_CONTROL) && (editor_selected_side != CEIL_SPRITE)) {
                     // move to floor position
                     editor_selected_side = CEIL_SPRITE;
-                    levels[cur_level_idx].c_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                    levels[cur_level_idx].c_sprite_index[editor_selected_idx] = *spr_ptr;
                     *spr_ptr = EMPTY_SPRITE_INDEX;
                 } else if ((!platform_is_key_down(KEY_CONTROL)) && editor_selected_side != S_SPRITE) {
                     editor_selected_side = S_SPRITE;
-                    levels[cur_level_idx].s_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                    levels[cur_level_idx].s_sprite_index[editor_selected_idx] = *spr_ptr;
                     *spr_ptr = EMPTY_SPRITE_INDEX;
                 }
              } else if (dx == -1 && editor_selected_side != W_SPRITE) {
                 editor_selected_side = W_SPRITE;
-                levels[cur_level_idx].w_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                levels[cur_level_idx].w_sprite_index[editor_selected_idx] = *spr_ptr;
                 *spr_ptr = EMPTY_SPRITE_INDEX;
             } else if (dx == 1 && editor_selected_side != E_SPRITE) {
-                levels[cur_level_idx].e_sprite_index[editor_selected_map_idx] = *spr_ptr;
+                levels[cur_level_idx].e_sprite_index[editor_selected_idx] = *spr_ptr;
                 editor_selected_side = E_SPRITE;
                 *spr_ptr = EMPTY_SPRITE_INDEX;
             }
         }
 
     } else if (key == KEY_P) {
-        int idx = editor_selected_map_idx;
+        int idx = editor_selected_idx;
         //int y = idx / 32;
         //int x = (idx- (y*32));
         u8* spr_ptr = NULL;
@@ -863,7 +906,7 @@ void handle_editor() {
             case WALL_SIDE_UPPER_WEST:
             case WALL_SIDE_UPPER_DIAG:
             case WALL_SIDE_UPPER_BOTTOM:
-                type_ptr = &levels[cur_level_idx].upper_cell_types[editor_selected_map_idx];
+                type_ptr = &levels[cur_level_idx].upper_cell_types[editor_selected_idx];
                 break;
             case WALL_SIDE_TOP:   
             case WALL_SIDE_LOWER_NORTH:
@@ -872,7 +915,7 @@ void handle_editor() {
             case WALL_SIDE_LOWER_WEST:
             case WALL_SIDE_UPPER_TOP:  
             case WALL_SIDE_LOWER_DIAG:
-                type_ptr = &levels[cur_level_idx].lower_cell_types[editor_selected_map_idx];
+                type_ptr = &levels[cur_level_idx].lower_cell_types[editor_selected_idx];
                 break;
             default:
                 break;
@@ -888,46 +931,46 @@ void handle_editor() {
         u8* light_ptr = NULL;
         switch(editor_selected_side) { 
             case WALL_SIDE_BOTTOM:
-                light_ptr = &levels[cur_level_idx].c_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].c_light[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_BOTTOM:
-                light_ptr = &levels[cur_level_idx].uc_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].uc_light[editor_selected_idx];
                 break;
             case WALL_SIDE_TOP:
-                light_ptr = &levels[cur_level_idx].f_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].f_light[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_TOP:
-                light_ptr = &levels[cur_level_idx].uf_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].uf_light[editor_selected_idx];
                 break;
             case WALL_SIDE_LOWER_NORTH:
-                light_ptr = &levels[cur_level_idx].ln_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].ln_light[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_NORTH:
-                light_ptr = &levels[cur_level_idx].un_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].un_light[editor_selected_idx];
                 break;
             case WALL_SIDE_LOWER_EAST:
-                light_ptr = &levels[cur_level_idx].le_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].le_light[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_EAST:
-                light_ptr = &levels[cur_level_idx].ue_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].ue_light[editor_selected_idx];
                 break;
             case WALL_SIDE_LOWER_SOUTH:
-                light_ptr = &levels[cur_level_idx].ls_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].ls_light[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_SOUTH:
-                light_ptr = &levels[cur_level_idx].us_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].us_light[editor_selected_idx];
                 break;
             case WALL_SIDE_LOWER_WEST:
-                light_ptr = &levels[cur_level_idx].lw_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].lw_light[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_WEST:
-                light_ptr = &levels[cur_level_idx].uw_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].uw_light[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_DIAG:
-                light_ptr = &levels[cur_level_idx].ud_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].ud_light[editor_selected_idx];
                 break;
             case WALL_SIDE_LOWER_DIAG:
-                light_ptr = &levels[cur_level_idx].ld_light[editor_selected_map_idx];
+                light_ptr = &levels[cur_level_idx].ld_light[editor_selected_idx];
                 break;
             default:
                 break;
@@ -942,71 +985,73 @@ void handle_editor() {
         u8* tex_ptr = NULL;
         u8* spr_ptr = NULL;
         switch(editor_selected_side) {
+            case ENTITY:
+                break;
             case WALL_SIDE_BOTTOM:
-                tex_ptr = &levels[cur_level_idx].ctex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].ctex[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_BOTTOM:
-                tex_ptr = &levels[cur_level_idx].uctex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].uctex[editor_selected_idx];
                 break;
             case WALL_SIDE_TOP:
-                tex_ptr = &levels[cur_level_idx].ftex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].ftex[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_TOP:
-                tex_ptr = &levels[cur_level_idx].uftex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].uftex[editor_selected_idx];
                 break;
             case WALL_SIDE_LOWER_NORTH:
-                tex_ptr = &levels[cur_level_idx].lntex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].lntex[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_NORTH:
-                tex_ptr = &levels[cur_level_idx].untex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].untex[editor_selected_idx];
                 break;
             case WALL_SIDE_LOWER_EAST:
-                tex_ptr = &levels[cur_level_idx].letex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].letex[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_EAST:
-                tex_ptr = &levels[cur_level_idx].uetex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].uetex[editor_selected_idx];
                 break;
             case WALL_SIDE_LOWER_SOUTH:
-                tex_ptr = &levels[cur_level_idx].lstex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].lstex[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_SOUTH:
-                tex_ptr = &levels[cur_level_idx].ustex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].ustex[editor_selected_idx];
                 break;
             case WALL_SIDE_LOWER_WEST:
-                tex_ptr = &levels[cur_level_idx].lwtex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].lwtex[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_WEST:
-                tex_ptr = &levels[cur_level_idx].uwtex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].uwtex[editor_selected_idx];
                 break;
             case WALL_SIDE_UPPER_DIAG:
-                tex_ptr = &levels[cur_level_idx].udtex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].udtex[editor_selected_idx];
                 break;
             case WALL_SIDE_LOWER_DIAG:
-                tex_ptr = &levels[cur_level_idx].ldtex[editor_selected_map_idx];
+                tex_ptr = &levels[cur_level_idx].ldtex[editor_selected_idx];
                 break;
             case MIDDLE_SPRITE:
-                spr_ptr = &levels[cur_level_idx].m_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].m_sprite_index[editor_selected_idx];
                 break;
             case CEIL_SPRITE:
-                spr_ptr = &levels[cur_level_idx].c_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].c_sprite_index[editor_selected_idx];
                 break;
             case FLOOR_SPRITE:
-                spr_ptr = &levels[cur_level_idx].f_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].f_sprite_index[editor_selected_idx];
                 break;
             case CELL_SPRITE:
-                spr_ptr = &levels[cur_level_idx].sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].sprite_index[editor_selected_idx];
                 break;
             case N_SPRITE:
-                spr_ptr = &levels[cur_level_idx].n_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].n_sprite_index[editor_selected_idx];
                 break;
             case E_SPRITE:
-                spr_ptr = &levels[cur_level_idx].e_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].e_sprite_index[editor_selected_idx];
                 break;
             case S_SPRITE:
-                spr_ptr = &levels[cur_level_idx].s_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].s_sprite_index[editor_selected_idx];
                 break;
             case W_SPRITE:
-                spr_ptr = &levels[cur_level_idx].w_sprite_index[editor_selected_map_idx];
+                spr_ptr = &levels[cur_level_idx].w_sprite_index[editor_selected_idx];
                 break;
         }
         if(tex_ptr != NULL) {
@@ -1186,6 +1231,11 @@ float get_abs_time() {
 
 float player_height = STANDING_HEIGHT;
 
+void init_game();
+
+int launch_in_edit_mode = 0;
+int killed_all_the_foxs = 0;
+
 void run_game() {
     platform_begin_frame();
     if(!platform_is_window_focused()) {
@@ -1213,10 +1263,18 @@ void run_game() {
         pitch_ang = prev_pitch;
     }
 
+    clear_requested_sprites();
+
     update_particles();
     
-    update_player(frame_time_ms, mouse_delta);
 
+    if(cur_game_state == DEAD || cur_game_state == WON) {
+        if(platform_is_key_pressed(KEY_ENTER)) {
+            init_game();
+        }
+    } else {
+        update_player(frame_time_ms, mouse_delta);
+    }
     
     //u16* zbuffer_prev_pix = zbuf_pointers[(frame+1)&0b1];
     //edit_wall_id* edit_prev_buf = edit_id_buffer_pointers[(frame+1)&0b1];
@@ -1235,42 +1293,35 @@ void run_game() {
         Vector2 mouse_pos = platform_get_mouse_position();
         handle_click(edit_draw_buf, FP_SCREEN_WIDTH*mouse_pos.x/OUTPUT_WIDTH, FP_SCREEN_HEIGHT*mouse_pos.y/OUTPUT_HEIGHT);
     }
-#define ENABLE_EDITOR
-#ifdef ENABLE_EDITOR
-    if (platform_is_key_pressed(KEY_E)) {
+    if (launch_in_edit_mode && platform_is_key_pressed(KEY_E)) {
         editor_mode_enabled = !editor_mode_enabled;
     }
-#endif
-#if 1
     if (platform_is_key_pressed(KEY_Z)) {
         render_mode++;
         if(render_mode >= NUM_RENDER_MODES) {
             render_mode = 0;
         }
     }
-#endif
 
     if(editor_mode_enabled) {
         // clear editor buffer?
         handle_editor();
     } else if (platform_is_key_pressed(KEY_R)) {
         
-        if(platform_is_key_down(KEY_SHIFT)) { // | platform_is_key_down(KEY_RSHIFT)) {
+        if(platform_is_key_down(KEY_CONTROL)) { // | platform_is_key_down(KEY_RSHIFT)) {
             requested_render_scale <<= 1;
             if(requested_render_scale > 4) {
                 requested_render_scale = 1;
             }
-        } else {
+        } else if(platform_is_key_down(KEY_SHIFT)) {
             requested_render_res++;
             if(requested_render_res >= NUM_RESOLUTIONS) {
                 requested_render_res = 0;
             }
         }
         
-    } else if (platform_is_key_pressed(KEY_V)) {
-    #if 0
+    } else if (platform_is_key_pressed(KEY_V) && platform_is_key_down(KEY_SHIFT)) {
         requested_use_vsync = !requested_use_vsync;
-    #endif
     } else if (platform_is_key_pressed(KEY_F) && platform_is_key_down(KEY_SHIFT)) {
         requested_fullscreen = !requested_fullscreen;
     }
@@ -1291,11 +1342,12 @@ void run_game() {
     //}
 
     
-    clear_requested_sprites();
-
-    step_entities(player_x, player_y, player_z);
+    if(!editor_mode_enabled) {
+        step_entities(player_x, player_y, player_z);
+    }
+    draw_entities();
     if(got_other_player_pos) {
-        request_draw_sprite(last_other_player_x, last_other_player_y, last_other_player_z-cur_player_height, 20);
+        request_draw_sprite(last_other_player_x, last_other_player_y, last_other_player_z-cur_player_height, OTHER_PLAYER_ENTITY_ID, 20);
     }
 
     float seconds = get_running_time();
@@ -1313,6 +1365,7 @@ void run_game() {
 
         for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
             zbuffer_draw[i] = DARK_DIST*FIXED_POINT_MULT;
+            edit_draw_buf[i] = ENTITY_EDIT_ID(INVALID_ENTITY_ID);
         }
 
         // fixes a bug at angle zero
@@ -1349,12 +1402,20 @@ void run_game() {
                 1*revolver_size, 
                 pos,//FP_SCREEN_HEIGHT-revolver_size, 
                 pos+revolver_size,//FP_SCREEN_HEIGHT, 
-                REVOLVER_FIRST_PERSON_SPRITE_INDEX);
+                REVOLVER_FIRST_PERSON_SPRITE_INDEX, BRANDISHED_ITEM_ENTITY_ID);
             
         }
         draw_particles();
     
 
+        int needs_join = 0;
+        if(cur_game_state == DEAD || cur_game_state == WON) {
+            float du = 1.0f / FP_SCREEN_WIDTH;
+            float dv = 1.0f / FP_SCREEN_HEIGHT;
+            u32* bmp = sprites[(cur_game_state == DEAD) ? YOU_DIED_IDX : YOU_WIN_IDX];
+            for(int x = 0; x < FP_SCREEN_WIDTH; x++) {
+                float u = x*du;
+                u32* column = get_extra_big_texture_column(bmp, u);
 
 
         launch_render_frame(render_draw_pix, edit_draw_buf, zbuffer_draw,
@@ -1369,9 +1430,13 @@ void run_game() {
                 join_render_frame();
                 needs_join = 0;    
                 for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
-                    u16 map_idx = edit_draw_buf[i]&0b1111111111;
-                    u16 side = (edit_draw_buf[i]>>10)&0b11111;
-                    upload_draw_pix[i] = (0xFF<<24)|(side << 16)|map_idx;
+                    u16 edit_draw_id = edit_draw_buf[i].full_val;
+                    //u16 map_idx = edit_draw_buf[i]&0b1111111111;
+                    //u16 side = (edit_draw_buf[i]>>10)&0b11111;
+                    u8 r = ((edit_draw_id)>>10)&0b11111;
+                    u8 g = ((edit_draw_id)>>5)&0b11111;
+                    u8 b = ((edit_draw_id)>>0)&0b11111;
+                    upload_draw_pix[i] = (0xFF<<24)|(r<<16)|(g<<8)|b; // 16 bits
                 }
                 platform_update_texture(upload_tex, (u32*)upload_draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
                 break;
@@ -1414,8 +1479,8 @@ void run_game() {
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 20}, 18, 1, RED);
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
-        //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
-        //debug_printf("%4.0f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
+        debug_printf("p %f %f %f\n", player_x, player_y, player_z);
+        debug_printf("%4.0f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
     } platform_end_drawing();
 
     
@@ -1456,9 +1521,6 @@ void run_game() {
     }
 #endif
     
-    
-    
-
     frame++;
     float frame_end_time = get_abs_time();
     running_time += (frame_end_time - frame_start_time);
@@ -1468,12 +1530,20 @@ void run_game() {
 
 #define MAP_SAVE_FILE "map_save"
 void init_game() {
+    entities_woke = 0;
+    cur_game_state = FIGHTING;
+    got_whiskey = 0;
+    got_revolver = 0;
+    init_particle_system();
+    init_raycast_module();
+    init_entities_module();
 
     if(load_resources()) {
         debug_printf("Error loading resources\n");
         exit(1);
 
     } 
+    debug_printf("Loading map data...\n");
     int num_loaded_bytes;
     u8* loaded_bytes = platform_load_file_data(MAP_SAVE_FILE, &num_loaded_bytes);
     
@@ -1484,39 +1554,43 @@ void init_game() {
         compressed* comp = (compressed*)loaded_bytes;
 
         if(comp->uncompressed_size != sizeof(level)*NUM_LEVELS) {
-            //puts("error loading map!!!!!\n");
             debug_printf("Uncompressed size doesn't match expectations");
             exit(1);
 
-            //exit(1);
         }
-        //u8* decompressed = decompress(comp);
         u8* decompressed_ptr;
         int decompressed_size = decompress(comp, &decompressed_ptr);
         if(decompressed_size == -1) {
             debug_printf("failed to decompress, header mismatch? :(");
+            exit(1);
         }
         levels = (level*)decompressed_ptr;
-        //levels = my_malloc(sizeof(level)*NUM_LEVELS, "level data");
-        //my_memcpy(levels, decompressed, comp->uncompressed_size);
-        //free(decompressed);
-        debug_printf("Loaded map data\n");
         init_level(0);
-        //levels = (level*)decompress(comp);
     } else {
         levels = my_malloc(sizeof(level)*NUM_LEVELS, "level data");
         init_level(1);
     }
-    //levels = my_malloc(sizeof(level)*NUM_LEVELS, "levels");
+        debug_printf("Done.\n");
 
-
-    //init_level(1);
-    //if(num_loaded_bytes == sizeof(level)*NUM_LEVELS) {
-        //my_memcpy(levels, loaded_bytes, num_loaded_bytes); //sizeof(level)*NUM_LEVELS);
-    //} else {
-    //    puts("Initializing new map data");
-    //    init_level(1);
-    //}     
+    
+    if(!killed_all_the_foxs) { //launch_in_edit_mode) {
+        int max_foxs = 30;
+        int ticks = 1;
+        for(int x = 1; x < 16; x++) {
+            for(int y = 1; y < 31; y++) {
+                if(urand() % 25 == 0) {
+                    spawn_entity(FOX, x, y, 8.5f, 0.0f, ticks++);
+                    if(max_foxs-- == 0) {
+                        goto no_more_foxs;
+                    }
+                }
+                //spawn_entity(FOX, x+0.5f, y, 8.5f, 0.0f, ticks++);
+                //spawn_entity(FOX, x, y+0.5f, 8.5f, 0.0f, ticks++);
+                //spawn_entity(FOX, x+0.5f, y+0.5f, 8.5f, 0.0f, ticks++);
+            }
+        }
+        no_more_foxs:;
+    }
 }
 
 
@@ -1526,7 +1600,6 @@ int WinMain();
 #else 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow);
 #endif
-
 
 // entry point
 #ifdef DEBUG
@@ -1553,45 +1626,30 @@ int WinMain() {
 #else
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
 #endif
-    init_particle_system();
-    init_raycast_module();
-    init_entities_module();
+
+    char* args = GetCommandLineA();
+
+    if(strstr(args, "--editor") != NULL) {
+        int res = strcmp(args, "--editor");
+        printf("launching in edit mode\n");
+        launch_in_edit_mode = 1;
+    }
+    
     init_game();
     //printf("initting window with %i %i\n", OUTPUT_WIDTH, OUTPUT_HEIGHT);
     platform_init_window(OUTPUT_WIDTH, OUTPUT_HEIGHT, "raycaster");
     //change_resolution();
     frame = 0;
-    //int entities_woke = 0;
 
     platform_hide_cursor();
-
-
-    
-    if(0) {
-        int ticks = 1;
-        for(int x = 1; x < 16; x++) {
-            for(int y = 1; y < 31; y++) {
-                spawn_entity(FOX, x, y, 8.5f, 0.0f, ticks++);
-                spawn_entity(FOX, x+0.5f, y, 8.5f, 0.0f, ticks++);
-                spawn_entity(FOX, x, y+0.5f, 8.5f, 0.0f, ticks++);
-                spawn_entity(FOX, x+0.5f, y+0.5f, 8.5f, 0.0f, ticks++);
-            }
-        }
-    }
-    
 
 
 #ifdef PLATFORM_WEB
     emscripten_set_main_loop(run_game, 0, 1);
 #else 
-    int entities_woke = 0;
     while(!platform_window_should_close()) {
         if(platform_is_key_pressed(KEY_B)) {
             //spawn_entity(FOX, player_x, player_y, player_z, 0, 2);
-        }
-        if(platform_is_key_pressed(KEY_ENTER) && !entities_woke) {
-            wakeup_entities(player_x, player_y, player_z);
-            entities_woke = 1;
         }
         if(frame == 5) {
 
@@ -1622,35 +1680,47 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
     levels[cur_level_idx].start_ang = player_ang;
 
 
+    if(launch_in_edit_mode) {
+        debug_printf("Saving map file...\n");
+        size_t level_size = sizeof(level)*NUM_LEVELS;
+        u8* level_data = (u8*)levels;
 
-    size_t level_size = sizeof(level)*NUM_LEVELS;
-    u8* level_data = (u8*)levels;
+        compressed* comp = compress(level_data, sizeof(level)*NUM_LEVELS);
+        size_t comp_size_bytes = ((comp->num_opcodes+7)>>3)+comp->num_operand_bytes;
+        //debug_printf("Compressed %i down to %llu bytes\n", comp->uncompressed_size, sizeof(compressed)+comp_size_bytes);
 
-    compressed* comp = compress(level_data, sizeof(level)*NUM_LEVELS);
-    size_t comp_size_bytes = ((comp->num_opcodes+7)>>3)+comp->num_operand_bytes;
-    debug_printf("Compressed %i down to %lu bytes\n", comp->uncompressed_size, sizeof(compressed)+comp_size_bytes);
-
-    u8* decomp;
-    int decompressed_bytes = decompress(comp, &decomp);
-    if(decompressed_bytes == -1) {
-        debug_printf("decompress not enough bytes\n");
-        exit(1);
-        return 1;
-    }
-    for(size_t i = 0; i < level_size; i++) {
-        if(level_data[i] != decomp[i]) {
-            debug_printf("miscompare at %zu\n", i);
+        u8* decomp;
+        int decompressed_bytes = decompress(comp, &decomp);
+        if(decompressed_bytes == -1) {
+            debug_printf("decompress not enough bytes\n");
             exit(1);
-        return 1;
+            return 1;
         }
-    }
+        for(size_t i = 0; i < level_size; i++) {
+            if(level_data[i] != decomp[i]) {
+                debug_printf("miscompare at %zu\n", i);
+                exit(1);
+            return 1;
+            }
+        }
 
-    if(!platform_save_file_data(MAP_SAVE_FILE, comp, sizeof(compressed)+comp_size_bytes)) {
-    //if(!platform_save_file_data(MAP_SAVE_FILE, levels, sizeof(level)*NUM_LEVELS)) {
-        debug_printf("Error saving file :(\n");
-        return 1;
+        if(!platform_save_file_data(MAP_SAVE_FILE, comp, sizeof(compressed)+comp_size_bytes)) {
+        //if(!platform_save_file_data(MAP_SAVE_FILE, levels, sizeof(level)*NUM_LEVELS)) {
+            debug_printf("Error saving file :(\n");
+            return 1;
+        }
+        debug_printf("Done.\n");
     }
     return 0;
 
 
+}
+
+void game_over() {
+    cur_game_state = DEAD;
+}
+
+void you_win() {
+    cur_game_state = WON;
+    killed_all_the_foxs = 1;
 }

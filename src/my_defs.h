@@ -16,6 +16,7 @@ void *my_memmove(void *dst, const void *src, unsigned int n);
 float my_sqrtf(float x);
 void nop_printf(const char* fmt, ...);
 float lerp(float start, float end, float amount);
+float lerp_colors(u32 col1, u32 col2, float amount);
 
 #ifdef DDEBUG
 #define debug_printf printf 

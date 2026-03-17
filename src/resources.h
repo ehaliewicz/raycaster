@@ -4,7 +4,7 @@
 
 #define NUM_TEXTURES 7
 #define SKYBOX_TEX_IDX 15
-#define NUM_SPRITES 28
+#define NUM_SPRITES 30
 //#define NUM_DECALS 4
 //#define BLANK_DECAL_IDX 0
 
@@ -14,11 +14,13 @@
 #define REVOLVER_SPRITE_INDEX 25
 #define REVOLVER_FIRST_PERSON_SPRITE_INDEX 26
 #define SMOKE_PARTICLE_IDX 27
+#define YOU_DIED_IDX 28
+#define YOU_WIN_IDX 29
 
 #define GUNSHOT_WAV "resources\\gunshot.wav"
 
 int load_resources();
-extern float sprite_scales[];
+extern const float sprite_scales[];
 extern u32* camera_texture;
 
 extern u32** textures;

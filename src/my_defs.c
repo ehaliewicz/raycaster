@@ -1,4 +1,5 @@
 #include "common.h"
+#include <xmmintrin.h>
 
 static const float sin_table[256] = {
     0.00000000f, 0.00615995f, 0.01231966f, 0.01847890f, 0.02463745f, 0.03079506f, 0.03695150f, 0.04310654f, 
@@ -108,17 +109,11 @@ void *my_memmove(void *dst, const void *src, unsigned int n) {
     return dst;
 }
 
+
+
 float my_sqrtf(float x) {
-    if (x < 0) return 0;
-    float r = x * 0.5f;
-    // initial guess using bit hack
-    int i = *(int*)&x;
-    i = 0x5f3759df - (i >> 1);
-    r = *(u8*)&i;
-    // two iterations of newton-raphson, plenty accurate
-    r = r * (1.5f - (x * 0.5f * r * r));
-    r = r * (1.5f - (x * 0.5f * r * r));
-    return x * r;
+    if (x < 0) return -1.0f;
+    return _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(x)));
 }
 
 //#define debug_printf debug_printf
@@ -190,4 +185,34 @@ float lerp(float start, float end, float amount) {
     float result = start + amount*(end - start);
 
     return result;
+}
+
+
+float lerp_colors(u32 col1, u32 col2, float amount) {
+    float a1 = ((col1>>24)&0xFF)/255.0f;
+    float r1 = ((col1>>16)&0xFF)/255.0f;
+    float g1 = ((col1>>8)&0xFF)/255.0f;
+    float b1 = ((col1>>0)&0xFF)/255.0f;
+
+    float a2 = ((col2>>24)&0xFF)/255.0f;
+    float r2 = ((col2>>16)&0xFF)/255.0f;
+    float g2 = ((col2>>8)&0xFF)/255.0f;
+    float b2 = ((col2>>0)&0xFF)/255.0f;
+    float lr = lerp(r1, r2, amount);
+    float lg = lerp(g1, g2, amount);
+    float lb = lerp(b1, b2, amount);
+    float la = lerp(a1, a2, amount);
+
+    int ia = la*255.0f;
+    int ir = lr*255.0f;
+    int ig = lg*255.0f;
+    int ib = lb*255.0f;
+    ia &= 0xFF;
+    ir &= 0xFF;
+    ig &= 0xFF;
+    ib &= 0xFF;
+
+    
+    return (ia<<24)|(ir<<16)|(ig<<8)|ib;
+
 }

@@ -25,8 +25,12 @@ void launch_render_frame(
 void join_render_frame();
 
 
-int request_draw_sprite(float x, float y, float z, u8 image_idx);
-int request_draw_screen_space_sprite(float screen_x0, float screen_x1, float screen_y0, float screen_y1, u8 image_idx);
+int request_draw_sprite(float x, float y, float z, int entity_idx, u8 image_idx);
+
+int request_draw_screen_space_sprite(
+    float screen_x0, float screen_x1, float screen_y0, float screen_y1, 
+    u8 image_idx, int entity_id
+);
 
 void init_raycast_module();
 
