@@ -14,6 +14,44 @@ const float night_light_level_mults[4] = {.50f, 0.25f, .75f, .75f};
 // 0 -> selected_side:5 map_idx:10
 // 1 -> entity_idx:15 (up to 32768)
 
+void draw_pixel(u32* output, int x, int y, u32 col) {
+    if(x < 0 || x >= FP_SCREEN_WIDTH) {
+        return;
+    }
+    if(y < 0 || y >= FP_SCREEN_HEIGHT) {
+        return;
+    }
+    output[x*FP_SCREEN_HEIGHT+y] = col;
+}
+
+void draw_circle(u32* output, int x, int y, int rad, u32 col) {
+    for(int dy = -rad; dy < rad+1; dy++) {
+        for(int dx = -rad; dx < rad+1; dx++) {
+            int adx = my_fabsf(dx);
+            int ady = my_fabsf(dy);
+            if(adx+ady >= rad+rad) { continue; }
+            draw_pixel(output, x+dx, y+dy, 0xFFFF0000);
+        }
+    }  
+}
+
+void draw_line(u32* out, int x0, int y0, int x1, int y1, u32 col) {
+    int dx =  abs(x1 - x0);
+    int dy = -abs(y1 - y0);
+    int sx = x0 < x1 ? 1 : -1;
+    int sy = y0 < y1 ? 1 : -1;
+    int err = dx + dy;
+
+    while (1) {
+        draw_pixel(out, x0, y0, col);
+        if (x0 == x1 && y0 == y1) break;
+        int e2 = 2 * err;
+        if (e2 >= dy) { err += dy; x0 += sx; }
+        if (e2 <= dx) { err += dx; y0 += sy; }
+    }
+}
+
+
 void draw_skybox_vline(u32* output, u32 *skybox_column, int x, int y0, int y1) {
     for(int y = y0; y < y1; y++) {
         int v = (int)(SKYBOX_TEX_HEIGHT*.5f+(SKYBOX_V_PER_PIX*(y+(-pitch))))&(SKYBOX_TEX_HEIGHT-1);

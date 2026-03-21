@@ -2,6 +2,7 @@
 #define RAYCAST_H
 
 #include "common.h"
+#include "6dof.h"
 
 #define FOCAL_LENGTH (FP_SCREEN_WIDTH / (2.0f * 1.0f)) //tanf(1.57f/2.0f)))
 #define HEIGHT_SCALE (MAX_WALL_HEIGHT/8)
@@ -13,6 +14,18 @@
 //void thread_pool_destroy(void* tp);
 void clear_requested_sprites();
 
+#define MAX_STEPS 128
+
+void raycast_segment(
+    u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer,
+    int flash_frame, level* this_level, 
+    int editor_mode_enabled, int editor_selected_idx, editor_selected_thing editor_selected_side,
+    //u8* visited_cell_bitmap, sprite_cache_entry* sprite_cache,
+    segment seg, camera cam, float yaw, mat4 world_to_screen_mat,
+    float start_yaw, float end_yaw
+);
+
+
 
 void launch_render_frame(
     u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer,
@@ -22,6 +35,7 @@ void launch_render_frame(
     float player_x, float player_y, float player_z, float player_ang, float pitch,
     int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side
 );
+
 void join_render_frame();
 
 

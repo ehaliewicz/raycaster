@@ -65,7 +65,6 @@ extern int cur_render_scale;
 #define TEX_SIZE (32)
 #define SKYBOX_TEX_HEIGHT (256)
 #define SKYBOX_TEX_WIDTH (1024)
-#define NEAR_PLANE_DIST (0.001f)
 
 
 #define NUM_LIGHT_LEVELS 4
@@ -75,6 +74,14 @@ extern int cur_render_scale;
 #define DARK_DIST_FIXED (DARK_DIST*FIXED_POINT_MULT)
 #define RECIP_DARK_DIST (1.0f/DARK_DIST)
 #define DARK_DIST_SHIFT 5
+
+#define NEAR_PLANE_DIST (0.001f)
+#define FAR_PLANE_DIST (32.0f)
+
+#define FULL_CIRCLE_RADS (6.28f)
+#define HALF_CIRCLE_RADS (FULL_CIRCLE_RADS/2.0f)
+#define QUARTER_CIRCLE_RADS (FULL_CIRCLE_RADS/4.0f)
+#define EIGTH_CIRCLE_RADS (FULL_CIRCLE_RADS/8.0f)
 
 // SLIGHTLY less than 1.0
 #define SKYBOX_V_PER_PIX ((SKYBOX_TEX_HEIGHT*0.9f)/FP_SCREEN_HEIGHT)
@@ -244,7 +251,7 @@ typedef union {
 #define ENTITY_EDIT_ID(entity_idx) ((edit_wall_id){.type = ENTITY_EDIT_ID_TYPE, .idx = (entity_idx)})
 
 extern float player_x, player_y, player_z;
-extern float player_ang;
+extern float player_yaw;
 extern float pitch;
 extern float skybox_u_offset;
 

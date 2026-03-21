@@ -7,13 +7,19 @@ float my_sinf(float x);
 float my_cosf(float x);
 float my_atanf(float x);
 float my_tanf(float x);
+float my_acosf(float x);
 float my_atan2f(float y, float x);
+float my_asinf(float x);
 float my_fabsf(float x);
 float my_floorf(float x);
+float my_ceilf(float x);
+float my_roundf(float x);
 void *my_memset(void *dst, int c, unsigned int n);
 void *my_memcpy(void *dst, const void *src, unsigned int n);
 void *my_memmove(void *dst, const void *src, unsigned int n);
 float my_sqrtf(float x);
+float my_signumf(float x);
+
 void nop_printf(const char* fmt, ...);
 float lerp(float start, float end, float amount);
 float lerp_colors(u32 col1, u32 col2, float amount);
@@ -24,7 +30,10 @@ float lerp_colors(u32 col1, u32 col2, float amount);
 #define debug_printf printf
 #endif
 //void debug_printf(const char* fmt, ...);
-#endif
+
+#define PI (3.14159f)
 
 s32 min_int32(s32 a, s32 b);
 s32 max_int32(s32 a, s32 b);
+
+#endif

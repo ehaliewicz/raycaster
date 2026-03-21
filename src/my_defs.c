@@ -1,5 +1,6 @@
-#include "common.h"
 #include <xmmintrin.h>
+#include "common.h"
+#include "my_defs.h"
 
 static const float sin_table[256] = {
     0.00000000f, 0.00615995f, 0.01231966f, 0.01847890f, 0.02463745f, 0.03079506f, 0.03695150f, 0.04310654f, 
@@ -71,12 +72,34 @@ float my_atanf(float x) {
     return x < 0 ? -t : t;
 }
 
+float my_acosf(float x) {
+    // clamp for safety
+    x = CLAMP(x, -1.0f, 1.0f);
+
+    // polynomial approximation of asin(x) for |x| <= 0.5
+    // then use the sqrt identity for |x| > 0.5
+    float negate = (x < 0.0f) ? 1.0f : 0.0f;
+    x = my_fabsf(x);
+
+    float ret = -0.0187293f;
+    ret = ret * x + 0.0742610f;
+    ret = ret * x - 0.2121144f;
+    ret = ret * x + 1.5707288f;
+    ret = ret * my_sqrtf(1.0f - x);
+    ret = ret - 2.0f * negate * ret;
+    return negate * 3.14159265358979f + ret;
+}
+
 float my_atan2f(float y, float x) {
     if (x > 0.0f)  return my_atanf(y / x);
     if (x < 0.0f)  return my_atanf(y / x) + (y >= 0 ? 3.14159265f : -3.14159265f);
     if (y > 0.0f)  return  1.5707963268f;
     if (y < 0.0f)  return -1.5707963268f;
     return 0.0f; // undefined but whatever
+}
+
+float my_asinf(float x) {
+    return my_atan2f(x, my_sqrtf(1 - x*x));
 }
 
 float my_fabsf(float x) {
@@ -86,6 +109,17 @@ float my_fabsf(float x) {
 float my_floorf(float x) {
     int i = (int)x;
     return (float)(i - (x < 0.0f && x != (float)i));
+}
+
+float my_ceilf(float x) {
+    int i = (int)x; // truncates
+    return (x>((float)(i))) ? (x+1.0f) : x;
+}
+
+
+
+float my_roundf(float x) {
+    return my_floorf(x + 0.5f);
 }
 
 void *my_memset(void *dst, int c, unsigned int n) {
@@ -114,6 +148,12 @@ void *my_memmove(void *dst, const void *src, unsigned int n) {
 float my_sqrtf(float x) {
     if (x < 0) return -1.0f;
     return _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(x)));
+}
+
+float my_signumf(float x) {
+    if(x > 0.0f) { return 1.0f; }
+    if(x < 0.0f) { return -1.0f; }
+    return 0.0f;
 }
 
 //#define debug_printf debug_printf

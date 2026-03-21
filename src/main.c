@@ -18,6 +18,7 @@
 #include "network.h"
 #include "raycast.h"
 #include "resources.h"
+#include "6dof.h"
 
 typedef enum {
     PIXEL_BUFFER = 0,
@@ -35,7 +36,7 @@ const int resolutions[NUM_RESOLUTIONS][2] = {
     {800, 600},
     {1024, 768},
     {1280, 1024},
-    {1280, 800},
+    {1280, 720},
     {1920, 1080},
     {3440, 1300}
 };
@@ -47,18 +48,18 @@ const int res_is_superwide[NUM_RESOLUTIONS] = {
 };
 
 int cur_render_res_idx = -1;
-int requested_render_res = 3;
-int cur_render_scale = 1;
+int requested_render_res = 4;
+int cur_render_scale = -1;
 int requested_render_scale = 1;
 int cur_output_width = 1280;
-int cur_output_height = 1024;
+int cur_output_height = 720;
 int cur_render_width;
 int cur_render_height;
 int use_vsync = 1;
 int requested_use_vsync = 1;
 int requested_fullscreen = 0;
 int fullscreen = 0;
-float cur_fov = 85.0f;
+float cur_fov = 90.0f;
 
 
 
@@ -130,6 +131,8 @@ edit_wall_id* edit_id_buffer_pointers[2] = {NULL, NULL}; //[FP_SCREEN_WIDTH*FP_S
 unsigned int draw_textures[2];
 int frame;
 
+u32* seg01_offscreen_buf = NULL;
+u32* seg23_offscreen_buf = NULL;
 u32* draw_pix_pointers[2] = {NULL, NULL};
 u16* zbuf_pointers[2] = {NULL, NULL};
 
@@ -140,9 +143,9 @@ level *levels = NULL;
 float player_x;
 float player_y;
 float player_z;
-float player_ang;
-float pitch_ang = 0.0f;
-float pitch;
+float player_yaw;
+float player_pitch = -HALF_CIRCLE_RADS;//0.0f;
+float pitch = 0;
 int cur_level_idx;
 int disable_collision = 0;
 
@@ -248,12 +251,12 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     cur_player_speed = player_stand_dur >= 0.0f ? (platform_is_key_down(KEY_SHIFT) ? SPRINT_SPEED : WALK_SPEED) : AIR_SPEED;
 
 
-    float y = my_sinf(-player_ang);
-    float x = my_cosf(-player_ang);
-    float strafe_right_x = -y;
-    float strafe_right_y = x;
-    float strafe_left_x = y;
-    float strafe_left_y = -x;
+    float y = my_sinf(player_yaw);
+    float x = my_cosf(player_yaw);
+    float strafe_left_x = -y;
+    float strafe_left_y = x;
+    float strafe_right_x = y;
+    float strafe_right_y = -x;
     float move_speed = cur_player_speed * frame_mult;
     level cur_level = levels[cur_level_idx];
     float r = PLAYER_RADIUS;
@@ -452,10 +455,10 @@ void update_player(float frame_time, Vector2 mouse_delta) {
 
 
     if(platform_is_key_down(KEY_LEFT) || platform_is_key_down(KEY_U)) {
-        player_ang += 0.0035f*frame_time;
+        player_yaw += 0.0035f*frame_time;
     }
     if(platform_is_key_down(KEY_RIGHT) || platform_is_key_down(KEY_O)) {
-        player_ang -= 0.0035f*frame_time;
+        player_yaw -= 0.0035f*frame_time;
     }
     
 //#define MOUSE_SENSITIVITY 0.00003f
@@ -463,30 +466,30 @@ void update_player(float frame_time, Vector2 mouse_delta) {
 
     if(!editor_mode_enabled) {
         if(mouse_delta.y != 0) {
-            pitch_ang += (-mouse_delta.y) / PIXELS_PER_RADIAN;
+            player_pitch += (-mouse_delta.y) / PIXELS_PER_RADIAN;
         }
         if(mouse_delta.x != 0) {
-            player_ang -= mouse_delta.x*.0017f;
+            player_yaw -= mouse_delta.x*.0017f;
         }
     }
 
     // cleanup angle
-    if(player_ang < 0.0f) {
-        player_ang += 6.28f;
-    } else if (player_ang > 6.28f) {
-        player_ang -= 6.28f;
+    if(player_yaw < 0.0f) {
+        player_yaw += 6.28f;
+    } else if (player_yaw > 6.28f) {
+        player_yaw -= 6.28f;
     }
 
-    float pitch_speed = 0.01f*frame_mult;
+    float pitch_speed = 0.0005f*frame_mult;
     float dy = (platform_is_key_down(KEY_I) ? 1.0f : (platform_is_key_down(KEY_K)) ? -1.0f : 0.0f);
-    pitch_ang += dy*pitch_speed;
+    player_pitch += dy*pitch_speed;
 
     if (platform_is_key_pressed(KEY_SPACE)) {
         //pitch = 0;
     }
 
-    pitch_ang = CLAMP(pitch_ang, -.40f, .40f);
-    pitch = my_sinf(pitch_ang) * 16.0f * (HEIGHT_SCALE * FOCAL_LENGTH / MAX_WALL_HEIGHT);
+    player_pitch = CLAMP(player_pitch, -EIGTH_CIRCLE_RADS, EIGTH_CIRCLE_RADS);
+    pitch = my_sinf(player_pitch) * 16.0f * (HEIGHT_SCALE * FOCAL_LENGTH / MAX_WALL_HEIGHT);
 
 
     if(got_revolver && revolver_firing == 0.0f && platform_is_mouse_button_pressed(MOUSE_BUTTON_LEFT) && !editor_mode_enabled) {
@@ -495,15 +498,15 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         u16 dist_fixed = zbuf_pointers[0][(FP_SCREEN_WIDTH/2)*FP_SCREEN_HEIGHT+FP_SCREEN_HEIGHT/2];
         edit_wall_id obj_id = edit_id_buffer_pointers[0][(FP_SCREEN_WIDTH/2)*FP_SCREEN_HEIGHT + FP_SCREEN_HEIGHT/2];
         float dist = ((float)dist_fixed/FIXED_POINT_MULT);
-        float dir_x = my_cosf(-player_ang);
-        float dir_y = my_sinf(-player_ang);
-        float dir_z = my_sinf(pitch_ang)*16.0f;
+        float dir_x = my_cosf(player_yaw);
+        float dir_y = my_sinf(player_yaw);
+        float dir_z = my_sinf(player_pitch)*16.0f;
 
         float world_x = player_x + dir_x * dist;
         float world_y = player_y + dir_y * dist;
         float world_z = player_z + dir_z * dist - 1.0f;
 
-        //debug_printf("vertical angle of ray %f\n", pitch_ang);
+        //debug_printf("vertical angle of ray %f\n", player_pitch);
         //debug_printf("world %f %f %f \n", world_x, world_y, world_z);
         //debug_printf("player z %f\n", player_z);
         add_particle(world_x, world_y, world_z, 20, SMOKE_PARTICLE_IDX);
@@ -541,7 +544,7 @@ void copy_32_map_to_64() {
 
 
 void init_level(int fresh_map) {
-    player_ang =  levels[cur_level_idx].start_ang;
+    player_yaw =  QUARTER_CIRCLE_RADS; levels[cur_level_idx].start_ang;
     player_x = levels[cur_level_idx].start_x;
     player_y = levels[cur_level_idx].start_y;
     player_z = levels[cur_level_idx].start_z;
@@ -1178,6 +1181,7 @@ void change_resolution() {
         }
     }
     if(draw_pix_pointers[0] != NULL) {
+        free(seg01_offscreen_buf);
         free(draw_pix_pointers[0]);
         free(draw_pix_pointers[1]);
         free(zbuf_pointers[0]);
@@ -1236,6 +1240,7 @@ void init_game();
 int launch_in_edit_mode = 0;
 int killed_all_the_foxs = 0;
 
+
 void run_game() {
     platform_begin_frame();
     if(!platform_is_window_focused()) {
@@ -1258,9 +1263,9 @@ void run_game() {
 
     float frame_time_ms = platform_get_frame_time()*1000.0f;
     if(requested_render_res != cur_render_res_idx || requested_render_scale != cur_render_scale || requested_use_vsync != use_vsync || requested_fullscreen != fullscreen) {
-        float prev_pitch = pitch_ang;
+        float prev_pitch = player_pitch;
         change_resolution();
-        pitch_ang = prev_pitch;
+        player_pitch = prev_pitch;
     }
 
     clear_requested_sprites();
@@ -1280,6 +1285,7 @@ void run_game() {
     //edit_wall_id* edit_prev_buf = edit_id_buffer_pointers[(frame+1)&0b1];
     u32* upload_draw_pix = draw_pix_pointers[(frame+1)&0b1];
 
+    
     u32* render_draw_pix = draw_pix_pointers[frame&0b1];
     u16* zbuffer_draw = zbuf_pointers[0];//frame&0b1];
     edit_wall_id* edit_draw_buf = edit_id_buffer_pointers[0];//frame&0b1];
@@ -1356,6 +1362,17 @@ void run_game() {
 
     skybox_u_offset = (seconds); // scrolls every 2 seconds
 
+    // avoid some math issues with a zero or too small pitch
+    if(my_fabsf(player_pitch) < 0.001f) {
+        if(player_pitch < 0.0f) {
+            player_pitch = -0.001f;
+        } else {
+            player_pitch = 0.001f;
+        }
+    }
+
+
+
 
     int flash_frame = iquarter_seconds&0b1;
     platform_begin_drawing(); {   
@@ -1407,7 +1424,7 @@ void run_game() {
         }
         draw_particles();
     
-
+      
         int needs_join = 0;
         if(cur_game_state == DEAD || cur_game_state == WON) {
             float du = 1.0f / FP_SCREEN_WIDTH;
@@ -1417,14 +1434,43 @@ void run_game() {
                 float u = x*du;
                 u32* column = get_extra_big_texture_column(bmp, u);
 
+                draw_extra_big_sprite_col(upload_draw_pix, column, x);
+            }
+        } else {
 
-        launch_render_frame(render_draw_pix, edit_draw_buf, zbuffer_draw,
-            0, FP_SCREEN_WIDTH, flash_frame, 
-            &levels[cur_level_idx], player_x, player_y, player_z, -player_ang, pitch,
-            editor_mode_enabled, editor_selected_map_idx, editor_selected_side
-        );
 
-        int needs_join = 1;
+            needs_join = 1;
+            launch_render_frame(render_draw_pix, edit_draw_buf, zbuffer_draw,
+                0, FP_SCREEN_WIDTH, flash_frame, 
+                &levels[cur_level_idx], player_x, player_y, player_z, 
+                player_yaw, pitch,
+                editor_mode_enabled, editor_selected_idx, editor_selected_side
+            );
+
+            
+
+            
+
+            //launch_render_frame(render_draw_pix+FP_SCREEN_HEIGHT*(FP_SCREEN_WIDTH*1), edit_draw_buf, zbuffer_draw,
+            //    0, FP_SCREEN_WIDTH, flash_frame, 
+            //    &levels[cur_level_idx], player_x, player_y, player_z, player_ang+1.570f*1.0f, pitch,
+            //    editor_mode_enabled, editor_selected_idx, editor_selected_side
+            //);
+            ///join_render_frame();
+            //launch_render_frame(render_draw_pix+FP_SCREEN_HEIGHT*(FP_SCREEN_WIDTH*2), edit_draw_buf, zbuffer_draw,
+            //    0, FP_SCREEN_WIDTH, flash_frame, 
+            //    &levels[cur_level_idx], player_x, player_y, player_z, player_ang+1.570f*2.0f, pitch,
+            //    editor_mode_enabled, editor_selected_idx, editor_selected_side
+            //);
+            //join_render_frame();
+            //launch_render_frame(render_draw_pix+FP_SCREEN_HEIGHT*(FP_SCREEN_WIDTH*3), edit_draw_buf, zbuffer_draw,
+            //    0, FP_SCREEN_WIDTH, flash_frame, 
+            //    &levels[cur_level_idx], player_x, player_y, player_z, player_ang+1.570f*3.0f, pitch,
+            //    editor_mode_enabled, editor_selected_idx, editor_selected_side
+            //);
+            //join_render_frame();
+        }
+        
         switch(render_mode) {
             case EDITOR_BUFFER:
                 join_render_frame();
@@ -1441,13 +1487,9 @@ void run_game() {
                 platform_update_texture(upload_tex, (u32*)upload_draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
                 break;
             case PIXEL_BUFFER:
-                //if(platform_is_key_down(KEY_X)) {
-                //    crt_shader(draw_pix);
-                //}
-                //float before_upload = platform_get_time();
+
+
                 platform_update_texture(upload_tex, (u32*)upload_draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
-                //float after_upload = platform_get_time();
-                //printf("%4.0f ms upload\n", (after_upload-before_upload)*1000.0f);
                 break;
             case Z_BUFFER:
                 join_render_frame();
@@ -1465,8 +1507,6 @@ void run_game() {
         if(needs_join) {
             join_render_frame();
         }
-        //printf("%4.0f ms raycast %4.0fms sprites\n", (after_raycast-before_raycast)*1000.0f, (after_sprites-after_raycast)*1000.0f);
-
 
 
 
@@ -1479,7 +1519,19 @@ void run_game() {
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 20}, 18, 1, RED);
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
-        debug_printf("p %f %f %f\n", player_x, player_y, player_z);
+        //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
+        debug_printf("y %f p %f\n", player_yaw, player_pitch);
+        //debug_printf("cp %f %f %f\n", cam.pos.x, cam.pos.y, cam.pos.z);
+        //debug_printf("cf %f %f %f\n", cam.forward.x, cam.forward.z, cam.forward.y);
+        //debug_printf("cr %f %f %f\n", cam.right.x, cam.right.z, cam.right.y);
+        //debug_printf("cu %f %f %f\n", cam.up.x, cam.up.z, cam.up.y);
+        //debug_printf("vp_world %f %f %f\n", vp_world.x, vp_world.y, vp_world.z);
+        //debug_printf("vp_screen %f %f\n", vp_screen.x, vp_screen.y);
+        //debug_printf("seg %f,%f %f,%f\n", segs[0].min_screen.x, segs[0].min_screen.y, segs[0].max_screen.x, segs[0].max_screen.y);
+        //debug_printf("seg ws min/max %f,%f %f,%f\n", 
+        //    segs[0].cam_local_plane_ray_min.x, segs[0].cam_local_plane_ray_min.y,
+        //    segs[0].cam_local_plane_ray_max.x, segs[0].cam_local_plane_ray_max.y
+        //);
         debug_printf("%4.0f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
     } platform_end_drawing();
 
@@ -1633,6 +1685,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
         int res = strcmp(args, "--editor");
         printf("launching in edit mode\n");
         launch_in_edit_mode = 1;
+        editor_mode_enabled = 1;
     }
     
     init_game();
@@ -1677,7 +1730,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow) {
     levels[cur_level_idx].start_x = player_x;
     levels[cur_level_idx].start_y = player_y;
     levels[cur_level_idx].start_z = player_z;
-    levels[cur_level_idx].start_ang = player_ang;
+    levels[cur_level_idx].start_ang = player_yaw;
 
 
     if(launch_in_edit_mode) {

@@ -66,5 +66,8 @@ void draw_extra_big_sprite_col(u32* output, u32* col, int x);
 
 u32* get_texture_column(u32* texture, float wall_u);
 u32* get_extra_big_texture_column(u32* texture, float wall_u);
+void draw_pixel(u32* output, int x, int y, u32 col);
+void draw_circle(u32* output, int x, int y, int rad, u32 col);
+void draw_line(u32* output, int x1, int y1, int x2, int y2, u32 col);
 
 #endif 
