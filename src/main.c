@@ -65,7 +65,7 @@ float cur_fov = 90.0f;
 
 void handle_click(edit_wall_id* prev_rendered_id_buffer, int render_x, int render_y) {
 
-    edit_wall_id id = prev_rendered_id_buffer[(FP_SCREEN_WIDTH-1-render_x)*FP_SCREEN_HEIGHT+(render_y)];
+    edit_wall_id id = prev_rendered_id_buffer[(RENDER_WIDTH-1-render_x)*RENDER_HEIGHT+(render_y)];
     //editor_selected_map_idx = (id) & 0xFFFF; //id.cell_idx;
     //editor_selected_side = (id>>16)&0xFF;// id.side;
     
@@ -126,13 +126,14 @@ u32 urand() {
 
 
 
-edit_wall_id* edit_id_buffer_pointers[2] = {NULL, NULL}; //[FP_SCREEN_WIDTH*FP_SCREEN_HEIGHT];
+edit_wall_id* edit_id_buffer_pointers[2] = {NULL, NULL}; //[RENDER_WIDTH*FP_SCREEN_HEIGHT];
 
 unsigned int draw_textures[2];
+unsigned int seg_tex_handles[2];
 int frame;
 
-u32* seg01_offscreen_buf = NULL;
-u32* seg23_offscreen_buf = NULL;
+u32* seg_draw_bufs[2] = { NULL, NULL };
+u32* transpose_buf = NULL;
 u32* draw_pix_pointers[2] = {NULL, NULL};
 u16* zbuf_pointers[2] = {NULL, NULL};
 
@@ -144,7 +145,7 @@ float player_x;
 float player_y;
 float player_z;
 float player_yaw;
-float player_pitch = -HALF_CIRCLE_RADS;//0.0f;
+float player_pitch = 0.0f;
 float pitch = 0;
 int cur_level_idx;
 int disable_collision = 0;
@@ -462,7 +463,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     }
     
 //#define MOUSE_SENSITIVITY 0.00003f
-#define PIXELS_PER_RADIAN (FP_SCREEN_HEIGHT)
+#define PIXELS_PER_RADIAN (RENDER_HEIGHT)
 
     if(!editor_mode_enabled) {
         if(mouse_delta.y != 0) {
@@ -488,15 +489,15 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         //pitch = 0;
     }
 
-    player_pitch = CLAMP(player_pitch, -EIGTH_CIRCLE_RADS, EIGTH_CIRCLE_RADS);
+    //player_pitch = CLAMP(player_pitch, -EIGTH_CIRCLE_RADS, EIGTH_CIRCLE_RADS);
     pitch = my_sinf(player_pitch) * 16.0f * (HEIGHT_SCALE * FOCAL_LENGTH / MAX_WALL_HEIGHT);
 
 
     if(got_revolver && revolver_firing == 0.0f && platform_is_mouse_button_pressed(MOUSE_BUTTON_LEFT) && !editor_mode_enabled) {
         platform_play_sound(GUNSHOT_WAV);
         revolver_firing = REVOLVER_FIRE_DURATION;
-        u16 dist_fixed = zbuf_pointers[0][(FP_SCREEN_WIDTH/2)*FP_SCREEN_HEIGHT+FP_SCREEN_HEIGHT/2];
-        edit_wall_id obj_id = edit_id_buffer_pointers[0][(FP_SCREEN_WIDTH/2)*FP_SCREEN_HEIGHT + FP_SCREEN_HEIGHT/2];
+        u16 dist_fixed = zbuf_pointers[0][(RENDER_WIDTH/2)*RENDER_HEIGHT+RENDER_HEIGHT/2];
+        edit_wall_id obj_id = edit_id_buffer_pointers[0][(RENDER_WIDTH/2)*RENDER_HEIGHT + RENDER_HEIGHT/2];
         float dist = ((float)dist_fixed/FIXED_POINT_MULT);
         float dir_x = my_cosf(player_yaw);
         float dir_y = my_sinf(player_yaw);
@@ -1099,13 +1100,13 @@ void crt_shader(u32* fb) {
     float *prev_row_buf = row_lum_buf1;
     float *cur_row_buf = row_lum_buf2;
 
-    for(int x = 0; x < FP_SCREEN_WIDTH; x++) {
+    for(int x = 0; x < RENDER_WIDTH; x++) {
         prev_row_buf[x] = 1.0f;
     }
 
     for(int y = 0; y < FP_SCREEN_HEIGHT; y++) {
         if((y&1) == 0) {
-            for(int x = 0; x < FP_SCREEN_WIDTH; x++) {
+            for(int x = 0; x < RENDER_WIDTH; x++) {
                 fb[x*FP_SCREEN_HEIGHT+y] = 0xFF000000;
             }
         } else {
@@ -1147,10 +1148,13 @@ void crt_shader(u32* fb) {
 }
 #endif
 
+int max_left_right_rays = -1;
+int max_top_down_rays = -1;
 
-//Image draw_img;
-//Texture2D draw_tex;
 void change_resolution() {
+
+
+
     cur_render_res_idx = requested_render_res;
     cur_render_scale = requested_render_scale;
     cur_output_width = resolutions[cur_render_res_idx][0];
@@ -1181,37 +1185,55 @@ void change_resolution() {
         }
     }
     if(draw_pix_pointers[0] != NULL) {
-        free(seg01_offscreen_buf);
+        free(seg_draw_bufs[0]);
+        free(seg_draw_bufs[1]);
         free(draw_pix_pointers[0]);
         free(draw_pix_pointers[1]);
         free(zbuf_pointers[0]);
         //free(zbuf_pointers[1]);
         free(edit_id_buffer_pointers[0]);
         //free(edit_id_buffer_pointers[1]);
-        platform_release_textures();
+        platform_release_texture(draw_textures[0]);
+        platform_release_texture(draw_textures[1]);
+        platform_release_texture(seg_tex_handles[0]);
+        platform_release_texture(seg_tex_handles[1]);
     }
-    draw_pix_pointers[0] = my_malloc(sizeof(u32)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
-    draw_pix_pointers[1] = my_malloc(sizeof(u32)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "framebuffer");
-    edit_id_buffer_pointers[0] = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
+    draw_pix_pointers[0] = my_malloc(sizeof(u32)*RENDER_HEIGHT*RENDER_WIDTH, "framebuffer");
+    draw_pix_pointers[1] = my_malloc(sizeof(u32)*RENDER_HEIGHT*RENDER_WIDTH, "framebuffer");
+    edit_id_buffer_pointers[0] = my_malloc(sizeof(edit_wall_id)*RENDER_HEIGHT*RENDER_WIDTH, "edit-buffer");
     //edit_id_buffer_pointers[1] = my_malloc(sizeof(edit_wall_id)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "edit-buffer");
-    zbuf_pointers[0] = my_malloc(sizeof(u16)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
+    zbuf_pointers[0] = my_malloc(sizeof(u16)*RENDER_HEIGHT*RENDER_WIDTH, "z-buffer");
     //zbuf_pointers[1] = my_malloc(sizeof(u16)*FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH, "z-buffer");
 
-    /*
-    draw_img = (Image){
-        .data = draw_pix,
-        .width = FP_SCREEN_HEIGHT,
-        .height = FP_SCREEN_WIDTH,
-        .mipmaps = 1,
-        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
-    };
-    draw_tex = LoadTextureFromImage(draw_img);
-    */
-    unsigned int* tex_handles = platform_create_textures(FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
-    draw_textures[0] = tex_handles[0];
-    draw_textures[1] = tex_handles[1];
+    unsigned int tex_handle0 = platform_create_texture(RENDER_HEIGHT, RENDER_WIDTH);
+    unsigned int tex_handle1 = platform_create_texture(RENDER_HEIGHT, RENDER_WIDTH);
+
+    draw_textures[0] = tex_handle0;
+    draw_textures[1] = tex_handle1;
     // janky framebuffer texture :)
     //textures[NUM_TEXTURES-1] = draw_pix;
+
+
+
+    max_top_down_rays  = RENDER_WIDTH + 2*RENDER_HEIGHT;
+    max_left_right_rays = 2*RENDER_WIDTH + RENDER_HEIGHT;
+    int top_down_ray_buffer_size = sizeof(u32)*max_top_down_rays*RENDER_HEIGHT;
+    int left_right_ray_buffer_size = sizeof(u32)*max_left_right_rays*RENDER_WIDTH;
+    
+    seg_draw_bufs[0] = my_malloc(top_down_ray_buffer_size, "seg01 buffer");
+    seg_draw_bufs[1] = my_malloc(left_right_ray_buffer_size, "seg23 buffer");
+    transpose_buf = my_malloc(max(max_left_right_rays, max_top_down_rays) * max(RENDER_HEIGHT, RENDER_WIDTH) * sizeof(u32), "transpose buffer");
+    seg_tex_handles[0] = platform_create_texture(max_top_down_rays, RENDER_HEIGHT);
+    seg_tex_handles[1] = platform_create_texture(max_left_right_rays, RENDER_WIDTH);
+    //for(int y = 0; y < RENDER_HEIGHT; y++) {
+    //    float cy = ((((float)y) / RENDER_HEIGHT))*255.0f;
+    //    int iy = cy;
+    //    iy &= 0xFF;
+    //    for(int x = 0; x < max_top_down_rays; x++) {
+    //        seg_draw_bufs[0][y*max_top_down_rays+x] = (0xFF<<24)|(iy<<16)|(iy<<8)|(iy);
+    //        seg_draw_bufs[1][y*max_top_down_rays+x] = (0xFF<<24)|(iy<<16)|(iy<<8)|(iy);
+    //    }
+    //}
 }
 
 
@@ -1239,6 +1261,8 @@ void init_game();
 
 int launch_in_edit_mode = 0;
 int killed_all_the_foxs = 0;
+
+
 
 
 void run_game() {
@@ -1297,7 +1321,7 @@ void run_game() {
 
     if(platform_is_mouse_button_pressed(MOUSE_BUTTON_LEFT)) {
         Vector2 mouse_pos = platform_get_mouse_position();
-        handle_click(edit_draw_buf, FP_SCREEN_WIDTH*mouse_pos.x/OUTPUT_WIDTH, FP_SCREEN_HEIGHT*mouse_pos.y/OUTPUT_HEIGHT);
+        handle_click(edit_draw_buf, RENDER_WIDTH*mouse_pos.x/OUTPUT_WIDTH, RENDER_HEIGHT*mouse_pos.y/OUTPUT_HEIGHT);
     }
     if (launch_in_edit_mode && platform_is_key_pressed(KEY_E)) {
         editor_mode_enabled = !editor_mode_enabled;
@@ -1372,15 +1396,22 @@ void run_game() {
     }
 
 
+    camera cam = mk_camera(
+        player_x, player_z, player_y, 
+        player_pitch,
+        player_yaw, 
+        RENDER_WIDTH, RENDER_HEIGHT,
+        NEAR_PLANE_DIST, FAR_PLANE_DIST
+    );
 
 
     int flash_frame = iquarter_seconds&0b1;
     platform_begin_drawing(); {   
 
-        float scale = ((float)OUTPUT_WIDTH/((float)FP_SCREEN_WIDTH));
-        platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+        float scale = ((float)OUTPUT_WIDTH/((float)RENDER_WIDTH));
+        platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, RENDER_HEIGHT, RENDER_WIDTH);
 
-        for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
+        for(int i = 0; i < RENDER_HEIGHT*RENDER_WIDTH; i++) {
             zbuffer_draw[i] = DARK_DIST*FIXED_POINT_MULT;
             edit_draw_buf[i] = ENTITY_EDIT_ID(INVALID_ENTITY_ID);
         }
@@ -1409,8 +1440,8 @@ void run_game() {
         }
     #endif 
         if(got_revolver) {
-            float revolver_size = CLAMP((FP_SCREEN_HEIGHT/2.5f), 128.0f, 512.0f);
-            float base_height = FP_SCREEN_HEIGHT-revolver_size;
+            float revolver_size = CLAMP((RENDER_HEIGHT/2.5f), 128.0f, 512.0f);
+            float base_height = RENDER_HEIGHT-revolver_size;
             float recoil_height = base_height-revolver_size;
             float pos = lerp(base_height, recoil_height, (revolver_firing/REVOLVER_FIRE_DURATION));
 
@@ -1427,10 +1458,10 @@ void run_game() {
       
         int needs_join = 0;
         if(cur_game_state == DEAD || cur_game_state == WON) {
-            float du = 1.0f / FP_SCREEN_WIDTH;
-            float dv = 1.0f / FP_SCREEN_HEIGHT;
+            float du = 1.0f / RENDER_WIDTH;
+            float dv = 1.0f / RENDER_HEIGHT;
             u32* bmp = sprites[(cur_game_state == DEAD) ? YOU_DIED_IDX : YOU_WIN_IDX];
-            for(int x = 0; x < FP_SCREEN_WIDTH; x++) {
+            for(int x = 0; x < RENDER_WIDTH; x++) {
                 float u = x*du;
                 u32* column = get_extra_big_texture_column(bmp, u);
 
@@ -1441,41 +1472,199 @@ void run_game() {
 
             needs_join = 1;
             launch_render_frame(render_draw_pix, edit_draw_buf, zbuffer_draw,
-                0, FP_SCREEN_WIDTH, flash_frame, 
+                0, RENDER_WIDTH, flash_frame, 
                 &levels[cur_level_idx], player_x, player_y, player_z, 
                 player_yaw, pitch,
                 editor_mode_enabled, editor_selected_idx, editor_selected_side
             );
 
-            
+            // step 1:
+            // calculate triangle position in screen-space
+            // requires calculating segments
+
+            // a segment represents a 90 degree quadrant around the player (0-90, 90-180, 180-270, 270-360)
+            // 1 - how many rays in a quadrant are necessary to fill the screen area covered by that quadrant 
+            // (generally 1 ray per opposite side screen border)
+            // 2 - screen-space area covered by that quadrant
+            // 3 - world-space ray bounds on the far side.
+
+            // to raycast inside a segment
+            // we do  for(int i = 0; i < ray_count; i++) { ray = float3_lerp(i/ray_count, first_ray_end_loc, last_ray_end_loc); }
+            // then we normalize that ray direction
+
+
+            float3 world_vp = calc_vanishing_point_world(cam);
+            float2 screen_vp = project_vanishing_point_world_to_screen(
+                cam, world_vp
+            );
+
+            // essentially zero initializing
+            // probably zero initialize would be fine actually
+            // since a 0 ray count effectively short-circuits everything
+
+
+            segment segments[4] = { 0 };
+
+            if (screen_vp.y < cam.dims.y) {
+                // top segment
+                segments[0] = get_segment_parameters(
+                    0,
+                    cam, screen_vp, cam.dims.y - screen_vp.y, 
+                    ((float2){.x=0.0f, .y = 1.0f}), 1, MAX_WALL_HEIGHT, max_top_down_rays);
+            }
+
+            if(screen_vp.y > 0) {
+                segments[1] = get_segment_parameters(
+                    1,
+                    cam, screen_vp, screen_vp.y,
+                    ((float2){.x=0.0f, .y=-1.0f}), 1, MAX_WALL_HEIGHT, max_top_down_rays
+                );
+            }
+
+            if(screen_vp.x < cam.dims.x) {
+                segments[2] = get_segment_parameters(
+                    2,
+                    cam, screen_vp,  cam.dims.x - screen_vp.x, 
+                    ((float2){.x=1.0f, .y=0.0f}), 0, MAX_WALL_HEIGHT, max_left_right_rays);
+            }
+
+            if (screen_vp.x > 0) {
+                segments[3] = get_segment_parameters(
+                    3,
+                    cam, screen_vp, screen_vp.x, 
+                    ((float2){.x=-1.0f, .y=0.0f}), 0, MAX_WALL_HEIGHT, max_left_right_rays);
+            }
+
+            for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
+                int next_free_pix_min, next_free_pix_max;
+                if (seg_idx == 0) {
+                    next_free_pix_min = CLAMP(my_roundf(screen_vp.y), 0, RENDER_HEIGHT-1);
+                    next_free_pix_max = RENDER_HEIGHT-1;
+                } else if (seg_idx == 1) {
+                    next_free_pix_min = 0;
+                    next_free_pix_max = CLAMP(my_roundf(screen_vp.y), 0, RENDER_HEIGHT-1);
+                } else if (seg_idx == 3) {
+                    next_free_pix_min = 0;
+                    next_free_pix_max = CLAMP(my_roundf(screen_vp.x), 0, RENDER_WIDTH-1);
+                } else {
+                    next_free_pix_min = CLAMP(my_roundf(screen_vp.x), 0, RENDER_WIDTH-1);
+                    next_free_pix_max = RENDER_WIDTH-1;
+                }
+                segments[seg_idx].next_free_pixel_min = next_free_pix_min;
+                segments[seg_idx].next_free_pixel_max = next_free_pix_max;
+            }
+
+            mat4 world_to_screen_mat = get_world_to_screen_matrix(cam);
+            int update_seg_textures[2] = {0,0};
+            for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
+                int ray_offset = 0;
+                if (seg_idx&1) {
+                    // segments 1 and 3's offsets are segment 0 and 1 respectively
+                    ray_offset = segments[seg_idx-1].ray_count;
+                }
+                if(segments[seg_idx].ray_count) { 
+                    update_seg_textures[seg_idx>>1] = 1;
+                }
+                //execute_rays_in_segment(
+                //    seg_draw_bufs[seg_idx>>1], ray_offset,
+                //    segments[seg_idx], cam, world_to_screen_mat,
+                //    (seg_idx > 1) ? 0 : 1, &levels[cur_level_idx], (seg_idx < 2) ? RENDER_HEIGHT : RENDER_WIDTH
+                //);
+            }
+            for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
+                segment seg = segments[seg_idx];
+                if(seg.ray_count > 0) {
+
+                    printf("transpose seg buffer %i\n", seg_idx);
+                    int src_height = (seg_idx < 2) ? RENDER_HEIGHT : RENDER_WIDTH;
+                    int seg_height = ((seg.next_free_pixel_max+1) - seg.next_free_pixel_min);
+                    int seg_width = seg.ray_count;
+                    int y_offset = src_height-1 - seg.next_free_pixel_max;
+
+
+                    u32* src_pix_arr = seg_draw_bufs[seg_idx>>1];
+                    u32* dst_pix_arr = transpose_buf;
+                    int x_offset = (seg_idx & 1) ? (segments[seg_idx-1].ray_count) : 0;
+
+                    int x1 = x_offset; int y1 = y_offset;
+                    int w = seg_width; int h = seg_height;
+                    for(int x = 0; x < w; x++) {
+                        for(int y = 0; y < h; y++) {
+                            u32 rgba = src_pix_arr[(x1 + x) * h + (y + y1)];
+                            dst_pix_arr[y*w+x] = rgba;
+                        }
+                    }
+
+                    platform_update_texture(seg_tex_handles[seg_idx>>1], dst_pix_arr, x1, y1, w, h);
+
+
+                    //platform_update_texture(
+                    //    seg_tex_handles[i], seg_draw_bufs[i],
+                    //    (i < 2) ? max_top_down_rays : max_left_right_rays, 
+                    //    (i < 2) ? RENDER_HEIGHT : RENDER_WIDTH
+                    //);
+                }
+            }
+            //if(update_segs[0]) {
+            //    platform_update_texture(seg01_tex_handle, seg01_offscreen_buf, max_top_down_rays, RENDER_HEIGHT);
+            //}
+            //if(update_segs[1]) {
+            //    platform_update_texture(seg23_tex_handle, seg23_offscreen_buf, max_left_right_rays, RENDER_WIDTH);
+            //}
 
             
+            //max_left_right_rays = 2*RENDER_WIDTH + RENDER_HEIGHT;
+            //max_top_down_rays  = RENDER_WIDTH + 2*RENDER_HEIGHT;
+            //int left_right_ray_buffer_size = max_left_right_rays*RENDER_WIDTH;
+            //int top_down_ray_buffer_size = max_top_down_rays*RENDER_HEIGHT
 
-            //launch_render_frame(render_draw_pix+FP_SCREEN_HEIGHT*(FP_SCREEN_WIDTH*1), edit_draw_buf, zbuffer_draw,
-            //    0, FP_SCREEN_WIDTH, flash_frame, 
-            //    &levels[cur_level_idx], player_x, player_y, player_z, player_ang+1.570f*1.0f, pitch,
-            //    editor_mode_enabled, editor_selected_idx, editor_selected_side
-            //);
-            ///join_render_frame();
-            //launch_render_frame(render_draw_pix+FP_SCREEN_HEIGHT*(FP_SCREEN_WIDTH*2), edit_draw_buf, zbuffer_draw,
-            //    0, FP_SCREEN_WIDTH, flash_frame, 
-            //    &levels[cur_level_idx], player_x, player_y, player_z, player_ang+1.570f*2.0f, pitch,
-            //    editor_mode_enabled, editor_selected_idx, editor_selected_side
-            //);
-            //join_render_frame();
-            //launch_render_frame(render_draw_pix+FP_SCREEN_HEIGHT*(FP_SCREEN_WIDTH*3), edit_draw_buf, zbuffer_draw,
-            //    0, FP_SCREEN_WIDTH, flash_frame, 
-            //    &levels[cur_level_idx], player_x, player_y, player_z, player_ang+1.570f*3.0f, pitch,
-            //    editor_mode_enabled, editor_selected_idx, editor_selected_side
-            //);
-            //join_render_frame();
+            float3 seg_v0 = adjust_screen_pixel_for_mesh(screen_vp, cam.dims);
+
+
+            float scales[4] = {
+                segments[0].ray_count / max_top_down_rays,
+                segments[1].ray_count / max_top_down_rays,
+                segments[2].ray_count / max_left_right_rays,
+                segments[3].ray_count / max_left_right_rays
+            };
+            float offsets[4] = {
+                0.0f, scales[0], 0.0f, scales[2],
+            };
+
+            for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
+                float u_offset = offsets[seg_idx];
+                float u_scale = scales[seg_idx];
+                segment seg = segments[seg_idx];
+                if(seg.ray_count > 0) {
+                    printf("draw seg %i\n", seg_idx);
+
+                    float3 seg0_v1 = adjust_screen_pixel_for_mesh(seg.max_screen, cam.dims);
+                    float3 seg0_v2 = adjust_screen_pixel_for_mesh(seg.min_screen, cam.dims);
+                    
+                    float seg_attributes[7*3] = {
+                        seg_v0.x, seg_v0.y, seg_v0.z, 0.0f, 0.0f, 1.0f, seg_idx,
+                        seg0_v1.x, seg0_v1.y, seg0_v1.z, 1.0f, 0.0f, 0.0f, seg_idx,
+                        seg0_v2.x, seg0_v2.y, seg0_v2.z, 0.0f, 1.0f, 0.0f, seg_idx,
+
+                    };
+                    
+                    //platform_draw_segment(
+                    //    seg_tex_handles[seg_idx>>1], 
+                    //    seg_idx, 
+                    //    seg_attributes,
+                    //    offsets, scales
+                    //);
+                }  
+            }
+            
+
         }
         
         switch(render_mode) {
             case EDITOR_BUFFER:
                 join_render_frame();
                 needs_join = 0;    
-                for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
+                for(int i = 0; i < RENDER_HEIGHT*RENDER_WIDTH; i++) {
                     u16 edit_draw_id = edit_draw_buf[i].full_val;
                     //u16 map_idx = edit_draw_buf[i]&0b1111111111;
                     //u16 side = (edit_draw_buf[i]>>10)&0b11111;
@@ -1484,23 +1673,24 @@ void run_game() {
                     u8 b = ((edit_draw_id)>>0)&0b11111;
                     upload_draw_pix[i] = (0xFF<<24)|(r<<16)|(g<<8)|b; // 16 bits
                 }
-                platform_update_texture(upload_tex, (u32*)upload_draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+                platform_update_texture(upload_tex, (u32*)upload_draw_pix, 0, 0, RENDER_HEIGHT, RENDER_WIDTH);
                 break;
             case PIXEL_BUFFER:
+                //draw_screen_segments();
 
-
-                platform_update_texture(upload_tex, (u32*)upload_draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+                
+                platform_update_texture(upload_tex, (u32*)upload_draw_pix, 0, 0, RENDER_HEIGHT, RENDER_WIDTH);
                 break;
             case Z_BUFFER:
                 join_render_frame();
                 needs_join = 0;
-                for(int i = 0; i < FP_SCREEN_HEIGHT*FP_SCREEN_WIDTH; i++) {
+                for(int i = 0; i < RENDER_HEIGHT*RENDER_WIDTH; i++) {
                     float z = zbuffer_draw[i]/FIXED_POINT_MULT;
                     float normalized = (z-NEAR_PLANE_DIST)/(DARK_DIST-NEAR_PLANE_DIST);
                     int byte_z = normalized*255;
                     ((u32*)upload_draw_pix)[i] = (0xFF000000 | (byte_z<<16) | (byte_z<<8) | byte_z);
                 }
-                platform_update_texture(upload_tex, (u32*)upload_draw_pix, FP_SCREEN_HEIGHT, FP_SCREEN_WIDTH);
+                platform_update_texture(upload_tex, (u32*)upload_draw_pix, 0, 0, RENDER_HEIGHT, RENDER_WIDTH);
                 break;
 
         }
@@ -1521,7 +1711,7 @@ void run_game() {
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
         //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
         debug_printf("y %f p %f\n", player_yaw, player_pitch);
-        //debug_printf("cp %f %f %f\n", cam.pos.x, cam.pos.y, cam.pos.z);
+        debug_printf("cp %f %f %f\n", cam.pos.x, cam.pos.y, cam.pos.z);
         //debug_printf("cf %f %f %f\n", cam.forward.x, cam.forward.z, cam.forward.y);
         //debug_printf("cr %f %f %f\n", cam.right.x, cam.right.z, cam.right.y);
         //debug_printf("cu %f %f %f\n", cam.up.x, cam.up.z, cam.up.y);

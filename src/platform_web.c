@@ -93,7 +93,7 @@ unsigned int *platform_create_textures(int width, int height) {
 
 u32* first_loaded_image = NULL;
 /* Store the caller's RGBA pixels and remember which buffer to blit next frame. */
-void platform_update_texture(unsigned int tex, void *pixels, int width, int height) {
+void platform_update_texture(unsigned int tex, void *pixels, int xoff, int yoff, int width, int height) {
     int idx = (int)tex;
     if (idx < 0 || idx >= MAX_TEXTURES) return;
     (void)width; (void)height; // canvas dims are in g_textures from platform_create_textures
@@ -106,7 +106,7 @@ void platform_update_texture(unsigned int tex, void *pixels, int width, int heig
         for (int x = 0; x < tex_w; x++) {
             for(int y_scale = 0; y_scale < scale; y_scale++) {
                 for(int x_scale = 0; x_scale < scale; x_scale++) {
-                    dst[(y+y_scale)*scale * g_canvas_w + (g_canvas_w-1-x*scale)+x_scale] = src[x * tex_h + y];
+                    dst[(y + y_scale + yoff)*scale * g_canvas_w + (g_canvas_w-1-x*scale + xoff)+x_scale] = src[x * tex_h + y];
                 }
             }
         }

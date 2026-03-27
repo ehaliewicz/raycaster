@@ -81,9 +81,15 @@ int platform_save_file_data(const char* file, void* data, size_t num_bytes);
 u8* platform_load_file_data(const char* file, int* out_loaded_bytes);
 
 
-void platform_release_textures();
-unsigned int* platform_create_textures(int width, int height);
-void platform_update_texture(unsigned int tex, void *pixels, int width, int height);
+void platform_release_texture(int tex);
+unsigned int platform_create_texture(int width, int height);
+void platform_update_texture(unsigned int tex, void *pixels, int xoff, int yoff, int width, int height);
+void platform_draw_segment(
+    unsigned int tex,
+    int seg_idx,
+    float attributes[7*3],
+    float offsets[4],
+    float scales[4]);
 void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float scale, int w, int h);
 
 u8* platform_load_image(const char* file, int expected_width, int expected_height);

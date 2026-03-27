@@ -4,9 +4,9 @@
 #include "common.h"
 #include "6dof.h"
 
-#define FOCAL_LENGTH (FP_SCREEN_WIDTH / (2.0f * 1.0f)) //tanf(1.57f/2.0f)))
+#define FOCAL_LENGTH (RENDER_WIDTH / (2.0f * 1.0f)) //tanf(1.57f/2.0f)))
 #define HEIGHT_SCALE (MAX_WALL_HEIGHT/8)
-#define HALF_SCREEN_HEIGHT (FP_SCREEN_HEIGHT/2)
+#define HALF_SCREEN_HEIGHT (RENDER_HEIGHT/2)
 
 
 //void* thread_pool_create(int cpu_threads);

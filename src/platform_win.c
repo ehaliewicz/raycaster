@@ -98,6 +98,8 @@ void platform_begin_frame() {
         TranslateMessage(&msg);
         DispatchMessageA(&msg);
     }
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // black
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void platform_end_frame() {
@@ -149,9 +151,155 @@ static LRESULT CALLBACK wnd_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     return DefWindowProcA(hwnd, msg, wp, lp);
 }
 
+typedef ptrdiff_t GLsizeiptr;
 
 typedef long long int (WINAPI *PFNWGLSWAPINTERVALEXTPROC)(int);
-static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
+typedef GLuint (APIENTRY *PFNGLCREATESHADERPROC)(GLenum);
+typedef void   (APIENTRY *PFNGLSHADERSOURCEPROC)(GLuint, GLsizei, const char**, const GLint*);
+typedef void   (APIENTRY *PFNGLCOMPILESHADERPROC)(GLuint);
+typedef GLuint (APIENTRY *PFNGLCREATEPROGRAMPROC)(void);
+typedef void   (APIENTRY *PFNGLATTACHSHADERPROC)(GLuint, GLuint);
+typedef void   (APIENTRY *PFNGLLINKPROGRAMPROC)(GLuint);
+typedef void   (APIENTRY *PFNGLUSEPROGRAMPROC)(GLuint);
+
+// Uniforms
+typedef GLint  (APIENTRY *PFNGLGETUNIFORMLOCATIONPROC)(GLuint, const char*);
+typedef void   (APIENTRY *PFNGLUNIFORM1IPROC)(GLint, GLint);
+typedef void   (APIENTRY *PFNGLUNIFORM4FPROC)(GLint, GLfloat, GLfloat, GLfloat, GLfloat);
+
+// VBO/VAO
+typedef void   (APIENTRY *PFNGLGENBUFFERSPROC)(GLsizei, GLuint*);
+typedef void   (APIENTRY *PFNGLBINDBUFFERPROC)(GLenum, GLuint);
+typedef void   (APIENTRY *PFNGLBUFFERDATAPROC)(GLenum, GLsizeiptr, const void*, GLenum);
+typedef void   (APIENTRY *PFNGLGENVERTEXARRAYSPROC)(GLsizei, GLuint*);
+typedef void   (APIENTRY *PFNGLBINDVERTEXARRAYPROC)(GLuint);
+typedef void   (APIENTRY *PFNGLENABLEVERTEXATTRIBARRAYPROC)(GLuint);
+typedef void   (APIENTRY *PFNGLVERTEXATTRIBPOINTERPROC)(GLuint, GLint, GLenum, GLboolean, GLsizei, const void*);
+
+typedef void (APIENTRY *PFNGLGETSHADERIVPROC)(GLuint, GLenum, GLint*);
+typedef void (APIENTRY *PFNGLGETSHADERINFOLOGPROC)(GLuint, GLsizei, GLsizei*, char*);
+typedef void (APIENTRY *PFNGLGETPROGRAMIVPROC)(GLuint, GLenum, GLint*);
+typedef void (APIENTRY *PFNGLGETPROGRAMINFOLOGPROC)(GLuint, GLsizei, GLsizei*, char*);
+
+//static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
+
+#define GL_ROUTINES                                     \
+    X(PFNGLCREATESHADERPROC,             glCreateShader)      \
+    X(PFNWGLSWAPINTERVALEXTPROC,         wglSwapIntervalEXT)  \
+    X(PFNGLSHADERSOURCEPROC,             glShaderSource)        \
+    X(PFNGLCOMPILESHADERPROC,            glCompileShader)      \
+    X(PFNGLCREATEPROGRAMPROC,            glCreateProgram)      \
+    X(PFNGLATTACHSHADERPROC,             glAttachShader)      \
+    X(PFNGLLINKPROGRAMPROC,              glLinkProgram)      \
+    X(PFNGLUSEPROGRAMPROC,               glUseProgram)      \
+    X(PFNGLGETUNIFORMLOCATIONPROC,       glGetUniformLocation)      \
+    X(PFNGLUNIFORM1IPROC,               glUniform1i)      \
+    X(PFNGLUNIFORM4FPROC,               glUniform4f)      \
+    X(PFNGLGENBUFFERSPROC,              glGenBuffers)      \
+    X(PFNGLBINDBUFFERPROC,              glBindBuffer)      \
+    X(PFNGLBUFFERDATAPROC,              glBufferData)      \
+    X(PFNGLGENVERTEXARRAYSPROC,         glGenVertexArrays)      \
+    X(PFNGLBINDVERTEXARRAYPROC,         glBindVertexArray)      \
+    X(PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray)      \
+    X(PFNGLVERTEXATTRIBPOINTERPROC,     glVertexAttribPointer)  \
+    X(PFNGLGETSHADERIVPROC,      glGetShaderiv)           \
+    X(PFNGLGETSHADERINFOLOGPROC, glGetShaderInfoLog)          \
+    X(PFNGLGETPROGRAMIVPROC,     glGetProgramiv)              \
+    X(PFNGLGETPROGRAMINFOLOGPROC,glGetProgramInfoLog)
+
+
+#define X(type, name) static type name;
+GL_ROUTINES
+#undef X 
+
+#define GL_VERTEX_SHADER   0x8B31
+#define GL_FRAGMENT_SHADER 0x8B30
+#define GL_ARRAY_BUFFER    0x8892
+//#define GL_STATIC_DRAW     0x88B4
+//#define GL_DYNAMIC_DRAW     0x88B8
+
+#define GL_STATIC_DRAW          0x88E4
+#define GL_DYNAMIC_DRAW         0x88E8
+
+#define GL_COMPILE_STATUS  0x8B81
+#define GL_LINK_STATUS     0x8B82
+
+#define WGL_CONTEXT_MAJOR_VERSION_ARB       0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB       0x2092
+#define WGL_CONTEXT_FLAGS_ARB               0x2094
+#define WGL_CONTEXT_PROFILE_MASK_ARB        0x9126
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB    0x00000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#define WGL_CONTEXT_DEBUG_BIT_ARB           0x00000001
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x00000002
+
+GLuint compile_shader(GLenum type, const char* src) {
+    GLuint s = glCreateShader(type);
+    glShaderSource(s, 1, &src, NULL);
+    glCompileShader(s);
+    GLint status;
+    glGetShaderiv(s, GL_COMPILE_STATUS, &status);
+    if (!status) {
+        char log[512];
+        glGetShaderInfoLog(s, 512, NULL, log);
+        printf("shader error: %s\n", log);
+    }
+    return s;
+}
+
+GLuint vert;
+GLuint seg01_frag, seg23_frag;
+GLuint seg01_prog, seg23_prog;
+GLuint vbo;
+GLuint vao;
+
+const char* vert_shader_src = "#version 330 core\n"
+"layout (location = 0) in vec3 vertexPos;\n"
+"layout (location = 1) in vec4 vertexTexCoord;\n"
+"out vec3 vertex;\n"
+"out vec4 uv;\n"
+"void main()\n"
+"{\n"
+"    vertex = vertexPos;\n"
+"    uv = vertexTexCoord;\n"
+"    gl_Position = vec4(vertexPos, 1.0);\n"
+"}\n";
+
+const char* seg01_frag_shader_src = "#version 330 core\n"
+"in vec3 vertex;\n"
+"in vec4 uv;\n"
+"out vec4 color;\n"
+"uniform sampler2D rayBuffer;\n"
+"uniform vec4 rayScales, rayOffsets;\n"
+"void main() {\n"
+"    float y = 1-(vertex.y + 1.0) * 0.5;\n"
+"    float x = clamp(uv.x, 0.0, 1.0) / (uv.x + uv.y);\n"
+"    int tri_idx = int(uv.w);\n"
+"    float ray_buffer_scale = rayScales[tri_idx];\n"
+"    float ray_buffer_offset = rayOffsets[tri_idx];\n"
+"    x = ray_buffer_offset + x * ray_buffer_scale;\n"
+"    vec4 sample = texture2D(rayBuffer, vec2(x,y));\n"
+"    color = sample;\n"
+"}\n";
+
+const char* seg23_frag_shader_src = "#version 330 core\n"
+"in vec3 vertex;\n"
+"in vec4 uv;\n"
+"out vec4 color;\n"
+"uniform sampler2D rayBuffer;\n"
+"uniform vec4 rayScales, rayOffsets;\n"
+"void main() {\n"
+"    float y = 1-(vertex.x + 1.0) * 0.5;\n" // only difference between these two, we use the screen x coord here
+"    float x = clamp(uv.x, 0.0, 1.0) / (uv.x + uv.y);\n"
+"    int tri_idx = int(uv.w)\n;"
+"    float ray_buffer_scale = rayScales[tri_idx];\n"
+"    float ray_buffer_offset = rayOffsets[tri_idx];\n"
+"    x = ray_buffer_offset + x * ray_buffer_scale;\n"
+"    vec4 sample = texture2D(rayBuffer, vec2(x,y));\n"
+"    color = sample;\n"
+"}\n"; 
+
+typedef HGLRC (WINAPI *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hDC, HGLRC hShareContext, const int *attribList);
 
 void platform_init_window(int width, int height, const char *title) {
     
@@ -192,12 +340,64 @@ void platform_init_window(int width, int height, const char *title) {
 
     g_rc = wglCreateContext(g_dc);
     wglMakeCurrent(g_dc, g_rc);
-    wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)(void*)wglGetProcAddress("wglSwapIntervalEXT");
+
+    PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB =
+    (PFNWGLCREATECONTEXTATTRIBSARBPROC)(void*)wglGetProcAddress("wglCreateContextAttribsARB");
+    
+    //wglMakeCurrent(NULL, NULL);
+    //wglDeleteContext(g_rc);
+
+
+    //int attribs[] = {
+    //    WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+    //    WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+    //    WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+    //    0 // terminate
+    //};
+    //g_rc = wglCreateContextAttribsARB(g_dc, NULL, attribs);
+    //wglMakeCurrent(g_dc, g_rc);
+
+#define X(type,name) name = (type)(void*)wglGetProcAddress(#name);
+        GL_ROUTINES;
+#undef X
 
 
     update_viewport(width, height);
 
     glEnable(GL_TEXTURE_2D);
+    glDisable(GL_DEPTH_TEST);
+
+    vert = compile_shader(GL_VERTEX_SHADER, vert_shader_src);
+    seg01_frag = compile_shader(GL_FRAGMENT_SHADER, seg01_frag_shader_src);
+    seg23_frag = compile_shader(GL_FRAGMENT_SHADER, seg01_frag_shader_src);
+    seg01_prog = glCreateProgram();
+    glAttachShader(seg01_prog, vert);
+    glAttachShader(seg01_prog, seg01_frag);
+    glLinkProgram(seg01_prog);
+    GLint status;
+    glGetProgramiv(seg01_prog, GL_LINK_STATUS, &status);
+    if (!status) {
+        char log[512];
+        glGetProgramInfoLog(seg01_prog, 512, NULL, log);
+        printf("link error: %s\n", log);
+    }
+
+    seg23_prog = glCreateProgram();
+    glAttachShader(seg23_prog, vert);
+    glAttachShader(seg23_prog, seg23_frag);
+    glLinkProgram(seg23_prog);
+    glGetProgramiv(seg23_prog, GL_LINK_STATUS, &status);
+    if (!status) {
+        char log[512];
+        glGetProgramInfoLog(seg23_prog, 512, NULL, log);
+        printf("link error: %s\n", log);
+    }
+
+    glGenBuffers(1, &vbo);
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+
 
     ShowWindow(g_hwnd, SW_SHOW);
     RAWINPUTDEVICE rid = {0};
@@ -258,28 +458,26 @@ int platform_is_window_focused() {
 }
 
 
-unsigned int gpu_textures[2];
-
-void platform_release_textures() { 
-    glDeleteTextures(2, gpu_textures);
+void platform_release_texture(int tex) { 
+    unsigned int gpu_tex[1] = { tex };
+    glDeleteTextures(1, gpu_tex);
 }
 
-unsigned int* platform_create_textures(int width, int height) {
-    unsigned int tex1,tex2;
-    glGenTextures(2, gpu_textures);
-    for(int i = 0; i < 2; i++) {
-        glBindTexture(GL_TEXTURE_2D, gpu_textures[i]);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, NULL);
-    }
-    return gpu_textures;
+
+unsigned int platform_create_texture(int width, int height) {
+    unsigned int gpu_textures[1];
+    glGenTextures(1, gpu_textures);
+    glBindTexture(GL_TEXTURE_2D, gpu_textures[0]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, NULL);
+    return gpu_textures[0];
 }
 
-void platform_update_texture(unsigned int tex, void *pixels, int width, int height) {
+void platform_update_texture(unsigned int tex, void *pixels, int xoff, int yoff, int width, int height) {
     glBindTexture(GL_TEXTURE_2D, tex);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pixels);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, xoff, yoff, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pixels);
     //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB,  GL_UNSIGNED_SHORT_5_6_5, pixels);
 }
 
@@ -303,6 +501,57 @@ void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float 
             glTexCoord2f(0, 1); glVertex2f(-half_width,  half_height);
         glEnd();
     //glPopMatrix();
+}
+
+void platform_draw_segment(
+    unsigned int tex,
+    int seg_idx,
+    float attributes[7*3],
+    float offsets[4],
+    float scales[4])
+{
+    GLuint prog = (seg_idx < 2) ? seg01_prog : seg23_prog;
+    glBindTexture(GL_TEXTURE_2D, tex);
+    printf("err after glBindTexture: %x\n", glGetError());
+    glUseProgram(prog);
+    printf("err after glUseProgram: %x\n", glGetError());
+    glUniform4f(glGetUniformLocation(prog, "rayScales"), scales[0], scales[1], scales[2], scales[3]);
+    printf("err after glUniform4f: %x\n", glGetError());
+    glUniform4f(glGetUniformLocation(prog, "rayOffsets"), offsets[0], offsets[1], offsets[2], offsets[3]);
+    printf("err after glUniform4f: %x\n", glGetError());
+
+
+    glBindVertexArray(vao);
+    printf("err after glBindVertexArray: %x\n", glGetError());
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    printf("err after glBindBuffer: %x\n", glGetError());
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*21, attributes, GL_DYNAMIC_DRAW);
+    printf("err after glBufferData: %x\n", glGetError());
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7*sizeof(float), 0);
+    printf("err after attribptr 0: %x\n", glGetError());
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7*sizeof(float), (void*)(3*sizeof(float)));
+    printf("err after attribptr 1: %x\n", glGetError());
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    printf("err after draw: %x\n", glGetError());
+
+    //glLoadIdentity();
+    //glEnable(GL_TEXTURE_2D);
+    //glBindTexture(tex, 0);
+    //glMatrixMode(GL_PROJECTION);
+    //glDisable(GL_CULL_FACE);
+    //glLoadIdentity();
+    //glOrtho(-1, 1, -1, 1, -1, 1); // or -1 to 1 if using NDC
+    //glMatrixMode(GL_MODELVIEW);
+    //glLoadIdentity();
+    //glBegin(GL_QUADS);
+    //    for (int i = 0; i < 4; i++) {
+    //        glTexCoord2f(uvs[i][0], uvs[i][1]);
+    //        glVertex2f(positions[i][0], positions[i][1]);        
+    //    }
+    //glEnd();
+    return;
 }
 
 

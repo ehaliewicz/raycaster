@@ -428,7 +428,7 @@ void raycast_column(
     float perp_dist = NEAR_PLANE_DIST;
 
     int prev_drawn_top = 0;
-    int prev_drawn_bot = FP_SCREEN_HEIGHT;
+    int prev_drawn_bot = RENDER_HEIGHT;
     int start_map_x = my_floorf(ray_origin_x);
     int start_map_y = my_floorf(ray_origin_y);
     
@@ -1721,7 +1721,7 @@ void draw_first_person_level_inner(
     yaw += 1e-4f;
     
     for(int ix = start_x; ix < end_x; ix++) {
-        float cam_x = 2.0f * (ix) / (float)FP_SCREEN_WIDTH - 1.0f; // -1 to 1
+        float cam_x = 2.0f * (ix) / (float)RENDER_WIDTH - 1.0f; // -1 to 1
         float ray_dir_x = my_cosf(yaw) + cam_x * -my_sinf(yaw);
         float ray_dir_y = my_sinf(yaw) + cam_x * my_cosf(yaw);
         raycast_column(
@@ -1813,10 +1813,10 @@ int transform_and_submit_sprite(
 
     if(rot_z < NEAR_PLANE_DIST) { return -1; }
 
-    float screen_x0 = FP_SCREEN_WIDTH/2.0f - ((rot_x-half_width)*FOCAL_LENGTH/rot_z);
-    float screen_x1 = FP_SCREEN_WIDTH/2.0f - ((rot_x+half_width)*FOCAL_LENGTH/rot_z);
+    float screen_x0 = RENDER_WIDTH/2.0f - ((rot_x-half_width)*FOCAL_LENGTH/rot_z);
+    float screen_x1 = RENDER_WIDTH/2.0f - ((rot_x+half_width)*FOCAL_LENGTH/rot_z);
 
-    if(MAX(screen_x0, screen_x1) < 0 || MIN(screen_x0, screen_x1) > FP_SCREEN_WIDTH-1) {
+    if(MAX(screen_x0, screen_x1) < 0 || MIN(screen_x0, screen_x1) > RENDER_WIDTH-1) {
         return -1;
     }
 
@@ -1861,14 +1861,14 @@ void draw_transformed_sprites(
 
         for(int x = clipped_sprite_left_x; x <= clipped_sprite_right_x; x++) {
             //int dx = x-screen_x0;
-            if(screen_y1 > 0 && screen_y0 < FP_SCREEN_HEIGHT-1) {
+            if(screen_y1 > 0 && screen_y0 < RENDER_HEIGHT-1) {
                 float u = (x-screen_x0)*tex_per_pix;
                 u32* tex_col = get_texture_column(sprites[spr_idx], u);
                 
                 u32 skip = rle_spr_top_skips[spr_idx*32+(int)(u*32.0f)];
                 draw_lit_fogged_textured_z_buffered_blended_sprite(
                     output, z_buffer,  0, tex_col, skip, textures[SKYBOX_TEX_IDX],
-                    x, screen_y0, screen_y1, sprite.world_y0, sprite.world_y1, TOP_PEGGED, 0, FP_SCREEN_HEIGHT,
+                    x, screen_y0, screen_y1, sprite.world_y0, sprite.world_y1, TOP_PEGGED, 0, RENDER_HEIGHT,
                     z, 1.0f, BRIGHT, FOG_COL, NO_REPEAT_TEX, DO_ALPHA_BLEND, DO_DEPTH_TEST
                 );
                 edit_wall_id id_val;
@@ -1879,7 +1879,7 @@ void draw_transformed_sprites(
                 }
                 draw_z_buffered_alpha_edit_vline(
                     edit_id_buffer, z_buffer, tex_col,
-                    x, screen_y0, screen_y1, z, 0, FP_SCREEN_HEIGHT, 
+                    x, screen_y0, screen_y1, z, 0, RENDER_HEIGHT, 
                     id_val,
                     DO_DEPTH_TEST, DO_ALPHA_TEST
                 );
@@ -1892,7 +1892,7 @@ void draw_transformed_sprites(
                     if(flash_frame && selected) {
                         draw_z_buffered_alpha_tint_vline(
                             output, z_buffer, tex_col,
-                            x, screen_y0, screen_y1, z, 0, FP_SCREEN_HEIGHT, DO_DEPTH_TEST, DO_ALPHA_TEST
+                            x, screen_y0, screen_y1, z, 0, RENDER_HEIGHT, DO_DEPTH_TEST, DO_ALPHA_TEST
                         );
                     }
                 }

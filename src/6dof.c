@@ -3,6 +3,7 @@
 #include "common.h"
 #include "my_defs.h"
 #include "raycast.h"
+#include "resources.h"
 
 float2 float2_mul_float2(float2 a, float2 b) {
     return mk_float2((a.x*b.x), (a.y*b.y));
@@ -39,6 +40,14 @@ float3 float3_lerp(float3 a, float3 b, float c) {
     );
 }
 
+float4 float4_lerp(float4 a, float4 b, float c) {
+    return mk_float4(
+        lerp(a.x, b.x, c),
+        lerp(a.y, b.y, c),
+        lerp(a.z, b.z, c),
+        lerp(a.w, b.w, c)
+    );
+}
 float2 float2_mul_float(float2 a, float b) {
     return mk_float2((a.x*b), (a.y*b));
 }
@@ -356,7 +365,7 @@ float2 project_vanishing_point_world_to_screen(camera cam, float3 vp_world) {
         0.0f, 0.0f, 0.0f, 1.0f
     );
 
-    mat4 scale_mat = mk_mat4_from_scale(mk_float3(1.0f, 1.0f, 1.0f)); // swapped -1 z for 1
+    mat4 scale_mat = mk_mat4_from_scale(mk_float3(1.0f, 1.0f, -1.0f)); 
     mat4 inv_look_mat = mat4_invert(look_matrix);
 
     mat4 view_mat = mat4_mul_mat4(scale_mat, inv_look_mat);
@@ -393,13 +402,20 @@ camera mk_camera(
     float render_width, float render_height, 
     float near_clip_plane, float far_clip_plane
 ) {
-    camera res;    
+    camera res;
     float3 pos = mk_float3(posx, posy, posz);
+    //float3 pos = mk_float3(12, 15.5, 30.0f);
+
+    //pitch = 0.0f; yaw = 0.0f;
 
     float3 forward = mk_float3(1.0f, 0.0f, 0.0f);
-    float3 right = mk_float3(1.0f, 0.0f, -1.0f);
-    float3 up = mk_float3(0.0f, -1.0f, 0.0f); //float3_cross_float3(forward, right);
+    float3 right = mk_float3(0.0f, 0.0f, -1.0f);
 
+    //float3 forward = mk_float3(0.8039f, -0.19f, 0.56f);
+    //float3 right = mk_float3(0.5724f, 0.0f, -0.81f);
+
+    float3 up = float3_cross_float3(forward, right);
+    //goto setup_dims;
 
     // rotate by pitch first
     float sp = my_sinf(pitch);
@@ -461,7 +477,7 @@ camera mk_camera(
     //up.z = my_cosf(up_pitch) * my_sinf(yaw); 
 
 
-
+setup_dims:;
 
     float2 dims = mk_float2(render_width, render_height);
     float fov = 90.0f;
@@ -474,7 +490,7 @@ camera mk_camera(
         .forward = forward,
         .up = up,
         .right = right,
-        .pos = mk_float3(posx, posy, posz)
+        .pos = pos
     });
 }
 
@@ -516,6 +532,7 @@ segment get_segment_parameters(
     int secondary_axis = 1 - primary_axis;
 
     segment seg;
+    seg.ray_count = 0;
     seg.index = segment_index;
 
 
@@ -643,68 +660,171 @@ projected_plane_params get_projected_plane_params(
 }
 
 typedef struct {
-    float2 top, bot;
+    float4 top, bot;
     u8 on_screen;
 } clip_res;
 
 clip_res clip_homogeneous_camera_space_line(
-    float3 a, float3 b
+    float5 a, float5 b
 ) {
     
     float ax = a.x;
     float ay = a.y;
     float az = a.z;
+    float au = a.u;
+    float av = a.v;
     float bx = b.x;
     float by = b.y;
     float bz = b.z;
+    float bu = b.u;
+    float bv = b.v;
 
-    if (ay <= 0.0f) {
-        if (by <= 0.0f) {
-            return ((clip_res){.on_screen = 0, .top=mk_float2(ax,az), .bot=mk_float2(bx,bz)});
+    if (ay < NEAR_PLANE_DIST) {
+        if (by < NEAR_PLANE_DIST) {
+            return ((clip_res){.on_screen = 0, .top=mk_float4(ax,az,au,av), .bot=mk_float4(bx,bz,bu,bv)});
         }
-        float v = by / (by - ay);
-        float2 clip_a = float2_lerp(mk_float2(bx,bz), mk_float2(ax,az), v);
-        return ((clip_res){.on_screen=1, .top=clip_a, .bot=mk_float2(bx,bz)});
+        float v = (by-NEAR_PLANE_DIST) / (by - ay);
+        float4 clip_a = float4_lerp(mk_float4(bx,bz,bu,bv), mk_float4(ax,az,au,av), v);
+        return ((clip_res){.on_screen=1, .top=clip_a, .bot=mk_float4(bx,bz,bu,bv)});
     } else if (by <= 0.0f) {
-        float v = ay / (ay - by);
-        float2 clip_b = float2_lerp(mk_float2(ax,az), mk_float2(bx,bz), v);
-        return ((clip_res){.on_screen=1, .top=mk_float2(ax,az), .bot=clip_b});
+        float v = (ay-NEAR_PLANE_DIST) / (ay - by);
+        float4 clip_b = float4_lerp(mk_float4(ax,az,au,av), mk_float4(bx,bz,bu,bv), v);
+        return ((clip_res){.on_screen=1, .top=mk_float4(ax,az,au,av), .bot=clip_b});
     } else {
-        return ((clip_res){.on_screen=1, .top=mk_float2(ax,az), .bot=mk_float2(bx,bz)});
+        return ((clip_res){.on_screen=1, .top=mk_float4(ax,az,au,av), .bot=mk_float4(bx,bz,bu,bv)});
     }
+}
+
+#define SWAP(type, a, b) {      \
+    type tmp = (a);             \
+    (a) = (b);                  \
+    (b) = (tmp);                \
+    } while(0)
+
+u8 seen_pixel_cache[256]; // up to 2048 pixels
+
+int is_pixel_set(u8 *pix_buf, int pix) {
+    int byte = (pix>>3);
+    int bit = (pix&0b111);
+    return ((pix_buf[byte] >> bit)&1);
+}
+void mark_pixel(u8 *pix_buf, int pix) {
+    int byte = (pix>>3);
+    int bit = (pix&0b111);
+    pix_buf[byte] |= (1 << bit);
 }
 
 typedef struct {
-    int drawn;
     int top, bot;
-} drawn_extent;
+} new_screen_bounds;
 
-drawn_extent fill_raybuffer_column(
-    u32* ray_buffer,
-    int col,
-    float2 cam_space_top, float2 cam_space_bot,
-    int prev_drawn_top, int prev_drawn_bot,
-    u32 color
-) {
+new_screen_bounds fill_raybuffer_column(
+    float4 cam_space_top, float4 cam_space_bot,
+    int cur_next_free_pix_min, int cur_next_free_pix_max, 
+    int original_next_free_pix_min, 
+    int original_next_free_pix_max,
+    u8* seen_pixel_cache,
+    u32* pix_arr, int column, int seg_buffer_height,
+    u32* texture,
+    int use_flat_color,
+    u32 flat_col) {
     
-    float ray_buffer_bounds_float_min = cam_space_top.x / cam_space_top.y;
-    float ray_buffer_bounds_float_max = cam_space_bot.x / cam_space_bot.y;
-    
+
+    // calculate the position in the ray buffer
+    float one_over_z_top = 1.0f / cam_space_top.y;
+    float one_over_z_bot = 1.0f / cam_space_bot.y;
+    float u_top = cam_space_top.z;
+    float v_top = cam_space_top.w;
+    float u_bot = cam_space_bot.z;
+    float v_bot = cam_space_bot.w;
+    float u_over_z_top = u_top * one_over_z_top;
+    float v_over_z_top = v_top * one_over_z_top;
+    float u_over_z_bot = u_bot * one_over_z_bot;
+    float v_over_z_bot = v_bot * one_over_z_bot;
+    float ray_buffer_bounds_float_min = cam_space_top.x * one_over_z_top;
+    float ray_buffer_bounds_float_max = cam_space_bot.x * one_over_z_bot;
+
+
+    // flip min and max if necessary
+    if (ray_buffer_bounds_float_max < ray_buffer_bounds_float_min) {
+        SWAP(float, ray_buffer_bounds_float_max, ray_buffer_bounds_float_min);
+        SWAP(float, u_over_z_top, u_over_z_bot);
+        SWAP(float, v_over_z_top, v_over_z_bot);
+    }
+
+    int original_ray_buffer_bounds_min = ray_buffer_bounds_float_min;
+    //original_ray_buffer_bounds_max = ray_buffer_bounds_float_max
+
+    int num_pix = (ray_buffer_bounds_float_max+1) - ray_buffer_bounds_float_min;
+    float one_over_z_per_pix = (one_over_z_bot-one_over_z_top) / num_pix;
+    float du_over_z_per_pix = (u_over_z_bot-u_over_z_top)/num_pix;
+    float dv_over_z_per_pix = (v_over_z_bot-v_over_z_top)/num_pix;
+
+
+    // round to an integer position
     int ray_buffer_bounds_min = my_roundf(ray_buffer_bounds_float_min);
     int ray_buffer_bounds_max = my_roundf(ray_buffer_bounds_float_max);
 
-    int draw_min = MAX(ray_buffer_bounds_float_min, prev_drawn_top);
-    int draw_max = MIN(ray_buffer_bounds_max, prev_drawn_bot);
+    // check if within screen-space drawable bounds
+    if (ray_buffer_bounds_max >= original_next_free_pix_min && ray_buffer_bounds_float_min <= original_next_free_pix_max) {
+        // if this visible chunk touches the top screen bound
+        // shrink top of frustum as much as possible
+        if (ray_buffer_bounds_min <= cur_next_free_pix_min) {
+            // simple and works, but doesn't continuously shrink the top
+            ray_buffer_bounds_min = cur_next_free_pix_min;
+            cur_next_free_pix_min = ray_buffer_bounds_max+1;
+            if (ray_buffer_bounds_max >= cur_next_free_pix_min) {
+                cur_next_free_pix_min = ray_buffer_bounds_max+1;
+                while (cur_next_free_pix_min <= original_next_free_pix_max && is_pixel_set(seen_pixel_cache, cur_next_free_pix_min) > 0) {
+                    cur_next_free_pix_min += 1;
+                }
+            }
+        }
+
+        // if this visible chunk touches the bottom screen bound
+        // shrink bottom frustum as much as possible
+        if (ray_buffer_bounds_max >= cur_next_free_pix_max) {
+            ray_buffer_bounds_max = cur_next_free_pix_max;
+            cur_next_free_pix_max = ray_buffer_bounds_min - 1;
+            if (ray_buffer_bounds_min <= cur_next_free_pix_max) {
+                cur_next_free_pix_max = ray_buffer_bounds_min-1;
+                while (cur_next_free_pix_max >= original_next_free_pix_min && is_pixel_set(seen_pixel_cache, cur_next_free_pix_max) > 0) {
+                    cur_next_free_pix_max -= 1;
+                }
+            }
+        }
 
 
-    int drawn = 0;
-    for(int y = draw_min; y < draw_max+1; y++) {
-        drawn = 1;
-        ray_buffer[col*FP_SCREEN_HEIGHT+y] = col;
+        // now draw visible portion of the chunk
+        //pix_arr_col = pix_arr[col]
+        //dy = len(pix_arr_col)-1
+        
+        for (int y = ray_buffer_bounds_min; y < ray_buffer_bounds_max+1; y++) {
+            if (is_pixel_set(seen_pixel_cache, y) == 0) { //seen_pixel_cache[y] == 0:
+                mark_pixel(seen_pixel_cache, y);
+                int dy_for_depth = y - original_ray_buffer_bounds_min;
+                float inv_z = one_over_z_top + one_over_z_per_pix * dy_for_depth;
+                float z = 1.0/inv_z;
+                float u_over_z = u_over_z_top + (dy_for_depth * du_over_z_per_pix);
+                float v_over_z = v_over_z_top + (dy_for_depth * dv_over_z_per_pix);
+
+                int u = (int)(u_over_z * z * 32) & 31;
+                int v = (int)(v_over_z * z * 32) & 31;
+
+
+                u32 color = texture[u*32+v];
+                if (use_flat_color) {
+                    color = flat_col;
+                }
+
+                pix_arr[column*seg_buffer_height + (seg_buffer_height-y)] = color; //dy-y] = col
+            }
+                    
+        }
     }
-
-    return ((drawn_extent){.drawn = drawn, .top = draw_min, .bot = draw_max});
+    return ((new_screen_bounds){.top = cur_next_free_pix_min, .bot = cur_next_free_pix_max});
 }
+
 
 void execute_rays_in_segment(
     u32* ray_buffer,
@@ -713,7 +833,7 @@ void execute_rays_in_segment(
     camera cam,
     mat4 world_to_screen_mat,
     int axis_mapped_to_y,
-    level* this_level
+    level* this_level, int seg_buffer_height
 ) { 
     float world_max_y = MAX_WALL_HEIGHT;
     float one_over_world_max_y = 1.0f / world_max_y;
@@ -730,6 +850,8 @@ void execute_rays_in_segment(
         float2 cam_local_plane_ray_direction = float2_lerp(seg.cam_local_plane_ray_min, seg.cam_local_plane_ray_max, end_ray_lerp);
         float2 norm_ray_direction = float2_normalize(cam_local_plane_ray_direction);
         int ray_column = ray_buffer_base_offset + ray_segment_idx;
+
+        for(int i = 0; i < 256; i++) { seen_pixel_cache[i] = 0; }
 
         float2 ray_start = cam_pos_xz;
         float2 ray_dir = norm_ray_direction;
@@ -757,6 +879,8 @@ void execute_rays_in_segment(
 
         int prev_drawn_top = seg.next_free_pixel_min;
         int prev_drawn_bot = seg.next_free_pixel_max;
+        const int original_prev_drawn_top = prev_drawn_top;
+        const int original_prev_drawn_bot = prev_drawn_bot;
         //int cur_min = 
         //int cur_max = 
 
@@ -806,6 +930,7 @@ void execute_rays_in_segment(
             float exit_flat_u, exit_flat_v; // the u,v position of where we "exit" the current cell before stepping to the new one
             float hit_x;
             float hit_y;
+            
 
             if(side_dist_x < side_dist_y) {
                 side_dist_x += delta_dist_x;
@@ -834,17 +959,22 @@ void execute_rays_in_segment(
             float3 cam_bot_next = float3_add_float3(plane_bot, float3_mul_float(plane_dir, next_perp_dist));
             float3 cam_top_next = float3_add_float3(plane_top, float3_mul_float(plane_dir, next_perp_dist));
             
-            float ceil_height = cur_level_ceil[map_idx];
-            float floor_height = cur_level_floor[map_idx];
-
+            float ceil_height = 16.0f;//cur_level_ceil[map_idx];
+            float floor_height = 2.0f;//cur_level_floor[map_idx];
+            if((map_x^map_y) & 1) {
+                floor_height = 1.0f;
+            }
+            if(((map_x^map_y) & 1) == 0) {
+                ceil_height = 15.0f;
+            }
             float max_height = MAX_WALL_HEIGHT;
             float min_height = 0.0f;
 
-            //float portion_ceil = ceil_height * one_over_world_max_y;
+            float portion_ceil = ceil_height * one_over_world_max_y;
             float portion_floor = floor_height * one_over_world_max_y;
 
-            //float3 cam_ceil_top = cam_top_cur;
-            //float3 cam_ceil_bot   = float3_lerp(cam_bot_cur,  cam_top_cur,  portion_ceil);
+            float3 cam_ceil_top = cam_top_cur;
+            float3 cam_ceil_bot   = float3_lerp(cam_bot_cur,  cam_top_cur,  portion_ceil);
 
             //float3 cam_ceil_next  = float3_lerp(cam_bot_next, cam_top_next, portion_ceil);
             
@@ -859,62 +989,50 @@ void execute_rays_in_segment(
 
             // let's just draw front faces for now
             if(!in_start_cell) {
-                //clip_res ceil_clipped = clip_homogeneous_camera_space_line(cam_ceil_top, cam_ceil_bot);
-                /*
+                clip_res ceil_clipped = clip_homogeneous_camera_space_line(
+                    mk_float5(cam_ceil_top.x, cam_ceil_top.y, cam_ceil_top.z, 0.0f, 1.0f),
+                    mk_float5(cam_ceil_bot.x, cam_ceil_bot.y, cam_ceil_bot.z, 0.0f, 1.0f)
+                );
+                
                 if(ceil_clipped.on_screen) {
                     // fill column from top to bottom
-                    drawn_extent drawn = fill_raybuffer_column(
-                        ray_buffer, ray_column,
+                    new_screen_bounds drawn = fill_raybuffer_column(
                         ceil_clipped.top, ceil_clipped.bot,
                         prev_drawn_top, prev_drawn_bot,
-                        0xFF00FF00
+                        original_prev_drawn_top, original_prev_drawn_bot,
+                        seen_pixel_cache, ray_buffer, ray_column,
+                        seg_buffer_height, textures[0], 0, 0
                     );
-                    if(drawn.drawn) {
-                        // set prev drawn top
-                        prev_drawn_top = MAX(drawn.bot, prev_drawn_top);
-                    }
-                }
-                */
-
-                clip_res floor_clipped = clip_homogeneous_camera_space_line(cam_floor_top, cam_floor_bot);
-                if(floor_clipped.on_screen) {
-                    // fill column from top to bottom
-                    drawn_extent drawn = fill_raybuffer_column(
-                        ray_buffer, ray_column,
-                        floor_clipped.top, floor_clipped.bot,
-                        prev_drawn_top, prev_drawn_bot,
-                        0xFF0000FF
-                    );
-                    //draw_lit_fogged_clipped_textured_wall(
-                    //    output, z_buffer,
-                    //    (lower_wall_tex == SKYBOX_TEX_IDX),
-                    //    get_texture_column(textures[lower_wall_tex], wall_u),skybox_column,
-                    //    screen_x, proj_floor_first_step_height, proj_floor_anchor_height,
-                    //    first_floor_height, floor_anchor, BOTTOM_PEGGED,
-                    //    prev_drawn_top, prev_drawn_bot, perp_dist, light_factor, lower_intersect_wall_light_level, 
-                    //   FOG_COL, REPEAT_TEX
-                    //);
-
-                    // set prev drawn bot
-                    if(drawn.drawn) {
-                        prev_drawn_bot = MIN(drawn.top, prev_drawn_bot);
-                    }
+                    prev_drawn_top = drawn.top;
+                    prev_drawn_bot = drawn.bot;
                 }
                 
+                
+                clip_res floor_clipped = clip_homogeneous_camera_space_line(
+                    mk_float5(cam_floor_top.x, cam_floor_top.y, cam_floor_top.z, 0.0f, 1.0f),
+                    mk_float5(cam_floor_bot.x, cam_floor_bot.y, cam_floor_bot.z, 0.0f, 1.0f)
+                );
+                if(floor_clipped.on_screen) {
+                    // fill column from top to bottom
+                    new_screen_bounds drawn = fill_raybuffer_column(
+                        ceil_clipped.top, ceil_clipped.bot,
+                        prev_drawn_top, prev_drawn_bot,
+                        original_prev_drawn_top, original_prev_drawn_bot,
+                        seen_pixel_cache, ray_buffer, ray_column,
+                        seg_buffer_height, textures[1], 0, 0
+                    );
+                    prev_drawn_top = drawn.top;
+                    prev_drawn_bot = drawn.bot;
+                }
             }
 
-            //prev_drawn_bot = MIN(cam_floor_top, prev_drawn_bot);
-            //prev_drawn_top = MAX(cam_ceil_bot, prev_drawn_top);
-
-            //int proj_floor_anchor_height = lerp3(cam_bot_cur)
-
-
-
-
-            //float3 slab_bot_cur = float3_add_float3(plane.plane_top, float3_mul_float(plane.plane_ray_direction, dist_x));
-            //float3 slab_top_cur = float3_add_float3(plane.plane_bottom, float3_mul_float(plane.plane_ray_direction, dist_x));
-            
 
         }
     }
+}
+
+
+
+float3 adjust_screen_pixel_for_mesh(float2 screen_pixel, float2 screen_size) { 
+        return (float3){.x=2.0f * screen_pixel.x / screen_size.x - 1.0f, .y = 2.0f * screen_pixel.y/screen_size.y - 1.0f, .z=0.5f};
 }

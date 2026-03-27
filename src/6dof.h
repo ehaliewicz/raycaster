@@ -24,10 +24,14 @@ typedef struct {
 typedef struct {
     float x,y,z,w;
 } float4;
+typedef struct {
+    float x,y,z,u,v;
+} float5;
 
 #define mk_float2(nx,ny) ((float2){.x=(nx),.y=(ny),})
 #define mk_float3(nx,ny,nz) ((float3){.x=(nx),.y=(ny),.z=(nz)})
 #define mk_float4(nx,ny,nz,nw) ((float4){.x=(nx),.y=(ny),.z=(nz),.w=(nw)})
+#define mk_float5(nx,ny,nz,nu,nv) ((float5){.x=(nx),.y=(ny),.z=(nz),.u=(nu),.v=(nv)})
 
 
 typedef struct {
@@ -68,6 +72,7 @@ typedef struct {
 
 
 float2 float2_lerp(float2 a, float2 b, float c);
+float2 float2_sub(float2 a, float2 b);
 float2 float2_normalize(float2 a);
 float3 float3_normalize(float3 a);
 mat4 get_world_to_screen_matrix(camera cam);
@@ -85,6 +90,8 @@ segment get_segment_parameters(
     float2 neutral, int primary_axis, int world_y_max,
     int max_ray_count);
 
+float3 adjust_screen_pixel_for_mesh(float2 screen_pixel, float2 screen_size);
+
 void execute_rays_in_segment(
     u32* ray_buffer,
     int ray_buffer_base_offset,
@@ -92,7 +99,8 @@ void execute_rays_in_segment(
     camera cam,
     mat4 world_to_screen_mat,
     int axis_mapped_to_y,
-    level* this_level
+    level* this_level,
+    int seg_buffer_height
 );
 
 #endif

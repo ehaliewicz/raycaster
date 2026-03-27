@@ -58,8 +58,8 @@ extern int cur_render_scale;
 
 #define OUTPUT_WIDTH (cur_output_width)
 #define OUTPUT_HEIGHT (cur_output_height)
-#define FP_SCREEN_WIDTH (cur_render_width)
-#define FP_SCREEN_HEIGHT (cur_render_height)
+#define RENDER_WIDTH (cur_render_width)
+#define RENDER_HEIGHT (cur_render_height)
 
 
 #define TEX_SIZE (32)
@@ -84,8 +84,8 @@ extern int cur_render_scale;
 #define EIGTH_CIRCLE_RADS (FULL_CIRCLE_RADS/8.0f)
 
 // SLIGHTLY less than 1.0
-#define SKYBOX_V_PER_PIX ((SKYBOX_TEX_HEIGHT*0.9f)/FP_SCREEN_HEIGHT)
-//(((float)SKYBOX_TEX_HEIGHT)/FP_SCREEN_HEIGHT)
+#define SKYBOX_V_PER_PIX ((SKYBOX_TEX_HEIGHT*0.9f)/RENDER_HEIGHT)
+//(((float)SKYBOX_TEX_HEIGHT)/RENDER_HEIGHT)
 
 
 #ifdef DEBUG
