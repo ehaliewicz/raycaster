@@ -20,6 +20,7 @@ typedef enum {
     KEY_L = 0x4C,
     KEY_O = 0x4F,
     KEY_P = 0x50,
+    KEY_Q = 0x51,
     KEY_R = 0x52,
     KEY_S = 0x53,
     KEY_T = 0x54,
@@ -84,7 +85,8 @@ u8* platform_load_file_data(const char* file, int* out_loaded_bytes);
 void platform_release_texture(int tex);
 unsigned int platform_create_texture(int width, int height);
 void platform_update_texture(unsigned int tex, void *pixels, int xoff, int yoff, int width, int height);
-void platform_draw_segment(
+void platform_draw_segments(
+    int num_segs,
     unsigned int tex,
     int seg_idx,
     float attributes[7*3],

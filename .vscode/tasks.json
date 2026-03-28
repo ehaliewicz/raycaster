@@ -57,6 +57,7 @@
                 //"ntstc_msvcrt.lib",
                 //"ntstc_libcmt.lib",
                 "gdi32.lib",
+                "winmm.lib",
                 //"-lws2_32",
                 "/out:${workspaceFolder}/out/raycast-cl.exe"
             ],

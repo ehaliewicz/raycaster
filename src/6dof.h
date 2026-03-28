@@ -13,12 +13,7 @@ typedef struct {
 } float2;
 
 typedef struct {
-    union {
-        struct {
-            float x,y,z;
-        };
-        float vals[3];
-    };
+    float x,y,z;
 } float3;
 
 typedef struct {
@@ -28,6 +23,11 @@ typedef struct {
     float x,y,z,u,v;
 } float5;
 
+typedef struct {
+    int x, y;
+} int2;
+
+#define mk_int2(nx,ny) ((int2){.x=(nx),.y=(ny),})
 #define mk_float2(nx,ny) ((float2){.x=(nx),.y=(ny),})
 #define mk_float3(nx,ny,nz) ((float3){.x=(nx),.y=(ny),.z=(nz)})
 #define mk_float4(nx,ny,nz,nw) ((float4){.x=(nx),.y=(ny),.z=(nz),.w=(nw)})
@@ -59,9 +59,14 @@ typedef struct {
 } mat4;
 
 typedef struct {
-    float a,b,c;
-    float d,e,f;
-    float g,h,i;
+    union {
+        struct {
+            float a,b,c;
+            float d,e,f;
+            float g,h,i;
+        };
+        float m[3][3];
+    };
 } mat3;
 
 #define mk_mat4(na,nb,nc,nd,ne,nf,ng,nh,ni,nj,nk,nl,nm,nn,no,np) \
@@ -80,7 +85,7 @@ float3 calc_vanishing_point_world(camera cam);
 float2 project_vanishing_point_world_to_screen(camera cam, float3 vp_world);
 camera mk_camera(
     float posx, float posy, float posz, 
-    float pitch, float yaw,
+    float pitch, float yaw, float roll,
     float render_width, float render_height, 
     float near_clip_plane, float far_clip_plane
 );
@@ -93,14 +98,27 @@ segment get_segment_parameters(
 float3 adjust_screen_pixel_for_mesh(float2 screen_pixel, float2 screen_size);
 
 void execute_rays_in_segment(
+    u32* ray_buffer, u8* seen_pixel_cache,
+    int ray_buffer_base_offset,
+    segment seg,
+    int start_ray, int end_ray,
+    camera cam,
+    mat4 world_to_screen_mat,
+    int axis_mapped_to_y,
+    level* this_level, int seg_buffer_height
+);
+
+void launch_parallel_raycast_segment(
     u32* ray_buffer,
     int ray_buffer_base_offset,
     segment seg,
     camera cam,
     mat4 world_to_screen_mat,
     int axis_mapped_to_y,
-    level* this_level,
-    int seg_buffer_height
+    level* this_level, int seg_buffer_height
 );
+
+void join_raycast_segment();
+void init_6dof_module();
 
 #endif

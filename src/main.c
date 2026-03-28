@@ -48,7 +48,7 @@ const int res_is_superwide[NUM_RESOLUTIONS] = {
 };
 
 int cur_render_res_idx = -1;
-int requested_render_res = 4;
+int requested_render_res = 3;
 int cur_render_scale = -1;
 int requested_render_scale = 1;
 int cur_output_width = 1280;
@@ -144,7 +144,8 @@ level *levels = NULL;
 float player_x;
 float player_y;
 float player_z;
-float player_yaw;
+float player_yaw = 0.0f;
+float player_roll = 0.0f;
 float player_pitch = 0.0f;
 float pitch = 0;
 int cur_level_idx;
@@ -461,6 +462,12 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     if(platform_is_key_down(KEY_RIGHT) || platform_is_key_down(KEY_O)) {
         player_yaw -= 0.0035f*frame_time;
     }
+    if(platform_is_key_down(KEY_V)) {
+        //player_roll += 0.0035f*frame_time;
+    }
+    if(platform_is_key_down(KEY_B)) {
+        //player_roll -= 0.0035f*frame_time;
+    }
     
 //#define MOUSE_SENSITIVITY 0.00003f
 #define PIXELS_PER_RADIAN (RENDER_HEIGHT)
@@ -481,7 +488,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         player_yaw -= 6.28f;
     }
 
-    float pitch_speed = 0.0005f*frame_mult;
+    float pitch_speed = 0.05f*frame_mult;
     float dy = (platform_is_key_down(KEY_I) ? 1.0f : (platform_is_key_down(KEY_K)) ? -1.0f : 0.0f);
     player_pitch += dy*pitch_speed;
 
@@ -489,7 +496,7 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         //pitch = 0;
     }
 
-    //player_pitch = CLAMP(player_pitch, -EIGTH_CIRCLE_RADS, EIGTH_CIRCLE_RADS);
+    player_pitch = CLAMP(player_pitch, -QUARTER_CIRCLE_RADS, QUARTER_CIRCLE_RADS);
     pitch = my_sinf(player_pitch) * 16.0f * (HEIGHT_SCALE * FOCAL_LENGTH / MAX_WALL_HEIGHT);
 
 
@@ -1223,8 +1230,12 @@ void change_resolution() {
     seg_draw_bufs[0] = my_malloc(top_down_ray_buffer_size, "seg01 buffer");
     seg_draw_bufs[1] = my_malloc(left_right_ray_buffer_size, "seg23 buffer");
     transpose_buf = my_malloc(max(max_left_right_rays, max_top_down_rays) * max(RENDER_HEIGHT, RENDER_WIDTH) * sizeof(u32), "transpose buffer");
-    seg_tex_handles[0] = platform_create_texture(max_top_down_rays, RENDER_HEIGHT);
-    seg_tex_handles[1] = platform_create_texture(max_left_right_rays, RENDER_WIDTH);
+    //seg_tex_handles[0] = platform_create_texture(max_top_down_rays, RENDER_HEIGHT);
+    //seg_tex_handles[1] = platform_create_texture(max_left_right_rays, RENDER_WIDTH);
+
+    // no transpose necessary
+    seg_tex_handles[0] = platform_create_texture(RENDER_HEIGHT, max_top_down_rays);
+    seg_tex_handles[1] = platform_create_texture(RENDER_WIDTH, max_left_right_rays);
     //for(int y = 0; y < RENDER_HEIGHT; y++) {
     //    float cy = ((((float)y) / RENDER_HEIGHT))*255.0f;
     //    int iy = cy;
@@ -1262,13 +1273,132 @@ void init_game();
 int launch_in_edit_mode = 0;
 int killed_all_the_foxs = 0;
 
+void initialize_segments(float2 screen_vp, camera cam, segment segments[4]) {
+    
+        if (screen_vp.y < cam.dims.y) {
+            // top segment
+            segments[0] = get_segment_parameters(
+                0,
+                cam, screen_vp, cam.dims.y - screen_vp.y, 
+                ((float2){.x=0.0f, .y = 1.0f}), 1, MAX_WALL_HEIGHT, max_top_down_rays);
+        }
+
+        if(screen_vp.y > 0) {
+            segments[1] = get_segment_parameters(
+                1,
+                cam, screen_vp, screen_vp.y,
+                ((float2){.x=0.0f, .y=-1.0f}), 1, MAX_WALL_HEIGHT, max_top_down_rays
+            );
+        }
+
+        if(screen_vp.x < cam.dims.x) {
+            segments[2] = get_segment_parameters(
+                2,
+                cam, screen_vp,  cam.dims.x - screen_vp.x, 
+                ((float2){.x=1.0f, .y=0.0f}), 0, MAX_WALL_HEIGHT, max_left_right_rays);
+        }
+
+        if (screen_vp.x > 0) {
+            segments[3] = get_segment_parameters(
+                3,
+                cam, screen_vp, screen_vp.x, 
+                ((float2){.x=-1.0f, .y=0.0f}), 0, MAX_WALL_HEIGHT, max_left_right_rays);
+        }
+}
+
+void draw_segments(float2 screen_vp, camera cam, segment segments[4]) {
+    
+    float3 seg_v0 = adjust_screen_pixel_for_mesh(screen_vp, cam.dims);
+
+
+    float scales[4] = {
+        ((float)segments[0].ray_count) / max_top_down_rays,
+        ((float)segments[1].ray_count) / max_top_down_rays,
+        ((float)segments[2].ray_count) / max_left_right_rays,
+        ((float)segments[3].ray_count) / max_left_right_rays
+    };
+    float offsets[4] = {
+        0.0f, scales[0], 0.0f, scales[2],
+    };
+    float3 seg0_v1 = adjust_screen_pixel_for_mesh(segments[0].max_screen, cam.dims);
+    float3 seg0_v2 = adjust_screen_pixel_for_mesh(segments[0].min_screen, cam.dims);
+
+    float3 seg1_v1 = adjust_screen_pixel_for_mesh(segments[1].max_screen, cam.dims);
+    float3 seg1_v2 = adjust_screen_pixel_for_mesh(segments[1].min_screen, cam.dims);
+
+    float3 seg2_v1 = adjust_screen_pixel_for_mesh(segments[2].max_screen, cam.dims);
+    float3 seg2_v2 = adjust_screen_pixel_for_mesh(segments[2].min_screen, cam.dims);
+
+    float3 seg3_v1 = adjust_screen_pixel_for_mesh(segments[3].max_screen, cam.dims);
+    float3 seg3_v2 = adjust_screen_pixel_for_mesh(segments[3].min_screen, cam.dims);
+
+    float seg01_attributes[7*6] = {
+        seg_v0.x, seg_v0.y, seg_v0.z, 0.0f, 0.0f, 1.0f, 0,
+        seg0_v1.x, seg0_v1.y, seg0_v1.z, 1.0f, 0.0f, 0.0f, 0,
+        seg0_v2.x, seg0_v2.y, seg0_v2.z, 0.0f, 1.0f, 0.0f, 0,
+
+        seg_v0.x, seg_v0.y, seg_v0.z, 0.0f, 0.0f, 1.0f, 1,
+        seg1_v1.x, seg1_v1.y, seg1_v1.z, 1.0f, 0.0f, 0.0f, 1,
+        seg1_v2.x, seg1_v2.y, seg1_v2.z, 0.0f, 1.0f, 0.0f, 1,
+    };    
+    float seg23_attributes[7*6] = {
+        seg_v0.x, seg_v0.y, seg_v0.z, 0.0f, 0.0f, 1.0f, 2,
+        seg2_v1.x, seg2_v1.y, seg2_v1.z, 1.0f, 0.0f, 0.0f, 2,
+        seg2_v2.x, seg2_v2.y, seg2_v2.z, 0.0f, 1.0f, 0.0f, 2,
+
+        seg_v0.x, seg_v0.y, seg_v0.z, 0.0f, 0.0f, 1.0f, 3,
+        seg3_v1.x, seg3_v1.y, seg3_v1.z, 1.0f, 0.0f, 0.0f, 3,
+        seg3_v2.x, seg3_v2.y, seg3_v2.z, 0.0f, 1.0f, 0.0f, 3,
+    };
+
+
+   
+            
+    platform_draw_segments(
+        2,
+        seg_tex_handles[0], 
+        0,  // good enough for seg01 :)
+        seg01_attributes,
+        offsets, scales
+    );
+    platform_draw_segments(
+        2,
+        seg_tex_handles[1],
+        2, // good enough for seg23 :) 
+        seg23_attributes,
+        offsets, scales
+    );
+}
 
 
 
 void run_game() {
+    if(requested_render_res != cur_render_res_idx || requested_render_scale != cur_render_scale || requested_use_vsync != use_vsync || requested_fullscreen != fullscreen) {
+        float prev_pitch = player_pitch;
+        change_resolution();
+        player_pitch = prev_pitch;
+    }
+
+    camera cam = mk_camera(
+        player_x, player_z, player_y, 
+        player_pitch,
+        player_yaw, 
+        player_roll,
+        RENDER_WIDTH, RENDER_HEIGHT,
+        NEAR_PLANE_DIST, FAR_PLANE_DIST
+    );
+    float3 world_vp = calc_vanishing_point_world(cam);
+    float2 screen_vp = project_vanishing_point_world_to_screen(
+        cam, world_vp
+    );
+
+    segment segments[4] = { 0 };
+
     platform_begin_frame();
     if(!platform_is_window_focused()) {
         platform_begin_drawing();
+        initialize_segments(screen_vp, cam, segments);
+        draw_segments(screen_vp, cam, segments);
         platform_end_drawing();
         return;
     }
@@ -1286,11 +1416,7 @@ void run_game() {
     }
 
     float frame_time_ms = platform_get_frame_time()*1000.0f;
-    if(requested_render_res != cur_render_res_idx || requested_render_scale != cur_render_scale || requested_use_vsync != use_vsync || requested_fullscreen != fullscreen) {
-        float prev_pitch = player_pitch;
-        change_resolution();
-        player_pitch = prev_pitch;
-    }
+
 
     clear_requested_sprites();
 
@@ -1394,22 +1520,16 @@ void run_game() {
             player_pitch = 0.001f;
         }
     }
-
-
-    camera cam = mk_camera(
-        player_x, player_z, player_y, 
-        player_pitch,
-        player_yaw, 
-        RENDER_WIDTH, RENDER_HEIGHT,
-        NEAR_PLANE_DIST, FAR_PLANE_DIST
-    );
+    int draw_6dof = 1;//platform_is_key_down(KEY_Q);
 
 
     int flash_frame = iquarter_seconds&0b1;
     platform_begin_drawing(); {   
 
         float scale = ((float)OUTPUT_WIDTH/((float)RENDER_WIDTH));
-        platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, RENDER_HEIGHT, RENDER_WIDTH);
+        if(!draw_6dof) {
+            platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, RENDER_HEIGHT, RENDER_WIDTH);
+        }
 
         for(int i = 0; i < RENDER_HEIGHT*RENDER_WIDTH; i++) {
             zbuffer_draw[i] = DARK_DIST*FIXED_POINT_MULT;
@@ -1469,193 +1589,137 @@ void run_game() {
             }
         } else {
 
-
-            needs_join = 1;
-            launch_render_frame(render_draw_pix, edit_draw_buf, zbuffer_draw,
-                0, RENDER_WIDTH, flash_frame, 
-                &levels[cur_level_idx], player_x, player_y, player_z, 
-                player_yaw, pitch,
-                editor_mode_enabled, editor_selected_idx, editor_selected_side
-            );
-
-            // step 1:
-            // calculate triangle position in screen-space
-            // requires calculating segments
-
-            // a segment represents a 90 degree quadrant around the player (0-90, 90-180, 180-270, 270-360)
-            // 1 - how many rays in a quadrant are necessary to fill the screen area covered by that quadrant 
-            // (generally 1 ray per opposite side screen border)
-            // 2 - screen-space area covered by that quadrant
-            // 3 - world-space ray bounds on the far side.
-
-            // to raycast inside a segment
-            // we do  for(int i = 0; i < ray_count; i++) { ray = float3_lerp(i/ray_count, first_ray_end_loc, last_ray_end_loc); }
-            // then we normalize that ray direction
-
-
-            float3 world_vp = calc_vanishing_point_world(cam);
-            float2 screen_vp = project_vanishing_point_world_to_screen(
-                cam, world_vp
-            );
-
-            // essentially zero initializing
-            // probably zero initialize would be fine actually
-            // since a 0 ray count effectively short-circuits everything
-
-
-            segment segments[4] = { 0 };
-
-            if (screen_vp.y < cam.dims.y) {
-                // top segment
-                segments[0] = get_segment_parameters(
-                    0,
-                    cam, screen_vp, cam.dims.y - screen_vp.y, 
-                    ((float2){.x=0.0f, .y = 1.0f}), 1, MAX_WALL_HEIGHT, max_top_down_rays);
-            }
-
-            if(screen_vp.y > 0) {
-                segments[1] = get_segment_parameters(
-                    1,
-                    cam, screen_vp, screen_vp.y,
-                    ((float2){.x=0.0f, .y=-1.0f}), 1, MAX_WALL_HEIGHT, max_top_down_rays
+            if(!draw_6dof) {
+                needs_join = 1;
+                launch_render_frame(render_draw_pix, edit_draw_buf, zbuffer_draw,
+                    0, RENDER_WIDTH, flash_frame, 
+                    &levels[cur_level_idx], player_x, player_y, player_z, 
+                    player_yaw, pitch,
+                    editor_mode_enabled, editor_selected_idx, editor_selected_side
                 );
-            }
+            } else {
 
-            if(screen_vp.x < cam.dims.x) {
-                segments[2] = get_segment_parameters(
-                    2,
-                    cam, screen_vp,  cam.dims.x - screen_vp.x, 
-                    ((float2){.x=1.0f, .y=0.0f}), 0, MAX_WALL_HEIGHT, max_left_right_rays);
-            }
+                // step 1:
+                // calculate triangle position in screen-space
+                // requires calculating segments
 
-            if (screen_vp.x > 0) {
-                segments[3] = get_segment_parameters(
-                    3,
-                    cam, screen_vp, screen_vp.x, 
-                    ((float2){.x=-1.0f, .y=0.0f}), 0, MAX_WALL_HEIGHT, max_left_right_rays);
-            }
+                // a segment represents a 90 degree quadrant around the player (0-90, 90-180, 180-270, 270-360)
+                // 1 - how many rays in a quadrant are necessary to fill the screen area covered by that quadrant 
+                // (generally 1 ray per opposite side screen border)
+                // 2 - screen-space area covered by that quadrant
+                // 3 - world-space ray bounds on the far side.
 
-            for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
-                int next_free_pix_min, next_free_pix_max;
-                if (seg_idx == 0) {
-                    next_free_pix_min = CLAMP(my_roundf(screen_vp.y), 0, RENDER_HEIGHT-1);
-                    next_free_pix_max = RENDER_HEIGHT-1;
-                } else if (seg_idx == 1) {
-                    next_free_pix_min = 0;
-                    next_free_pix_max = CLAMP(my_roundf(screen_vp.y), 0, RENDER_HEIGHT-1);
-                } else if (seg_idx == 3) {
-                    next_free_pix_min = 0;
-                    next_free_pix_max = CLAMP(my_roundf(screen_vp.x), 0, RENDER_WIDTH-1);
-                } else {
-                    next_free_pix_min = CLAMP(my_roundf(screen_vp.x), 0, RENDER_WIDTH-1);
-                    next_free_pix_max = RENDER_WIDTH-1;
+                // to raycast inside a segment
+                // we do  for(int i = 0; i < ray_count; i++) { ray = float3_lerp(i/ray_count, first_ray_end_loc, last_ray_end_loc); }
+                // then we normalize that ray direction
+
+
+
+                // essentially zero initializing
+                // probably zero initialize would be fine actually
+                // since a 0 ray count effectively short-circuits everything
+                
+                initialize_segments(screen_vp, cam, segments);
+
+                for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
+                    int next_free_pix_min, next_free_pix_max;
+                    if (seg_idx == 0) {
+                        next_free_pix_min = CLAMP(my_roundf(screen_vp.y), 0, RENDER_HEIGHT-1);
+                        next_free_pix_max = RENDER_HEIGHT-1;
+                    } else if (seg_idx == 1) {
+                        next_free_pix_min = 0;
+                        next_free_pix_max = CLAMP(my_roundf(screen_vp.y), 0, RENDER_HEIGHT-1);
+                    } else if (seg_idx == 3) {
+                        next_free_pix_min = 0;
+                        next_free_pix_max = CLAMP(my_roundf(screen_vp.x), 0, RENDER_WIDTH-1);
+                    } else {
+                        next_free_pix_min = CLAMP(my_roundf(screen_vp.x), 0, RENDER_WIDTH-1);
+                        next_free_pix_max = RENDER_WIDTH-1;
+                    }
+                    segments[seg_idx].next_free_pixel_min = next_free_pix_min;
+                    segments[seg_idx].next_free_pixel_max = next_free_pix_max;
                 }
-                segments[seg_idx].next_free_pixel_min = next_free_pix_min;
-                segments[seg_idx].next_free_pixel_max = next_free_pix_max;
-            }
 
-            mat4 world_to_screen_mat = get_world_to_screen_matrix(cam);
-            int update_seg_textures[2] = {0,0};
-            for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
-                int ray_offset = 0;
-                if (seg_idx&1) {
-                    // segments 1 and 3's offsets are segment 0 and 1 respectively
-                    ray_offset = segments[seg_idx-1].ray_count;
-                }
-                if(segments[seg_idx].ray_count) { 
-                    update_seg_textures[seg_idx>>1] = 1;
-                }
-                //execute_rays_in_segment(
-                //    seg_draw_bufs[seg_idx>>1], ray_offset,
-                //    segments[seg_idx], cam, world_to_screen_mat,
-                //    (seg_idx > 1) ? 0 : 1, &levels[cur_level_idx], (seg_idx < 2) ? RENDER_HEIGHT : RENDER_WIDTH
-                //);
-            }
-            for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
-                segment seg = segments[seg_idx];
-                if(seg.ray_count > 0) {
+                mat4 world_to_screen_mat = get_world_to_screen_matrix(cam);
+                int update_seg_textures[2] = {0,0};
 
-                    printf("transpose seg buffer %i\n", seg_idx);
-                    int src_height = (seg_idx < 2) ? RENDER_HEIGHT : RENDER_WIDTH;
-                    int seg_height = ((seg.next_free_pixel_max+1) - seg.next_free_pixel_min);
-                    int seg_width = seg.ray_count;
-                    int y_offset = src_height-1 - seg.next_free_pixel_max;
+                int top_down_ray_buffer_size = max_top_down_rays*RENDER_HEIGHT;
+                int left_right_ray_buffer_size = max_left_right_rays*RENDER_WIDTH;
 
 
-                    u32* src_pix_arr = seg_draw_bufs[seg_idx>>1];
-                    u32* dst_pix_arr = transpose_buf;
-                    int x_offset = (seg_idx & 1) ? (segments[seg_idx-1].ray_count) : 0;
+                //for(int idx = 0; idx < top_down_ray_buffer_size; idx++) {
+                //    seg_draw_bufs[0][idx] = 0xFFB7CEFA;
+                //}
+                //for(int idx = 0; idx < left_right_ray_buffer_size; idx++) {
+                //    seg_draw_bufs[1][idx] = 0xFFB7CEFA;
+                //}
 
-                    int x1 = x_offset; int y1 = y_offset;
-                    int w = seg_width; int h = seg_height;
-                    for(int x = 0; x < w; x++) {
-                        for(int y = 0; y < h; y++) {
-                            u32 rgba = src_pix_arr[(x1 + x) * h + (y + y1)];
-                            dst_pix_arr[y*w+x] = rgba;
+                for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
+                    int ray_offset = 0;
+                    if (seg_idx&1) {
+                        // segments 1 and 3's offsets are segment 0 and 1 respectively
+                        ray_offset = segments[seg_idx-1].ray_count;
+                    }
+                    if(segments[seg_idx].ray_count) { 
+                        update_seg_textures[seg_idx>>1] = 1;
+                    }
+                    u32* seg_draw_buf = seg_draw_bufs[seg_idx>>1];
+
+                    int col_off =  (seg_idx & 1) ? segments[seg_idx-1].ray_count : 0;
+                    int seg_buffer_height = (seg_idx < 2) ? RENDER_HEIGHT : RENDER_WIDTH;
+                    for(int x = 0; x < segments[seg_idx].ray_count; x++) {
+                        for(int y = 0; y < seg_buffer_height; y++) {
+                            seg_draw_buf[(x+col_off)*seg_buffer_height + (seg_buffer_height-1) - y] = 0xFFB7CEFA;
                         }
                     }
-
-                    platform_update_texture(seg_tex_handles[seg_idx>>1], dst_pix_arr, x1, y1, w, h);
-
-
-                    //platform_update_texture(
-                    //    seg_tex_handles[i], seg_draw_bufs[i],
-                    //    (i < 2) ? max_top_down_rays : max_left_right_rays, 
-                    //    (i < 2) ? RENDER_HEIGHT : RENDER_WIDTH
+                    
+                    if(segments[seg_idx].ray_count > 0) {
+                        launch_parallel_raycast_segment(
+                            seg_draw_buf, ray_offset,
+                            segments[seg_idx], cam,
+                            world_to_screen_mat, (seg_idx > 1) ? 0 : 1, 
+                            &levels[cur_level_idx], seg_buffer_height
+                        );
+                        join_raycast_segment();
+                    }
+                    //execute_rays_in_segment(
+                    //    seg_draw_buf, ray_offset,
+                    //    segments[seg_idx], cam, world_to_screen_mat,
+                    //    (seg_idx > 1) ? 0 : 1, &levels[cur_level_idx], seg_buffer_height
                     //);
                 }
+                for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
+                    segment seg = segments[seg_idx];
+                    //if(seg.ray_count > 0) {
+                        int src_height = (seg_idx < 2) ? RENDER_HEIGHT : RENDER_WIDTH;
+                        int seg_height = ((seg.next_free_pixel_max+1) - seg.next_free_pixel_min);
+                        int seg_width = seg.ray_count;
+                        int y_offset = src_height-1 - seg.next_free_pixel_max;
+
+
+                        u32* src_pix_arr = seg_draw_bufs[seg_idx>>1];
+                        u32* dst_pix_arr = transpose_buf;
+                        int x_offset = (seg_idx & 1) ? (segments[seg_idx-1].ray_count) : 0;
+
+                        int x1 = x_offset; int y1 = y_offset;
+                        int w = seg_width; int h = seg_height;
+                        for(int x = 0; x < w; x++) {
+                            for(int y = 0; y < h; y++) {
+                                u32 rgba = src_pix_arr[(x1 + x) * src_height + (y + y1)];
+                                //dst_pix_arr[y*w+x] = rgba;
+                                dst_pix_arr[x*seg_height+y] = rgba;
+                            }
+                        }
+
+                        //platform_update_texture(seg_tex_handles[seg_idx>>1], dst_pix_arr, x1, y1, w, h);
+                        platform_update_texture(seg_tex_handles[seg_idx>>1], dst_pix_arr, y1, x1, h, w);
+
+                }
+
+
+                //draw_segments(screen_vp, cam, segments);
             }
-            //if(update_segs[0]) {
-            //    platform_update_texture(seg01_tex_handle, seg01_offscreen_buf, max_top_down_rays, RENDER_HEIGHT);
-            //}
-            //if(update_segs[1]) {
-            //    platform_update_texture(seg23_tex_handle, seg23_offscreen_buf, max_left_right_rays, RENDER_WIDTH);
-            //}
 
-            
-            //max_left_right_rays = 2*RENDER_WIDTH + RENDER_HEIGHT;
-            //max_top_down_rays  = RENDER_WIDTH + 2*RENDER_HEIGHT;
-            //int left_right_ray_buffer_size = max_left_right_rays*RENDER_WIDTH;
-            //int top_down_ray_buffer_size = max_top_down_rays*RENDER_HEIGHT
-
-            float3 seg_v0 = adjust_screen_pixel_for_mesh(screen_vp, cam.dims);
-
-
-            float scales[4] = {
-                segments[0].ray_count / max_top_down_rays,
-                segments[1].ray_count / max_top_down_rays,
-                segments[2].ray_count / max_left_right_rays,
-                segments[3].ray_count / max_left_right_rays
-            };
-            float offsets[4] = {
-                0.0f, scales[0], 0.0f, scales[2],
-            };
-
-            for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
-                float u_offset = offsets[seg_idx];
-                float u_scale = scales[seg_idx];
-                segment seg = segments[seg_idx];
-                if(seg.ray_count > 0) {
-                    printf("draw seg %i\n", seg_idx);
-
-                    float3 seg0_v1 = adjust_screen_pixel_for_mesh(seg.max_screen, cam.dims);
-                    float3 seg0_v2 = adjust_screen_pixel_for_mesh(seg.min_screen, cam.dims);
-                    
-                    float seg_attributes[7*3] = {
-                        seg_v0.x, seg_v0.y, seg_v0.z, 0.0f, 0.0f, 1.0f, seg_idx,
-                        seg0_v1.x, seg0_v1.y, seg0_v1.z, 1.0f, 0.0f, 0.0f, seg_idx,
-                        seg0_v2.x, seg0_v2.y, seg0_v2.z, 0.0f, 1.0f, 0.0f, seg_idx,
-
-                    };
-                    
-                    //platform_draw_segment(
-                    //    seg_tex_handles[seg_idx>>1], 
-                    //    seg_idx, 
-                    //    seg_attributes,
-                    //    offsets, scales
-                    //);
-                }  
-            }
             
 
         }
@@ -1676,10 +1740,11 @@ void run_game() {
                 platform_update_texture(upload_tex, (u32*)upload_draw_pix, 0, 0, RENDER_HEIGHT, RENDER_WIDTH);
                 break;
             case PIXEL_BUFFER:
-                //draw_screen_segments();
-
-                
-                platform_update_texture(upload_tex, (u32*)upload_draw_pix, 0, 0, RENDER_HEIGHT, RENDER_WIDTH);
+                if(draw_6dof) {
+                    draw_segments(screen_vp, cam, segments);
+                } else {
+                    platform_update_texture(upload_tex, (u32*)upload_draw_pix, 0, 0, RENDER_HEIGHT, RENDER_WIDTH);
+                }
                 break;
             case Z_BUFFER:
                 join_render_frame();
@@ -1710,8 +1775,13 @@ void run_game() {
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
         //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
-        debug_printf("y %f p %f\n", player_yaw, player_pitch);
-        debug_printf("cp %f %f %f\n", cam.pos.x, cam.pos.y, cam.pos.z);
+        debug_printf("%ix%i\n", RENDER_WIDTH, RENDER_HEIGHT);
+        debug_printf("%4.0f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
+        debug_printf("rays %i yaw %f pitch %f\n",
+            segments[0].ray_count+segments[1].ray_count+segments[2].ray_count+segments[3].ray_count,
+            player_yaw, player_pitch);
+        //debug_printf("cp %f %f %f\n", cam.pos.x, cam.pos.y, cam.pos.z);
+
         //debug_printf("cf %f %f %f\n", cam.forward.x, cam.forward.z, cam.forward.y);
         //debug_printf("cr %f %f %f\n", cam.right.x, cam.right.z, cam.right.y);
         //debug_printf("cu %f %f %f\n", cam.up.x, cam.up.z, cam.up.y);
@@ -1722,7 +1792,6 @@ void run_game() {
         //    segs[0].cam_local_plane_ray_min.x, segs[0].cam_local_plane_ray_min.y,
         //    segs[0].cam_local_plane_ray_max.x, segs[0].cam_local_plane_ray_max.y
         //);
-        debug_printf("%4.0f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
     } platform_end_drawing();
 
     
@@ -1778,6 +1847,7 @@ void init_game() {
     got_revolver = 0;
     init_particle_system();
     init_raycast_module();
+    init_6dof_module();
     init_entities_module();
 
     if(load_resources()) {

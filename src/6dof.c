@@ -1,9 +1,11 @@
-#include <stdio.h>
+//#include <stdio.h>
 #include "6dof.h"
 #include "common.h"
 #include "my_defs.h"
 #include "raycast.h"
 #include "resources.h"
+
+#include "platform.h"
 
 float2 float2_mul_float2(float2 a, float2 b) {
     return mk_float2((a.x*b.x), (a.y*b.y));
@@ -19,6 +21,10 @@ float2 float2_sub_float2(float2 a, float2 b) {
 
 float2 float2_add_float2(float2 a, float2 b) {
     return mk_float2((a.x+b.x), (a.y+b.y));
+}
+
+int2 int2_add_int2(int2 a, int2 b) {
+    return mk_int2((a.x+b.x), (a.y+b.y));
 }
 
 float3 float3_add_float3(float3 a, float3 b) {
@@ -48,8 +54,13 @@ float4 float4_lerp(float4 a, float4 b, float c) {
         lerp(a.w, b.w, c)
     );
 }
+
 float2 float2_mul_float(float2 a, float b) {
     return mk_float2((a.x*b), (a.y*b));
+}
+
+float2 float2_frac(float2 a) {
+    return float2_sub_float2(a, mk_float2(my_floorf(a.x), my_floorf(a.y)));
 }
 
 float3 float3_mul_float(float3 a, float b) {
@@ -159,7 +170,7 @@ mat4 get_projection_matrix(camera cam) {
 
     float w = 2.0f * z_near / width;
     w = w / aspect;
-    float h = 2.0f * z_near / height;
+    float h = (2.0f * z_near / height);
 
     return mk_mat4(w,    0.0f, 0.0f, 0.0f,
                    0.0f, h,    0.0f, 0.0f,
@@ -169,9 +180,9 @@ mat4 get_projection_matrix(camera cam) {
 
 mat4 get_world_to_camera_matrix(camera cam) {
     return mk_mat4(
-        cam.right.vals[0], cam.up.vals[0], -cam.forward.vals[0], 0.0f,
-        cam.right.vals[1], cam.up.vals[1], -cam.forward.vals[1], 0.0f,
-        cam.right.vals[2], cam.up.vals[2], -cam.forward.vals[2], 0.0f,
+        cam.right.x, cam.up.x, -cam.forward.x, 0.0f,
+        cam.right.y, cam.up.y, -cam.forward.y, 0.0f,
+        cam.right.z, cam.up.z, -cam.forward.z, 0.0f,
         -float3_dot_float3(cam.right, cam.pos), 
         -float3_dot_float3(cam.up, cam.pos), 
         float3_dot_float3(cam.forward, cam.pos), 1.0f
@@ -395,62 +406,108 @@ float2 project_vanishing_point_world_to_screen(camera cam, float3 vp_world) {
             0.5f),
         cam.dims);
 }
- 
+
+mat3 mat3_roll(float roll) {
+    float cr = my_cosf(roll), sr = my_sinf(roll);
+    return (mat3){
+        cr, -sr, 0.0f,
+        sr,  cr, 0.0f,
+        0.0f,   0.0f,  1.0f   // assuming Z is forward
+    };
+}
+
+mat3 mat3_pitch(float pitch) {
+    float cp = my_cosf(pitch), sp = my_sinf(pitch);
+    return (mat3){
+        1.0f,  0.0f,   0.0f,
+        0.0f,  cp, -sp,
+        0.0f,  sp,  cp
+    };
+}
+
+mat3 mat3_yaw(float yaw) {
+    float cy = my_cosf(yaw), sy = my_sinf(yaw);
+    return (mat3){
+        cy, 0.0f, sy,
+        0.0f,  1.0f, 0.0f,
+       -sy, 0.0f, cy
+    };
+}
+
+mat3 mat3_mul_mat3(mat3 a, mat3 b) {
+    mat3 result;
+    for (int row = 0; row < 3; row++) {
+        for (int col = 0; col < 3; col++) {
+            result.m[row][col] = 
+                a.m[row][0] * b.m[0][col] +
+                a.m[row][1] * b.m[1][col] +
+                a.m[row][2] * b.m[2][col];
+        }
+    }
+    return result;
+}
 camera mk_camera(
     float posx, float posy, float posz, 
-    float pitch, float yaw,
+    float pitch, float yaw, float roll,
     float render_width, float render_height, 
     float near_clip_plane, float far_clip_plane
 ) {
     camera res;
-    float3 pos = mk_float3(posx, posy, posz);
-    //float3 pos = mk_float3(12, 15.5, 30.0f);
+    float3 pos = mk_float3(posx, posy/8.0f, posz);
 
-    //pitch = 0.0f; yaw = 0.0f;
-
-    float3 forward = mk_float3(1.0f, 0.0f, 0.0f);
-    float3 right = mk_float3(0.0f, 0.0f, -1.0f);
-
-    //float3 forward = mk_float3(0.8039f, -0.19f, 0.56f);
-    //float3 right = mk_float3(0.5724f, 0.0f, -0.81f);
-
+    float3 forward = mk_float3(0.000796278066f, 0.000999994227f, 0.999994457f);
+    float3 right = mk_float3(0.99999398f, 0.0f, -0.000796277716f);
     float3 up = float3_cross_float3(forward, right);
-    //goto setup_dims;
 
-    // rotate by pitch first
-    float sp = my_sinf(pitch);
-    float cp = my_cosf(pitch);
-    float tp = 1.0f-cp;
-    float rx = right.x;
-    float ry = right.y;
-    float rz = right.z;
+    /*
+    {
+        // rotate by pitch first
+
+        float sp = my_sinf(pitch);
+        float cp = my_cosf(pitch);
+        float tp = 1.0f-cp;
+        float rx = right.x;
+        float ry = right.y;
+        float rz = right.z;
 
 
 
-    mat3 pitch_rot_mat = mk_mat3(
-        (tp*rx*rx+cp), (tp*rx*ry + rz*sp), (tp*rx*rz - ry*sp),
-        (tp*rx*ry - rz*sp), (tp*ry*ry + cp), (tp*ry*rz + rx*sp),
-        (tp*rx*rz + ry*sp), (tp*ry*rz - rx*sp), (tp*rz*rz + cp)
-    );
-    forward = float3_normalize(mat3_mul_float3(pitch_rot_mat, forward));
-    right = float3_normalize(mat3_mul_float3(pitch_rot_mat, right));
-    up = float3_normalize(mat3_mul_float3(pitch_rot_mat, up));
+        mat3 pitch_rot_mat = mk_mat3(
+            (tp*rx*rx+cp), (tp*rx*ry + rz*sp), (tp*rx*rz - ry*sp),
+            (tp*rx*ry - rz*sp), (tp*ry*ry + cp), (tp*ry*rz + rx*sp),
+            (tp*rx*rz + ry*sp), (tp*ry*rz - rx*sp), (tp*rz*rz + cp)
+        );
+        forward = float3_normalize(mat3_mul_float3(pitch_rot_mat, forward));
+        right = float3_normalize(mat3_mul_float3(pitch_rot_mat, right));
+        up = float3_normalize(mat3_mul_float3(pitch_rot_mat, up));
+    }
 
+    {
+        float sy = my_sinf(yaw);
+        float cy = my_cosf(yaw);
+        float ty = 1.0f-cy;
+        float x = up.x;
+        float y = up.y;
+        float z = up.z;
+
+        mat3 yaw_rot_mat = mk_mat3(
+            //t*x*x+cy,   0.0f, sy,
+            //0.0f, 1.0f, 0.0f,
+            //-sy,  0.0f, cy
+            ty*x*x+cy, ty*x*y + z*sy, ty*x*z - y*sy,
+            ty*x*y - z*sy, ty*y*y + cy, ty*y*z + x*sy,
+            ty*x*z + y*sy, ty*y*z - x*sy, ty*z*z + cy
+        );
+
+        forward = float3_normalize( mat3_mul_float3(yaw_rot_mat, forward));
+        right = float3_normalize(mat3_mul_float3(yaw_rot_mat, right));
+        up = float3_normalize(mat3_mul_float3(yaw_rot_mat, up));
+    }
+    */
     
-    float sy = my_sinf(yaw);
-    float cy = my_cosf(yaw);
-
-    mat3 yaw_rot_mat = mk_mat3(
-        cy,   0.0f, sy,
-        0.0f, 1.0f, 0.0f,
-        -sy,  0.0f, cy
-    );
-
-    forward = float3_normalize( mat3_mul_float3(yaw_rot_mat, forward));
-    right = float3_normalize(mat3_mul_float3(yaw_rot_mat, right));
-    up = float3_normalize(mat3_mul_float3(yaw_rot_mat, up));
-
     
+
+
     forward.x = my_cosf(pitch) * my_cosf(yaw);
     forward.y = my_sinf(pitch);
     forward.z = my_cosf(pitch) * my_sinf(yaw); 
@@ -459,23 +516,24 @@ camera mk_camera(
     up.x = my_cosf(up_pitch) * my_cosf(yaw);
     up.y = my_sinf(up_pitch);
     up.z = my_cosf(up_pitch) * my_sinf(yaw); 
-
-
-    // right y portion is currently ALWAYS zero, no roll
-    // affected by y only
-    //float right_yaw = yaw+1.5707f;
     right = float3_cross_float3(up, forward); // left hand rule?
-    //right.x = my_cosf(right_yaw);
-    //right.y = 0.0f;
-    //right.z = my_sinf(right_yaw);
 
-    
-    // up is the forward vector, calculated with a pitch + 90 degrees
-    //float up_pitch = pitch + 1.5707f;
-    //up.x = my_cosf(up_pitch) * my_cosf(yaw);
-    //up.y = my_sinf(up_pitch); // the UP portion, affected by pitch
-    //up.z = my_cosf(up_pitch) * my_sinf(yaw); 
+    float cr = my_cosf(roll);
+    float sr = my_sinf(roll);
 
+    right = float3_add_float3(
+        float3_mul_float(right, cr), float3_mul_float(float3_cross_float3(forward, right), sr)
+    );
+    up = float3_cross_float3(forward, right);
+
+    /*
+    mat3 r = mat3_mul_mat3(mat3_yaw(roll), 
+    mat3_mul_mat3(mat3_pitch(pitch), mat3_roll(yaw)));
+    //mat3 r = mat3_from_euler(pitch, yaw, roll);
+    forward = mat3_mul_float3(r, mk_float3(0,0,1));
+    up = mat3_mul_float3(r, mk_float3(0,1,0));
+    right = mat3_mul_float3(r, mk_float3(1,0,0));
+    */
 
 setup_dims:;
 
@@ -534,6 +592,14 @@ segment get_segment_parameters(
     segment seg;
     seg.ray_count = 0;
     seg.index = segment_index;
+    seg.cam_local_plane_ray_max.x = 0.0f;
+    seg.cam_local_plane_ray_max.y = 0.0f;
+    seg.max_screen = mk_float2(0.0f, 0.0f);
+    seg.min_screen = mk_float2(0.0f, 0.0f);
+    seg.next_free_pixel_max = 0;
+    seg.next_free_pixel_min = 0;
+
+
 
 
     // setup the end points for the 2 45 degree angle rays
@@ -639,16 +705,16 @@ projected_plane_params get_projected_plane_params(
 ) {
     float4 plane_start_bottom = mk_float4(ray_start.x, 0.0f, ray_start.y, 1.0f);
     float4 plane_start_top = mk_float4(ray_start.x, world_max_y, ray_start.y, 1.0f);
-    float4 plane_ray_direction = mk_float4(ray_dir.x, 0.0, ray_dir.y, 0);
+    float4 plane_ray_direction = mk_float4(ray_dir.x, 0.0f, ray_dir.y, 0.0f);
 
     float4 full_plane_start_top_projected = mat4_mul_float4(world_to_screen_mat, plane_start_top);
     float4 full_plane_start_bot_projected = mat4_mul_float4(world_to_screen_mat, plane_start_bottom);
     float4 full_plane_ray_direction_projected = mat4_mul_float4(world_to_screen_mat, plane_ray_direction);
     if (y_axis == 0) {
         return ((projected_plane_params){
-            mk_float3(full_plane_start_bot_projected.x, full_plane_start_bot_projected.y, full_plane_start_bot_projected.w),
-            mk_float3(full_plane_start_top_projected.x, full_plane_start_top_projected.y, full_plane_start_top_projected.w),
-            mk_float3(full_plane_ray_direction_projected.x, full_plane_ray_direction_projected.y, full_plane_ray_direction_projected.w)
+            mk_float3(full_plane_start_bot_projected.x, full_plane_start_bot_projected.z, full_plane_start_bot_projected.w),
+            mk_float3(full_plane_start_top_projected.x, full_plane_start_top_projected.z, full_plane_start_top_projected.w),
+            mk_float3(full_plane_ray_direction_projected.x, full_plane_ray_direction_projected.z, full_plane_ray_direction_projected.w)
         });
     } else {
         return ((projected_plane_params){
@@ -673,6 +739,7 @@ clip_res clip_homogeneous_camera_space_line(
     float az = a.z;
     float au = a.u;
     float av = a.v;
+
     float bx = b.x;
     float by = b.y;
     float bz = b.z;
@@ -701,7 +768,8 @@ clip_res clip_homogeneous_camera_space_line(
     (b) = (tmp);                \
     } while(0)
 
-u8 seen_pixel_cache[256]; // up to 2048 pixels
+#define PIXEL_CACHE_SIZE 256
+u8 per_thread_seen_pixel_cache[NUM_THREADS][PIXEL_CACHE_SIZE]; // up to 2048 pixels
 
 int is_pixel_set(u8 *pix_buf, int pix) {
     int byte = (pix>>3);
@@ -724,11 +792,16 @@ new_screen_bounds fill_raybuffer_column(
     int original_next_free_pix_min, 
     int original_next_free_pix_max,
     u8* seen_pixel_cache,
-    u32* pix_arr, int column, int seg_buffer_height,
+    u32* pix_arr_col, int seg_buffer_height,
     u32* texture,
     int use_flat_color,
     u32 flat_col) {
     
+    if(texture == textures[SKYBOX_TEX_IDX]) {
+        use_flat_color = 1;
+        flat_col = 0xFFB7CEFA;
+    }
+
 
     // calculate the position in the ray buffer
     float one_over_z_top = 1.0f / cam_space_top.y;
@@ -748,11 +821,12 @@ new_screen_bounds fill_raybuffer_column(
     // flip min and max if necessary
     if (ray_buffer_bounds_float_max < ray_buffer_bounds_float_min) {
         SWAP(float, ray_buffer_bounds_float_max, ray_buffer_bounds_float_min);
+        SWAP(float, one_over_z_bot, one_over_z_top);
         SWAP(float, u_over_z_top, u_over_z_bot);
         SWAP(float, v_over_z_top, v_over_z_bot);
     }
 
-    int original_ray_buffer_bounds_min = ray_buffer_bounds_float_min;
+    int original_ray_buffer_bounds_min = my_roundf(ray_buffer_bounds_float_min);
     //original_ray_buffer_bounds_max = ray_buffer_bounds_float_max
 
     int num_pix = (ray_buffer_bounds_float_max+1) - ray_buffer_bounds_float_min;
@@ -798,7 +872,7 @@ new_screen_bounds fill_raybuffer_column(
         // now draw visible portion of the chunk
         //pix_arr_col = pix_arr[col]
         //dy = len(pix_arr_col)-1
-        
+        int dy = seg_buffer_height-1;
         for (int y = ray_buffer_bounds_min; y < ray_buffer_bounds_max+1; y++) {
             if (is_pixel_set(seen_pixel_cache, y) == 0) { //seen_pixel_cache[y] == 0:
                 mark_pixel(seen_pixel_cache, y);
@@ -817,7 +891,7 @@ new_screen_bounds fill_raybuffer_column(
                     color = flat_col;
                 }
 
-                pix_arr[column*seg_buffer_height + (seg_buffer_height-y)] = color; //dy-y] = col
+                pix_arr_col[(dy-y)] = color; //dy-y] = col
             }
                     
         }
@@ -826,10 +900,114 @@ new_screen_bounds fill_raybuffer_column(
 }
 
 
+typedef struct {
+    int2 pos;
+    int2 step;
+    float2 dir;
+    float2 start;
+    float2 t_max;
+    float2 t_delta;
+    float2 intersection_distances;
+    wall_side enter_side_flag;
+} ray_t;
+
+ray_t make_ray(float2 cam_pos_xz, float2 norm_ray_dir) {
+    int2 pos = mk_int2(my_floorf(cam_pos_xz.x), my_floorf(cam_pos_xz.y));
+    float eps = 0.0000001f;
+    float absDirX = my_fabsf(norm_ray_dir.x);
+    float absDirY = my_fabsf(norm_ray_dir.y);
+    float2 t_delta = mk_float2((1.0f / MAX(eps, absDirX)), (1.0f / MAX(eps, absDirY)));
+    float2 sign_dir = mk_float2(my_signumf(norm_ray_dir.x), my_signumf(norm_ray_dir.y));
+    int2 step = mk_int2(((int)sign_dir.x), ((int)sign_dir.y));
+
+    float2 t_max = float2_mul_float2(
+        t_delta,
+        float2_add_float(
+            float2_add_float2(  // add half sign?
+                float2_mul_float2(
+                    sign_dir,   // times sign
+                    float2_mul_float(float2_frac(cam_pos_xz), -1.0f) // negative fraction
+                ),
+                float2_mul_float(sign_dir, 0.5f)
+            ),
+            0.5f
+        )
+    );
+    wall_side enter_side_flag;
+    if ((t_max.x - t_delta.x) > (t_max.y - t_delta.y)) {
+        enter_side_flag = VERTICAL_SIDE;
+    } else {
+        enter_side_flag = HORIZONTAL_SIDE;
+    }
+
+    float2 t_max_minus_t_delta = float2_sub_float2(t_max, t_delta);
+
+    float2 intersection_distances = mk_float2(
+        MAX(t_max_minus_t_delta.x, t_max_minus_t_delta.y),
+        MIN(t_max.x, t_max.y)
+    );
+
+    return ((ray_t){
+        .pos = pos,
+        .step = step,
+        .start = cam_pos_xz,
+        .dir = norm_ray_dir,
+        .t_delta = t_delta,
+        .t_max = t_max,
+        .intersection_distances = intersection_distances,
+        .enter_side_flag = enter_side_flag
+    });
+}
+
+typedef struct {
+    ray_t next_ray;
+    int rem_x_steps;
+    int rem_y_steps;
+} ray_step_t;
+
+ray_step_t step_ray(ray_t ray, float2 cam_pos_xz, float2 norm_ray_direction, int rem_x_steps, int rem_y_steps) {
+    float2 t_max = ray.t_max;
+    float2 t_delta = ray.t_delta;
+    int2 position = ray.pos;
+    int2 step = ray.step;
+
+    float crossed_boundary_distance;
+    if(t_max.x < t_max.y) {
+        crossed_boundary_distance = t_max.x;
+        t_max = float2_add_float2(t_max, mk_float2(t_delta.x, 0.0f)); // step x
+        position = int2_add_int2(position, mk_int2(step.x, 0)); 
+        rem_x_steps -= 1;
+    } else {
+        crossed_boundary_distance = t_max.y;
+        t_max = float2_add_float2(t_max, mk_float2(0.0f, t_delta.y));
+        position = int2_add_int2(position, mk_int2(0, step.y)); // step y
+        rem_y_steps -= 1;
+    }
+
+    float intersection_distances_cur = crossed_boundary_distance;
+    float intersection_distances_next;
+    if(t_max.x < t_max.y) {
+        intersection_distances_next = t_max.x;
+    } else {
+        intersection_distances_next = t_max.y;
+    }
+
+    ray.pos = position;
+    ray.intersection_distances = mk_float2(intersection_distances_cur, intersection_distances_next);
+    ray.t_max = t_max;
+
+    return ((ray_step_t){
+        .next_ray = ray,
+        .rem_x_steps = rem_x_steps,
+        .rem_y_steps = rem_y_steps
+    });
+}
+
 void execute_rays_in_segment(
-    u32* ray_buffer,
+    u32* ray_buffer, u8* seen_pixel_cache,
     int ray_buffer_base_offset,
     segment seg,
+    int start_ray, int end_ray,
     camera cam,
     mat4 world_to_screen_mat,
     int axis_mapped_to_y,
@@ -844,21 +1022,27 @@ void execute_rays_in_segment(
     u8* cur_level_upper_floor = this_level->upper_floor;
     u8* cur_level_upper_ceil = this_level->upper_ceil;
 
+    int iteration_direction = cam.forward.y < 0.0 ? 1 : -1;
+
     float2 cam_pos_xz = mk_float2(cam.pos.x, cam.pos.z);
-    for(int ray_segment_idx = 0; ray_segment_idx < seg.ray_count; ray_segment_idx++) {
+
+    for(int ray_segment_idx = start_ray; ray_segment_idx < end_ray; ray_segment_idx++) {
+    //for(int ray_segment_idx = 0; ray_segment_idx < seg.ray_count; ray_segment_idx++) {
+
+
         float end_ray_lerp = (float)ray_segment_idx/seg.ray_count;
         float2 cam_local_plane_ray_direction = float2_lerp(seg.cam_local_plane_ray_min, seg.cam_local_plane_ray_max, end_ray_lerp);
         float2 norm_ray_direction = float2_normalize(cam_local_plane_ray_direction);
-        int ray_column = ray_buffer_base_offset + ray_segment_idx;
+        ray_t ray = make_ray(cam_pos_xz, norm_ray_direction);
 
-        for(int i = 0; i < 256; i++) { seen_pixel_cache[i] = 0; }
+        int ray_column_idx = ray_buffer_base_offset + ray_segment_idx;
+
+        u32* ray_column = &ray_buffer[(ray_column_idx*seg_buffer_height)];
+
+        for(int i = 0; i < PIXEL_CACHE_SIZE; i++) { seen_pixel_cache[i] = 0; }
 
         float2 ray_start = cam_pos_xz;
         float2 ray_dir = norm_ray_direction;
-        float ray_origin_x = ray_start.x;
-        float ray_origin_y = ray_start.y;
-        float ray_dir_x = ray_dir.x;
-        float ray_dir_y = ray_dir.y;
 
         projected_plane_params plane = get_projected_plane_params(
             world_to_screen_mat, 
@@ -871,168 +1055,355 @@ void execute_rays_in_segment(
         float3 plane_bot = plane.plane_bottom;
         float3 plane_dir = plane.plane_ray_direction;
 
-        int num_sprites_hit = 0;
-        
-        int rem_steps = MAX_STEPS;
+        int in_start_cell = 1;
 
-        float perp_dist = NEAR_PLANE_DIST;
+        const int original_next_free_pix_min = seg.next_free_pixel_min;
+        const int original_next_free_pix_max = seg.next_free_pixel_max;
 
-        int prev_drawn_top = seg.next_free_pixel_min;
-        int prev_drawn_bot = seg.next_free_pixel_max;
-        const int original_prev_drawn_top = prev_drawn_top;
-        const int original_prev_drawn_bot = prev_drawn_bot;
-        //int cur_min = 
-        //int cur_max = 
+        int position_x = ray.pos.x;
+        int position_z = ray.pos.y;
+        float cur_intersection_distance = ray.intersection_distances.x;
+        float next_intersection_distance = ray.intersection_distances.y;
+        float ray_origin_x = ray_start.x;
+        float ray_origin_z = ray_start.y;
+        float ray_dir_x = ray_dir.x;
+        float ray_dir_z = ray_dir.y;
 
-        int map_x = my_floorf(ray_origin_x);
-        int map_y = my_floorf(ray_origin_y);
-        const int start_map_x = map_x;
-        const int start_map_y = map_y;
-        
-        // length of ray from one x/y side to the next x/y side
-        float delta_dist_x = my_fabsf(1.0f / ray_dir_x);
-        float delta_dist_y = my_fabsf(1.0f / ray_dir_y);
+        int x_steps = (ray.step.x == 1 ? (MAP_SIZE-position_x) : (1+position_x));
+        int y_steps = (ray.step.y == 1 ? (MAP_SIZE-position_z) : (1+position_z));//32;
+
+        int cur_next_free_pix_min = original_next_free_pix_min;
+        int cur_next_free_pix_max = original_next_free_pix_max;
+
+        float wall_u = 0.0f;
+        float default_exit_u = (ray_dir_x >= 0.0f) ? 1.0f : 0.0f;
+        float default_exit_v = (ray_dir_z >= 0.0f) ? 1.0f : 0.0f;
+
+        float default_start_u = 1.0f - default_exit_u;
+        float default_start_v = 1.0f - default_exit_v;
+
+        wall_side side = ray.enter_side_flag;
+
+        float far_clip = cam.far_clip;
+        float near_clip = cam.near_clip;
 
 
-        float flat_u = ray_origin_x - my_floorf(ray_origin_x);
-        float flat_v = ray_origin_y - my_floorf(ray_origin_y);           // the u,v position of where we enter the next cell (which we use on the next iteration)
-        
-        int step_x = (ray_dir_x < 0) ? -1 : 1;
-        float side_dist_x = (ray_dir_x < 0) ? ((ray_origin_x - map_x) * delta_dist_x) : ((map_x + 1.0f - ray_origin_x) * delta_dist_x);
-
-        int step_y = (ray_dir_y < 0) ? -1 : 1;
-        float side_dist_y = (ray_dir_y < 0) ? ((ray_origin_y - map_y) * delta_dist_y) : ((map_y + 1.0 - ray_origin_y) * delta_dist_y);
-
-
-        
-        int next_map_x = map_x;
-        int next_map_y = map_y;
-        float next_perp_dist = perp_dist;
-        
-
-        int next_side;
-        wall_side side = HORIZONTAL_SIDE;
-        float light_factor = 0.75f;
-        float next_light_factor;
-            
-
-        for(int step = 0; 
-            (step < rem_steps) && 
-            (prev_drawn_top < prev_drawn_bot);
-            step++,
-            map_x = next_map_x,
-            map_y = next_map_y,
-            perp_dist = next_perp_dist,
-            side = next_side,
-            light_factor = next_light_factor
-        ) {
-            float wall_u;
-            float exit_flat_u, exit_flat_v; // the u,v position of where we "exit" the current cell before stepping to the new one
-            float hit_x;
-            float hit_y;
-            
-
-            if(side_dist_x < side_dist_y) {
-                side_dist_x += delta_dist_x;
-                next_map_x = map_x + step_x;
-                next_side = VERTICAL_SIDE;
-                next_light_factor = 1.0f;
-                next_perp_dist = ((next_map_x - ray_origin_x + (1 - step_x) * 0.5f) / ray_dir_x);
-            } else {
-                side_dist_y += delta_dist_y;
-                next_map_y = map_y + step_y;
-                next_side = HORIZONTAL_SIDE;
-                next_light_factor = .75f;
-                next_perp_dist = ((next_map_y - ray_origin_y + (1 - step_y) * 0.5f) / ray_dir_y);
-            }
-            if(map_x >= MAP_SIZE || map_x < 0 || map_y >= MAP_SIZE || map_y < 0) {
+        while(1) {
+            if(cur_intersection_distance >= far_clip) {
+                //int dy = seg_buffer_height-1;
+                //for(int y = cur_next_free_pix_min; y < cur_next_free_pix_max; y++) {
+                //    ray_column[dy-y] = 0xFFB7CEFA;
+                //}
                 break;
             }
-            next_perp_dist = MAX(next_perp_dist, perp_dist);
-
-            int map_idx = map_y * MAP_SIZE + map_x;
-            int in_start_cell = (map_x == start_map_x && map_y == start_map_y);
-
-            float3 cam_bot_cur = float3_add_float3(plane_bot, float3_mul_float(plane_dir, perp_dist));
-            float3 cam_top_cur = float3_add_float3(plane_top, float3_mul_float(plane_dir, perp_dist));
-
-            float3 cam_bot_next = float3_add_float3(plane_bot, float3_mul_float(plane_dir, next_perp_dist));
-            float3 cam_top_next = float3_add_float3(plane_top, float3_mul_float(plane_dir, next_perp_dist));
-            
-            float ceil_height = 16.0f;//cur_level_ceil[map_idx];
-            float floor_height = 2.0f;//cur_level_floor[map_idx];
-            if((map_x^map_y) & 1) {
-                floor_height = 1.0f;
+            if(x_steps < 0 || y_steps < 0) {
+                //int dy = seg_buffer_height-1;
+                //for(int y = cur_next_free_pix_min; y < cur_next_free_pix_max; y++) {
+                //    ray_column[dy-y] = 0xFFB7CEFA;
+                //}
+                break;
             }
-            if(((map_x^map_y) & 1) == 0) {
-                ceil_height = 15.0f;
+
+            int col_spans[2][2] = {
+                {MAX_WALL_HEIGHT,14}, {2, 0}
+                //{16,14}, {2, 0}
+            };
+            int map_idx = position_z*MAP_SIZE+position_x;
+            col_spans[0][1] = this_level->ceil[map_idx];
+            col_spans[1][0] = this_level->floor[map_idx];
+
+            int world_col_min = col_spans[1][1];
+            int world_col_max = col_spans[0][0];
+            int num_col_spans = 2;
+
+            
+
+            float3 plane_ray_dir_times_cur_dist = float3_mul_float(plane_dir, cur_intersection_distance);
+            float3 plane_ray_dir_times_next_dist = float3_mul_float(plane_dir, next_intersection_distance);
+
+            float3 cam_space_min_last = float3_add_float3(plane_bot, plane_ray_dir_times_cur_dist);
+            float3 cam_space_max_last = float3_add_float3(plane_top, plane_ray_dir_times_cur_dist);
+
+            float3 cam_space_min_next = float3_add_float3(plane_bot, plane_ray_dir_times_next_dist);
+            float3 cam_space_max_next = float3_add_float3(plane_top, plane_ray_dir_times_next_dist);
+            
+            float hit_x = ray_origin_x + ray_dir_x * cur_intersection_distance;
+            float hit_z = ray_origin_z + ray_dir_z * cur_intersection_distance;
+            float next_hit_x = ray_origin_x + ray_dir_x * next_intersection_distance;
+            float next_hit_z = ray_origin_z + ray_dir_z * next_intersection_distance;
+
+            int break_ray_loop = 0;
+            int top_down = iteration_direction == 1;
+
+            int span_idx_start = top_down ? 0 : num_col_spans-1;
+            int span_idx_end = top_down ? num_col_spans : -1;
+
+            float flat_u, flat_v;
+            if(side == VERTICAL_SIDE) {
+                wall_u = hit_z - my_floorf(hit_z);
+                flat_u = default_start_u;
+                flat_v = wall_u;
+            } else {
+                wall_u = hit_x - my_floorf(hit_x);
+                flat_u = wall_u;
+                flat_v = default_start_v;
             }
-            float max_height = MAX_WALL_HEIGHT;
-            float min_height = 0.0f;
+            float exit_flat_u, exit_flat_v;
 
-            float portion_ceil = ceil_height * one_over_world_max_y;
-            float portion_floor = floor_height * one_over_world_max_y;
+            wall_side next_side;
+            int prev_x_steps = x_steps;
+            ray_step_t next_step = step_ray(ray, cam_pos_xz, norm_ray_direction, x_steps, y_steps);
+            if(next_step.rem_x_steps != prev_x_steps) {
+                next_side = VERTICAL_SIDE;
+                exit_flat_u = default_exit_u;
+                exit_flat_v = next_hit_z - my_floorf(next_hit_z);
+            } else {
+                next_side = HORIZONTAL_SIDE;
+                exit_flat_u = next_hit_x - my_floorf(next_hit_x);
+                exit_flat_v = default_exit_v;
+            }
 
-            float3 cam_ceil_top = cam_top_cur;
-            float3 cam_ceil_bot   = float3_lerp(cam_bot_cur,  cam_top_cur,  portion_ceil);
-
-            //float3 cam_ceil_next  = float3_lerp(cam_bot_next, cam_top_next, portion_ceil);
-            
-            float3 cam_floor_top  = float3_lerp(cam_bot_cur,  cam_top_cur,  portion_floor);
-            float3 cam_floor_bot = cam_bot_cur;
-
-            //float3 cam_floor_next = float3_lerp(cam_bot_next, cam_top_next, portion_floor);
+            for(int span_idx = span_idx_start; span_idx != span_idx_end; span_idx += iteration_direction) {
+                float element_bounds_max = col_spans[span_idx][0]/8.0f;
+                float element_bounds_min = col_spans[span_idx][1]/8.0f;
 
 
-            
-            
+                float portion_top = element_bounds_max * one_over_world_max_y;
+                float portion_bot = element_bounds_min * one_over_world_max_y;
 
-            // let's just draw front faces for now
-            if(!in_start_cell) {
-                clip_res ceil_clipped = clip_homogeneous_camera_space_line(
-                    mk_float5(cam_ceil_top.x, cam_ceil_top.y, cam_ceil_top.z, 0.0f, 1.0f),
-                    mk_float5(cam_ceil_bot.x, cam_ceil_bot.y, cam_ceil_bot.z, 0.0f, 1.0f)
-                );
-                
-                if(ceil_clipped.on_screen) {
-                    // fill column from top to bottom
-                    new_screen_bounds drawn = fill_raybuffer_column(
-                        ceil_clipped.top, ceil_clipped.bot,
-                        prev_drawn_top, prev_drawn_bot,
-                        original_prev_drawn_top, original_prev_drawn_bot,
-                        seen_pixel_cache, ray_buffer, ray_column,
-                        seg_buffer_height, textures[0], 0, 0
+                // lerp between the cam space positions of the top and bottom of the ray plane
+                // which are at the top and bottom of the world (min and max positions, eg 0 -> 64) in camera space
+                float3 cam_space_front_top = float3_lerp(cam_space_min_last, cam_space_max_last, portion_top);
+                float3 cam_space_front_bot = float3_lerp(cam_space_min_last, cam_space_max_last, portion_bot);
+
+                float xt = cam_space_front_top.x;
+                float yt = cam_space_front_top.y;
+                float zt = cam_space_front_top.z;
+
+                float xb = cam_space_front_bot.x;
+                float yb = cam_space_front_bot.y;
+                float zb = cam_space_front_bot.z;
+
+
+                if(!in_start_cell) {
+                    u32* wall_tex = textures[this_level->lwtex[map_idx]];
+                    // draw front wall
+                    float bot_u = (element_bounds_max-element_bounds_min)/1.0f;
+                    float5 top = mk_float5(xt,yt,zt,wall_u, 0.0f);
+                    float5 bot = mk_float5(xb,yb,zb,wall_u, bot_u);
+                    clip_res wall_clipped = clip_homogeneous_camera_space_line(
+                        top, bot
                     );
-                    prev_drawn_top = drawn.top;
-                    prev_drawn_bot = drawn.bot;
+                    if(wall_clipped.on_screen) {
+                        new_screen_bounds bnds = fill_raybuffer_column(
+                            wall_clipped.top, wall_clipped.bot,
+                            cur_next_free_pix_min, cur_next_free_pix_max,
+                            original_next_free_pix_min, original_next_free_pix_max,
+                            seen_pixel_cache, ray_column, seg_buffer_height, 
+                            wall_tex, 0, 0
+                        );
+
+                        cur_next_free_pix_min = bnds.top;
+                        cur_next_free_pix_max = bnds.bot;
+
+                        if(cur_next_free_pix_min > cur_next_free_pix_max) {
+                            break_ray_loop = 1;
+                            break;
+                        }
+                    }
                 }
-                
-                
+
+
+                float3 flat_exit_cam_space, flat_enter_cam_space;
+
+                // do we draw the top or bottom of this cell portion
+                if(portion_top < camera_pos_y_normalized) {
+                    flat_exit_cam_space = float3_lerp(cam_space_min_next, cam_space_max_next, portion_top);
+                    flat_enter_cam_space = cam_space_front_top;
+                } else {
+                    flat_exit_cam_space = float3_lerp(cam_space_min_next, cam_space_max_next, portion_bot);
+                    flat_enter_cam_space = cam_space_front_bot;
+                }
+
+                float ax = flat_exit_cam_space.x;
+                float ay = flat_exit_cam_space.y;
+                float az = flat_exit_cam_space.z;
+
+                float bx = flat_enter_cam_space.x;
+                float by = flat_enter_cam_space.y;
+                float bz = flat_enter_cam_space.z;
+
                 clip_res floor_clipped = clip_homogeneous_camera_space_line(
-                    mk_float5(cam_floor_top.x, cam_floor_top.y, cam_floor_top.z, 0.0f, 1.0f),
-                    mk_float5(cam_floor_bot.x, cam_floor_bot.y, cam_floor_bot.z, 0.0f, 1.0f)
+                    mk_float5(ax,ay,az, exit_flat_u, exit_flat_v),
+                    mk_float5(bx,by,bz, flat_u, flat_v)
                 );
+
                 if(floor_clipped.on_screen) {
-                    // fill column from top to bottom
-                    new_screen_bounds drawn = fill_raybuffer_column(
-                        ceil_clipped.top, ceil_clipped.bot,
-                        prev_drawn_top, prev_drawn_bot,
-                        original_prev_drawn_top, original_prev_drawn_bot,
-                        seen_pixel_cache, ray_buffer, ray_column,
-                        seg_buffer_height, textures[1], 0, 0
+                    u32* floor_tex = textures[this_level->ftex[map_idx]];
+                    u32* ceil_tex = textures[this_level->ctex[map_idx]];
+                    u32* flat_tex = (span_idx == 0) ? ceil_tex : floor_tex;
+                    new_screen_bounds bnds = fill_raybuffer_column(
+                        floor_clipped.top, floor_clipped.bot,
+                        cur_next_free_pix_min, cur_next_free_pix_max,
+                        original_next_free_pix_min, original_next_free_pix_max,
+                        seen_pixel_cache, ray_column, seg_buffer_height, 
+                        flat_tex, 0, 0
                     );
-                    prev_drawn_top = drawn.top;
-                    prev_drawn_bot = drawn.bot;
+
+                    cur_next_free_pix_min = bnds.top;
+                    cur_next_free_pix_max = bnds.bot;
+
+                    if(cur_next_free_pix_min > cur_next_free_pix_max) {
+                        break_ray_loop = 1;
+                        break;
+                    }
+                }
+
+                if(break_ray_loop) {
+                    break;
                 }
             }
 
 
+            if(break_ray_loop) {
+                break;
+            }
+
+            ray = next_step.next_ray;
+            x_steps = next_step.rem_x_steps;
+            y_steps = next_step.rem_y_steps;
+            cur_intersection_distance = ray.intersection_distances.x;
+            next_intersection_distance = ray.intersection_distances.y;
+            position_x = ray.pos.x;
+            position_z = ray.pos.y;
+            side = next_side;
+            in_start_cell = 0;
         }
+        
+        
     }
 }
 
 
-
 float3 adjust_screen_pixel_for_mesh(float2 screen_pixel, float2 screen_size) { 
         return (float3){.x=2.0f * screen_pixel.x / screen_size.x - 1.0f, .y = 2.0f * screen_pixel.y/screen_size.y - 1.0f, .z=0.5f};
+}
+
+
+#define MIN_RAYS_PER_THREAD 256
+
+typedef struct {
+    u32* ray_buffer; u8* seen_pixel_cache;
+    int ray_buffer_base_offset;
+    segment seg;
+    int start_ray; int end_ray;
+    camera cam;
+    mat4 world_to_screen_mat;
+    int axis_mapped_to_y;
+    level* this_level;
+    int seg_buffer_height;
+} thread_params;
+
+
+void execute_rays_in_segment_wrapper(void* p) {
+    thread_params* tp = (thread_params*)p;
+    execute_rays_in_segment(
+        tp->ray_buffer, tp->seen_pixel_cache, tp->ray_buffer_base_offset, tp->seg, 
+        tp->start_ray, tp->end_ray, tp->cam, tp->world_to_screen_mat,
+        tp->axis_mapped_to_y, tp->this_level, tp->seg_buffer_height
+    );
+}
+
+
+jobpool* raycast_6dof_pool = NULL;
+//static jobpool* raycast_manager_pool = NULL;
+thread_params raycast_6dof_parms[NUM_THREADS];
+//static thread_params frame_params;
+
+void parallel_raycast_segment(
+    //thread_params *tp
+
+    u32* ray_buffer,
+    int ray_buffer_base_offset,
+    segment seg,
+    camera cam,
+    mat4 world_to_screen_mat,
+    int axis_mapped_to_y,
+    level* this_level, int seg_buffer_height    
+) {
+    int rays_per_thread = seg.ray_count / NUM_THREADS;
+
+    for(int i = 0; i < NUM_THREADS; i++) {
+        raycast_6dof_parms[i].ray_buffer = ray_buffer;
+        raycast_6dof_parms[i].seen_pixel_cache = per_thread_seen_pixel_cache[i];
+        raycast_6dof_parms[i].ray_buffer_base_offset = ray_buffer_base_offset;
+        raycast_6dof_parms[i].seg = seg;
+        raycast_6dof_parms[i].cam = cam;
+        raycast_6dof_parms[i].world_to_screen_mat = world_to_screen_mat;
+        raycast_6dof_parms[i].axis_mapped_to_y = axis_mapped_to_y;
+        raycast_6dof_parms[i].this_level = this_level;
+        raycast_6dof_parms[i].seg_buffer_height = seg_buffer_height;
+
+        raycast_6dof_parms[i].start_ray = (rays_per_thread*i);
+        raycast_6dof_parms[i].end_ray = MIN(seg.ray_count, (rays_per_thread*(i+1)));
+    }
+    raycast_6dof_parms[NUM_THREADS-1].end_ray = seg.ray_count;
+
+    for(int i = 0; i < NUM_THREADS; i++) {
+        platform_add_task(
+            raycast_6dof_pool,
+            execute_rays_in_segment_wrapper,
+            &raycast_6dof_parms[i]
+        );
+    }
+    platform_join_threadpool(raycast_6dof_pool);
+}
+
+//void parallel_raycast_segment_wrapper(
+//    void* arg_var
+//    ) {
+//    thread_params* tp = (thread_params*)arg_var;
+//    parallel_raycast_segment(tp);
+//}
+
+
+
+
+void launch_parallel_raycast_segment(
+    u32* ray_buffer,
+    int ray_buffer_base_offset,
+    segment seg,
+    camera cam,
+    mat4 world_to_screen_mat,
+    int axis_mapped_to_y,
+    level* this_level, int seg_buffer_height
+) {
+    parallel_raycast_segment(
+        ray_buffer, ray_buffer_base_offset,
+        seg, cam, world_to_screen_mat, axis_mapped_to_y,
+        this_level, seg_buffer_height
+    );
+    //frame_params.ray_buffer = ray_buffer;
+    //frame_params.ray_buffer_base_offset = ray_buffer_base_offset;
+    //frame_params.seg = seg;
+    //frame_params.cam = cam;
+    //frame_params.world_to_screen_mat = world_to_screen_mat;
+    //frame_params.axis_mapped_to_y = axis_mapped_to_y;
+    //frame_params.this_level = this_level;
+    //frame_params.seg_buffer_height = seg_buffer_height;
+    //platform_add_task(
+    //    raycast_manager_pool,
+    //    parallel_raycast_segment_wrapper,
+    //    &frame_params
+    //);
+}
+
+
+void join_raycast_segment() {
+    //platform_join_threadpool(raycast_manager_pool);
+}
+
+void init_6dof_module() {
+    raycast_6dof_pool = platform_init_threadpool(NUM_THREADS);
+    //raycast_6dof_manager_pool = platform_init_threadpool(1);
 }

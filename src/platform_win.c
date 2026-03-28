@@ -278,7 +278,7 @@ const char* seg01_frag_shader_src = "#version 330 core\n"
 "    float ray_buffer_scale = rayScales[tri_idx];\n"
 "    float ray_buffer_offset = rayOffsets[tri_idx];\n"
 "    x = ray_buffer_offset + x * ray_buffer_scale;\n"
-"    vec4 sample = texture2D(rayBuffer, vec2(x,y));\n"
+"    vec4 sample = texture2D(rayBuffer, vec2(y,x));\n"
 "    color = sample;\n"
 "}\n";
 
@@ -295,9 +295,9 @@ const char* seg23_frag_shader_src = "#version 330 core\n"
 "    float ray_buffer_scale = rayScales[tri_idx];\n"
 "    float ray_buffer_offset = rayOffsets[tri_idx];\n"
 "    x = ray_buffer_offset + x * ray_buffer_scale;\n"
-"    vec4 sample = texture2D(rayBuffer, vec2(x,y));\n"
+"    vec4 sample = texture2D(rayBuffer, vec2(y,x));\n"
 "    color = sample;\n"
-"}\n"; 
+"}\n";
 
 typedef HGLRC (WINAPI *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hDC, HGLRC hShareContext, const int *attribList);
 
@@ -369,7 +369,7 @@ void platform_init_window(int width, int height, const char *title) {
 
     vert = compile_shader(GL_VERTEX_SHADER, vert_shader_src);
     seg01_frag = compile_shader(GL_FRAGMENT_SHADER, seg01_frag_shader_src);
-    seg23_frag = compile_shader(GL_FRAGMENT_SHADER, seg01_frag_shader_src);
+    seg23_frag = compile_shader(GL_FRAGMENT_SHADER, seg23_frag_shader_src);
     seg01_prog = glCreateProgram();
     glAttachShader(seg01_prog, vert);
     glAttachShader(seg01_prog, seg01_frag);
@@ -503,38 +503,39 @@ void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float 
     //glPopMatrix();
 }
 
-void platform_draw_segment(
+void platform_draw_segments(
+    int num_segments,
     unsigned int tex,
     int seg_idx,
-    float attributes[7*3],
+    float attributes[],
     float offsets[4],
     float scales[4])
 {
     GLuint prog = (seg_idx < 2) ? seg01_prog : seg23_prog;
     glBindTexture(GL_TEXTURE_2D, tex);
-    printf("err after glBindTexture: %x\n", glGetError());
+    //printf("err after glBindTexture: %x\n", glGetError());
     glUseProgram(prog);
-    printf("err after glUseProgram: %x\n", glGetError());
+    //printf("err after glUseProgram: %x\n", glGetError());
     glUniform4f(glGetUniformLocation(prog, "rayScales"), scales[0], scales[1], scales[2], scales[3]);
-    printf("err after glUniform4f: %x\n", glGetError());
+    //printf("err after glUniform4f: %x\n", glGetError());
     glUniform4f(glGetUniformLocation(prog, "rayOffsets"), offsets[0], offsets[1], offsets[2], offsets[3]);
-    printf("err after glUniform4f: %x\n", glGetError());
+    //printf("err after glUniform4f: %x\n", glGetError());
 
 
     glBindVertexArray(vao);
-    printf("err after glBindVertexArray: %x\n", glGetError());
+    //printf("err after glBindVertexArray: %x\n", glGetError());
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    printf("err after glBindBuffer: %x\n", glGetError());
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*21, attributes, GL_DYNAMIC_DRAW);
-    printf("err after glBufferData: %x\n", glGetError());
+    //printf("err after glBindBuffer: %x\n", glGetError());
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*(7*3*num_segments), attributes, GL_DYNAMIC_DRAW); // 7*3*num_segments, 1 = 21, 2 = 42
+    //printf("err after glBufferData: %x\n", glGetError());
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7*sizeof(float), 0);
-    printf("err after attribptr 0: %x\n", glGetError());
+    //printf("err after attribptr 0: %x\n", glGetError());
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7*sizeof(float), (void*)(3*sizeof(float)));
-    printf("err after attribptr 1: %x\n", glGetError());
+    //printf("err after attribptr 1: %x\n", glGetError());
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    printf("err after draw: %x\n", glGetError());
+    glDrawArrays(GL_TRIANGLES, 0, 3*num_segments);
+    //printf("err after draw: %x\n", glGetError());
 
     //glLoadIdentity();
     //glEnable(GL_TEXTURE_2D);
@@ -562,7 +563,6 @@ void platform_begin_drawing() {
 }
 
 void platform_end_drawing() {
-    // TODO: need to handle timing and stuff here
     SwapBuffers(g_dc);
     end_time = platform_get_time();
 }

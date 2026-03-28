@@ -16,15 +16,6 @@ void clear_requested_sprites();
 
 #define MAX_STEPS 128
 
-void raycast_segment(
-    u32* output, edit_wall_id* edit_id_buffer, u16* z_buffer,
-    int flash_frame, level* this_level, 
-    int editor_mode_enabled, int editor_selected_idx, editor_selected_thing editor_selected_side,
-    //u8* visited_cell_bitmap, sprite_cache_entry* sprite_cache,
-    segment seg, camera cam, float yaw, mat4 world_to_screen_mat,
-    float start_yaw, float end_yaw
-);
-
 
 
 void launch_render_frame(
