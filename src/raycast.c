@@ -143,13 +143,90 @@ const float door_end_y_offsets[NUM_CELL_TYPES] = {
 
 #define EPSILON 1e-6f
 
-int calc_line_hit(
-    diag_intersect *result, float ray_dir_x, float ray_dir_y, float player_x, float player_y, 
-    int map_x, int map_y, float x1, float y1, float x2, float y2, 
-    float perp_dist, float u0, float u1) { 
+
+float wrap_angle(float a) {
+    while (a >  PI) a -= 2.0f*PI;
+    while (a < -PI) a += 2.0f*PI;
+    return a;
+}
+
+int calc_line_hit_arc(
+    diag_intersect *result, float ray_dir_x, float ray_dir_y, float player_x, float player_y,
+    int map_x, int map_y, float x1, float y1, float x2, float y2,
+    float u0, float u1)
+{
     result->mid_flat_u = 0.0f;
     result->mid_flat_v = 0.0f;
-    //result->diag_perp_dist = perp_dist;
+
+    float chx = x2 - x1, chy = y2 - y1;
+    float chord = my_sqrtf(chx*chx + chy*chy);
+    float half_chord = chord * 0.5f;
+    float sagitta = 0.25f * chord;  // hardcoded bulge
+
+    float mx = (x1+x2)*0.5f, my = (y1+y2)*0.5f;
+    float nx = -chy / chord, ny = chx / chord;  // unit perp to chord
+
+    float r  = (sagitta*sagitta + half_chord*half_chord) / (2.0f*sagitta);
+    float ccx = mx + nx*(r - sagitta);
+    float ccy = my + ny*(r - sagitta);
+
+    float ang1    = my_atan2f(y1 - ccy, x1 - ccx);
+    float ang2    = my_atan2f(y2 - ccy, x2 - ccx);
+    float ang_mid = my_atan2f(my + ny*sagitta - ccy, mx + nx*sagitta - ccx);
+
+    float ocx = player_x - ccx, ocy = player_y - ccy;
+    float A   = ray_dir_x*ray_dir_x + ray_dir_y*ray_dir_y;
+    float B   = 2.0f*(ocx*ray_dir_x + ocy*ray_dir_y);
+    float C   = ocx*ocx + ocy*ocy - r*r;
+    float disc = B*B - 4.0f*A*C;
+    if (disc < 0.0f) return 0;
+
+    float sq = my_sqrtf(disc);
+    float ts[2] = { (-B - sq)/(2.0f*A), (-B + sq)/(2.0f*A) };
+
+    int hit = 0;
+    float best_s = 1e30f;
+
+    for (int i = 0; i < 2; i++) {
+        float s = ts[i];
+        if (s < EPSILON) continue;
+
+        float ix = player_x + s*ray_dir_x;
+        float iy = player_y + s*ray_dir_y;
+
+        // arc membership check
+        float span  = wrap_angle(ang_mid - ang1) * 2.0f;
+        float stest = wrap_angle(my_atan2f(iy - ccy, ix - ccx) - ang1);
+        if (span >= 0.0f) { if (stest < -EPSILON || stest > span+EPSILON) continue; }
+        else              { if (stest >  EPSILON || stest < span-EPSILON) continue; }
+
+        int within_bounds = (
+            (my_floorf(ix+EPSILON)==map_x || my_floorf(ix-EPSILON)==map_x) &&
+            (my_floorf(iy+EPSILON)==map_y || my_floorf(iy-EPSILON)==map_y)
+        );
+        if (!within_bounds) continue;
+
+        if (s < best_s) {
+            best_s = s;
+            float tc = wrap_angle(my_atan2f(iy-ccy, ix-ccx) - ang1) / span;
+            result->diag_perp_dist = s;
+            result->diag_wall_u    = lerp(u0, u1, CLAMP(tc, 0.0f, 1.0f));
+            result->mid_flat_u     = CLAMP(ix - my_floorf(ix), 0.0f, 1.0f);
+            result->mid_flat_v     = CLAMP(iy - my_floorf(iy), 0.0f, 1.0f);
+            hit = 1;
+        }
+    }
+    return hit;
+}
+
+int calc_line_hit(
+    diag_intersect *result, 
+    float ray_dir_x, float ray_dir_y, float player_x, float player_y, 
+    int map_x, int map_y, 
+    float x1, float y1, float x2, float y2, 
+    float u0, float u1) { 
+    result->mid_flat_u = 0.0f;
+    result->mid_flat_v = 0.0f;
 
     float diag_ix = 0.0f;
     float diag_iy = 0.0f;
@@ -217,8 +294,17 @@ int calc_line_hit(
     return 0;
 }
 
+int calc_diag_hit_arc(diag_intersect *result, float ray_dir_x, float ray_dir_y, float player_x, float player_y, int map_x, int map_y, cell_types cell_type) {
+    float x1 = map_x + diag_start_x_offsets[cell_type];
+    float y1 = map_y + diag_start_y_offsets[cell_type];
+    float x2 = x1 + diag_dx[cell_type];
+    float y2 = y1 + diag_dy[cell_type];
+    result->diag_perp_dist = 1e9f;
+    return calc_line_hit_arc(result, ray_dir_x, ray_dir_y, player_x, player_y, map_x, map_y, x1, y1, x2, y2, 0.0f, 1.0f);
+}
 
-int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, float player_x, float player_y, int map_x, int map_y, float perp_dist, cell_types cell_type) {
+
+int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, float player_x, float player_y, int map_x, int map_y, cell_types cell_type) {
     float x1 = map_x + diag_start_x_offsets[cell_type];
     float y1 = map_y + diag_start_y_offsets[cell_type];
 
@@ -228,10 +314,10 @@ int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
     float y2 = y1 + diag_dy[cell_type];
     result->diag_perp_dist = 1e9f;
 
-    return calc_line_hit(result, ray_dir_x, ray_dir_y, player_x, player_y, map_x, map_y, x1, y1, x2, y2, perp_dist, 0.0f, 1.0f);
+    return calc_line_hit(result, ray_dir_x, ray_dir_y, player_x, player_y, map_x, map_y, x1, y1, x2, y2, 0.0f, 1.0f);
 }
 
-int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, float player_x, float player_y, int map_x, int map_y, float perp_dist, cell_types cell_type, float door_open_amount) { 
+int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, float player_x, float player_y, int map_x, int map_y, cell_types cell_type, float door_open_amount) { 
     const float thickness = 4.0f/32.0f;
     
     float lerp_open_amount = door_open_amount*255.0f;
@@ -268,7 +354,7 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
         map_x, map_y, 
         x1, y1, 
         x2, y2, 
-        perp_dist, 0.0f, 1.0f
+        0.0f, 1.0f
     );
 
 
@@ -278,7 +364,7 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
         map_x, map_y, 
         cap_x1, cap_y1,
         cap_x2, cap_y2,
-        perp_dist, 0.0f, 1.0f
+        0.0f, 1.0f
     );
     int hits_start_cap = calc_line_hit(
         &start_cap_line, 
@@ -286,7 +372,7 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
         map_x, map_y,  
         x1, y1,
         cap_x1, cap_y1,
-        perp_dist, 0.0f, 4.0f/32.0f
+        0.0f, 4.0f/32.0f
     );
     int hits_end_cap = calc_line_hit(
         &end_cap_line, 
@@ -294,7 +380,7 @@ int calc_door_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, floa
         map_x, map_y, 
         x2, y2,
         cap_x2, cap_y2,
-        perp_dist, 0.0f, 4.0f/32.0f
+        0.0f, 4.0f/32.0f
     );
     
     diag_intersect best_hit;
@@ -403,7 +489,53 @@ typedef struct {
     sprite_cache_entry* sprite_cache;
 } thread_params;
 
+float clamp(float x, float lowerlimit, float upperlimit) {
+  if (x < lowerlimit) return lowerlimit;
+  if (x > upperlimit) return upperlimit;
+  return x;
+}
 
+float smoothstep (float edge0, float edge1, float x) {
+   // Scale, and clamp x to 0..1 range
+   x = clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+
+   return x * x * (3.0f - 2.0f * x);
+}
+float ease_out(float a, float b, float t) {
+    float inv = 1.0f - t;
+    return a + (1.0f - inv * inv) * (b - a);
+}
+
+
+slope_heights get_slope_heights(
+    int in_start_cell, int map_x, int map_z, int next_map_x, int next_map_z, 
+    float hit_x, float hit_z, float next_hit_x, float next_hit_z,
+    wall_side side, cell_types cell_type, int step_x, int step_z, 
+    float ray_origin_x, float ray_origin_z, float first_floor_height, float second_floor_height) {
+    float z_exit = next_map_z > map_z ? 1.0f : next_map_z < map_z ? 0.0f : next_hit_z-my_floorf(next_hit_z);
+    float z_start = in_start_cell ? (ray_origin_z - my_floorf(ray_origin_z)) : hit_z - my_floorf(hit_z);
+    if(!in_start_cell && side == HORIZONTAL_SIDE) {
+        if(step_z == -1) {
+            z_start = 1.0f;
+        } else {
+            z_start = 0.0f;
+        }
+    }
+    float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-my_floorf(next_hit_x);
+    float x_start = in_start_cell ? (ray_origin_x - my_floorf(ray_origin_x)) : hit_x - my_floorf(hit_x);
+    if(!in_start_cell && side == VERTICAL_SIDE) {
+        if(step_x == -1) {
+            x_start = 1.0f;
+        } else {
+            x_start = 0.0f;
+        }
+    }
+    float start = (cell_type == SLOPE_Y) ? z_start : x_start;
+    float exit = (cell_type == SLOPE_Y) ? z_exit : x_exit;
+    float slope_start_height = (float)first_floor_height + start*(float)((float)second_floor_height - (float)first_floor_height);
+    float slope_end_height = (float)first_floor_height + exit*(float)((float)second_floor_height - (float)first_floor_height);
+    return ((slope_heights){.start_height = slope_start_height, .end_height = slope_end_height});
+}
 
 
 
@@ -923,6 +1055,15 @@ void raycast_column(
             int proj_floor_first_step_height_at_next_dist = project_to_screen(first_floor_height, next_perp_dist, pitch, ray_origin_z);
             int proj_ceil_first_step_height = project_to_screen(first_ceil_height, perp_dist, pitch, ray_origin_z);
 
+            slope_heights floor_slope = get_slope_heights(in_start_cell, map_x, map_y, next_map_x, next_map_y,
+                hit_x, hit_y, next_hit_x, next_hit_y, side, lower_cell_type, step_x, step_y,
+                ray_origin_x, ray_origin_z, first_floor_height, second_floor_height
+            );
+            slope_heights ceil_slope = get_slope_heights(in_start_cell, map_x, map_y, next_map_x, next_map_y,
+                hit_x, hit_y, next_hit_x, next_hit_y, side, upper_cell_type, step_x, step_y,
+                ray_origin_x, ray_origin_z, first_ceil_height, second_ceil_height
+            );
+
             if(!in_start_cell && !lower_step_slope && proj_floor_first_step_height < prev_drawn_bot) {
                 if(floor_anchor_is_not_zero) {
                     draw_skybox_vline(
@@ -957,32 +1098,10 @@ void raycast_column(
 
                 prev_drawn_bot = proj_floor_first_step_height;
             } else if (!in_start_cell && lower_step_slope) {
-                //float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-my_floorf(next_hit_y);
-                float y_start = in_start_cell ? (ray_origin_y - my_floorf(ray_origin_y)) : hit_y - my_floorf(hit_y);
-                if(!in_start_cell && side == HORIZONTAL_SIDE) {
-                    if(step_y == -1) {
-                        y_start = 1.0f;
-                    } else {
-                        y_start = 0.0f;
-                    }
-                }
-                //float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-my_floorf(next_hit_x);
-                float x_start = in_start_cell ? (ray_origin_x - my_floorf(ray_origin_x)) : hit_x - my_floorf(hit_x);
-                if(!in_start_cell && side == VERTICAL_SIDE) {
-                    if(step_x == -1) {
-                        x_start = 1.0f;
-                    } else {
-                        x_start = 0.0f;
-                    }
-                }
-                float start = (lower_cell_type == SLOPE_Y) ? y_start : x_start;
-                //float exit = (lower_cell_type == SLOPE_Y) ? y_exit : x_exit;
-                float slope_start_height = (float)first_floor_height + start*(float)((float)second_floor_height - (float)first_floor_height);
-                //float slope_end_height = (float)first_floor_height + exit*(float)((float)second_floor_height - (float)first_floor_height);
 
+                float slope_start_height =  floor_slope.start_height;
                 int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
-
-                
+        
                 if(!in_start_cell && proj_slope_start_height < prev_drawn_bot) {      
                     if(floor_anchor_is_not_zero) {
                         draw_skybox_vline(
@@ -1055,32 +1174,9 @@ void raycast_column(
                 }
                 prev_drawn_top = proj_ceil_first_step_height;
             } else if (!in_start_cell && upper_step_slope) {
-                //float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-my_floorf(next_hit_y);
-                float y_start = in_start_cell ? (ray_origin_y - my_floorf(ray_origin_y)) : hit_y - my_floorf(hit_y);
-                if(!in_start_cell && side == HORIZONTAL_SIDE) {
-                    if(step_y == -1) {
-                        y_start = 1.0f;
-                    } else {
-                        y_start = 0.0f;
-                    }
-                }
-                //float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-my_floorf(next_hit_x);
-                float x_start = in_start_cell ? (ray_origin_x - my_floorf(ray_origin_x)) : hit_x - my_floorf(hit_x);
-                if(!in_start_cell && side == VERTICAL_SIDE) {
-                    if(step_x == -1) {
-                        x_start = 1.0f;
-                    } else {
-                        x_start = 0.0f;
-                    }
-                }
-                //float exit = (upper_cell_type == SLOPE_X) ? x_exit : y_exit;
-                float start = (upper_cell_type == SLOPE_X) ? x_start : y_start;
 
-                float slope_start_height = (float)first_ceil_height + start*(float)((float)second_ceil_height - (float)first_ceil_height);
-                //float slope_end_height = (float)first_ceil_height + exit*(float)((float)second_ceil_height - (float)first_ceil_height);
-
+                float slope_start_height = ceil_slope.start_height;
                 int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
-
 
                 if(proj_slope_start_height > prev_drawn_top) {  
                     if(ceil_anchor_is_not_max) {
@@ -1123,32 +1219,12 @@ void raycast_column(
 
             }
             if(lower_cell_type == SLOPE_Y || lower_cell_type == SLOPE_X) {
-                float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-my_floorf(next_hit_y);
-                float y_start = in_start_cell ? (ray_origin_y - my_floorf(ray_origin_y)) : hit_y - my_floorf(hit_y);
-                if(!in_start_cell && side == HORIZONTAL_SIDE) {
-                    if(step_y == -1) {
-                        y_start = 1.0f;
-                    } else {
-                        y_start = 0.0f;
-                    }
-                }
-                float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-my_floorf(next_hit_x);
-                float x_start = in_start_cell ? (ray_origin_x - my_floorf(ray_origin_x)) : hit_x - my_floorf(hit_x);
-                if(!in_start_cell && side == VERTICAL_SIDE) {
-                    if(step_x == -1) {
-                        x_start = 1.0f;
-                    } else {
-                        x_start = 0.0f;
-                    }
-                }
-                float start = (lower_cell_type == SLOPE_Y) ? y_start : x_start;
-                float exit = (lower_cell_type == SLOPE_Y) ? y_exit : x_exit;
-                float slope_start_height = (float)first_floor_height + start*(float)((float)second_floor_height - (float)first_floor_height);
-                float slope_end_height = (float)first_floor_height + exit*(float)((float)second_floor_height - (float)first_floor_height);
+
+                float slope_start_height = floor_slope.start_height;
+                float slope_end_height = floor_slope.end_height;
 
                 int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
                 int proj_slope_end_height = project_to_screen(slope_end_height, next_perp_dist, pitch, ray_origin_z);
-
                 
                 // draw wall for slope
 
@@ -1213,14 +1289,15 @@ void raycast_column(
                 int lower_hits_diag;
                 float door_open_amount = this_level->parameter[map_idx]/255.0f;
                 if(lower_cell_type == DOOR_Y || lower_cell_type == DOOR_X) { 
-                    lower_hits_diag = calc_door_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, perp_dist, lower_cell_type, (lower_cell_type == DOOR_Y ? door_open_amount : (0.9999f-door_open_amount)));
+                    lower_hits_diag = calc_door_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, lower_cell_type, (lower_cell_type == DOOR_Y ? door_open_amount : (0.9999f-door_open_amount)));
                     // use flat exit UV coords for floor/ceiling next to door, when the door is fully open
                     //if(lower_hits_diag) {
                     //    lower_diag_intersect.mid_flat_u = CLAMP(lower_diag_intersect.mid_flat_u, MIN(flat_u, exit_flat_u), MAX(flat_u, exit_flat_u));
                     //    lower_diag_intersect.mid_flat_v = CLAMP(lower_diag_intersect.mid_flat_v, MIN(flat_v, exit_flat_v), MAX(flat_v, exit_flat_v));
                     //}
-                } else {                        
-                    lower_hits_diag = calc_diag_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, perp_dist, lower_cell_type);
+                } else {
+                    lower_hits_diag = calc_diag_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, lower_cell_type);
+                    //lower_hits_diag = calc_diag_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, perp_dist, lower_cell_type);
                     //lower_hits_diag = calc_door_hit(&lower_diag_intersect, ray_dir_x, ray_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, perp_dist, lower_cell_type, (lower_cell_type == NE_TO_SW_DIAG ? -0.5f : 0.5f));
                 }
                 if(lower_hits_diag && lower_diag_intersect.diag_perp_dist > NEAR_PLANE_DIST) {                        
@@ -1378,35 +1455,13 @@ void raycast_column(
             // draw normal no-diagonal ceil
             
             if(upper_cell_type == SLOPE_Y || upper_cell_type == SLOPE_X) {
-                float y_exit = next_map_y > map_y ? 1.0f : next_map_y < map_y ? 0.0f : next_hit_y-my_floorf(next_hit_y);
-                float y_start = in_start_cell ? (ray_origin_y - my_floorf(ray_origin_y)) : hit_y - my_floorf(hit_y);
-                if(!in_start_cell && side == HORIZONTAL_SIDE) {
-                    if(step_y == -1) {
-                        y_start = 1.0f;
-                    } else {
-                        y_start = 0.0f;
-                    }
-                }
-                float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-my_floorf(next_hit_x);
-                float x_start = in_start_cell ? (ray_origin_x - my_floorf(ray_origin_x)) : hit_x - my_floorf(hit_x);
-                if(!in_start_cell && side == VERTICAL_SIDE) {
-                    if(step_x == -1) {
-                        x_start = 1.0f;
-                    } else {
-                        x_start = 0.0f;
-                    }
-                }
-                float exit = (upper_cell_type == SLOPE_X) ? x_exit : y_exit;
-                float start = (upper_cell_type == SLOPE_X) ? x_start : y_start;
-
-                float slope_start_height = (float)first_ceil_height + start*(float)((float)second_ceil_height - (float)first_ceil_height);
-                float slope_end_height = (float)first_ceil_height + exit*(float)((float)second_ceil_height - (float)first_ceil_height);
+                float slope_start_height = ceil_slope.start_height;
+                float slope_end_height = ceil_slope.end_height;
 
                 int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
                 int proj_slope_end_height = project_to_screen(slope_end_height, next_perp_dist, pitch, ray_origin_z);
 
                 // x+ side is upper height
-
 
                 if (proj_slope_end_height > prev_drawn_top) {
                     draw_lit_fogged_tex_flat(
@@ -1464,7 +1519,7 @@ void raycast_column(
             } else if(upper_cell_type == NW_TO_SE_DIAG || upper_cell_type == NE_TO_SW_DIAG ||
                 upper_cell_type == THIN_WALL_X || upper_cell_type == THIN_WALL_Y) {
                 diag_intersect upper_diag_intersect;
-                int upper_hits_diag = calc_diag_hit(&upper_diag_intersect, ray_dir_x, ray_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, perp_dist, upper_cell_type);    
+                int upper_hits_diag = calc_diag_hit(&upper_diag_intersect, ray_dir_x, ray_dir_y, ray_origin_x, ray_origin_y, map_x, map_y, upper_cell_type);    
                 if(upper_hits_diag && upper_diag_intersect.diag_perp_dist > NEAR_PLANE_DIST) {                        
 
                     // draw first ceil

@@ -84,6 +84,7 @@ mat4 get_world_to_screen_matrix(camera cam);
 float3 calc_vanishing_point_world(camera cam);
 float2 project_vanishing_point_world_to_screen(camera cam, float3 vp_world);
 camera mk_camera(
+    float fov,
     float posx, float posy, float posz, 
     float pitch, float yaw, float roll,
     float render_width, float render_height, 
@@ -120,5 +121,7 @@ void launch_parallel_raycast_segment(
 
 void join_raycast_segment();
 void init_6dof_module();
+
+extern int draw_only_first_element, draw_only_second_element;
 
 #endif

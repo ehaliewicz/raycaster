@@ -483,7 +483,7 @@ void platform_update_texture(unsigned int tex, void *pixels, int xoff, int yoff,
 
 
 void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float scale, int w, int h) {
-
+    glUseProgram(0);
     glBindTexture(GL_TEXTURE_2D, tex);
     glLoadIdentity();
     //glPushMatrix();
@@ -513,45 +513,20 @@ void platform_draw_segments(
 {
     GLuint prog = (seg_idx < 2) ? seg01_prog : seg23_prog;
     glBindTexture(GL_TEXTURE_2D, tex);
-    //printf("err after glBindTexture: %x\n", glGetError());
     glUseProgram(prog);
-    //printf("err after glUseProgram: %x\n", glGetError());
     glUniform4f(glGetUniformLocation(prog, "rayScales"), scales[0], scales[1], scales[2], scales[3]);
-    //printf("err after glUniform4f: %x\n", glGetError());
     glUniform4f(glGetUniformLocation(prog, "rayOffsets"), offsets[0], offsets[1], offsets[2], offsets[3]);
-    //printf("err after glUniform4f: %x\n", glGetError());
 
 
     glBindVertexArray(vao);
-    //printf("err after glBindVertexArray: %x\n", glGetError());
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    //printf("err after glBindBuffer: %x\n", glGetError());
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*(7*3*num_segments), attributes, GL_DYNAMIC_DRAW); // 7*3*num_segments, 1 = 21, 2 = 42
-    //printf("err after glBufferData: %x\n", glGetError());
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7*sizeof(float), 0);
-    //printf("err after attribptr 0: %x\n", glGetError());
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7*sizeof(float), (void*)(3*sizeof(float)));
-    //printf("err after attribptr 1: %x\n", glGetError());
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glDrawArrays(GL_TRIANGLES, 0, 3*num_segments);
-    //printf("err after draw: %x\n", glGetError());
 
-    //glLoadIdentity();
-    //glEnable(GL_TEXTURE_2D);
-    //glBindTexture(tex, 0);
-    //glMatrixMode(GL_PROJECTION);
-    //glDisable(GL_CULL_FACE);
-    //glLoadIdentity();
-    //glOrtho(-1, 1, -1, 1, -1, 1); // or -1 to 1 if using NDC
-    //glMatrixMode(GL_MODELVIEW);
-    //glLoadIdentity();
-    //glBegin(GL_QUADS);
-    //    for (int i = 0; i < 4; i++) {
-    //        glTexCoord2f(uvs[i][0], uvs[i][1]);
-    //        glVertex2f(positions[i][0], positions[i][1]);        
-    //    }
-    //glEnd();
     return;
 }
 

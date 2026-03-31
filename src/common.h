@@ -36,10 +36,11 @@ typedef enum {
     THIN_WALL_X=7, // split vertically in half
     THIN_WALL_Y=8, // split horizontally in half
     //HEIGHTMAP=6
+    SLOPE = 9,
 } cell_types;
 
 
-#define NUM_CELL_TYPES 9
+#define NUM_CELL_TYPES 10
 
 #define MAP_SIZE 32
 
@@ -93,7 +94,7 @@ extern int cur_render_scale;
 #elif PLATFORM_WEB
     #define NUM_THREADS 1
 #else
-    #define NUM_THREADS 8
+    #define NUM_THREADS 4
 #endif 
 
 
@@ -168,10 +169,13 @@ typedef struct {
 
     float start_ang;
 
+    // floor, ceiling, middle (floating) sprites
     u8 f_sprite_index[MAP_SIZE*MAP_SIZE];
     u8 c_sprite_index[MAP_SIZE*MAP_SIZE];
     u8 m_sprite_index[MAP_SIZE*MAP_SIZE];
+    // middle sprite offset
     u8 m_sprite_offset[MAP_SIZE*MAP_SIZE];
+
     u8 floor_anchor[MAP_SIZE*MAP_SIZE];
     u8 ceil_anchor[MAP_SIZE*MAP_SIZE];
 } level;

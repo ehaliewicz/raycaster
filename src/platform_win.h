@@ -18,6 +18,8 @@ typedef enum {
     KEY_I = 0x49,
     KEY_K = 0x4B,
     KEY_L = 0x4C,
+    KEY_M = 0x4D,
+    KEY_N = 0x4E,
     KEY_O = 0x4F,
     KEY_P = 0x50,
     KEY_Q = 0x51,

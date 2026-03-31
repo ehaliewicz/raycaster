@@ -447,6 +447,7 @@ mat3 mat3_mul_mat3(mat3 a, mat3 b) {
     return result;
 }
 camera mk_camera(
+    float fov,
     float posx, float posy, float posz, 
     float pitch, float yaw, float roll,
     float render_width, float render_height, 
@@ -538,7 +539,6 @@ camera mk_camera(
 setup_dims:;
 
     float2 dims = mk_float2(render_width, render_height);
-    float fov = 90.0f;
 
     return ((camera){
         .dims = dims,
@@ -786,6 +786,10 @@ typedef struct {
     int top, bot;
 } new_screen_bounds;
 
+#define NIGHT_FOG_COL ((255<<24)|(0<<16)|(0<<8)|(0<<0))
+#define FOG_COL ((255<<24)|(103<<16)|(162<<8)|(196<<0))
+
+
 new_screen_bounds fill_raybuffer_column(
     float4 cam_space_top, float4 cam_space_bot,
     int cur_next_free_pix_min, int cur_next_free_pix_max, 
@@ -793,10 +797,13 @@ new_screen_bounds fill_raybuffer_column(
     int original_next_free_pix_max,
     u8* seen_pixel_cache,
     u32* pix_arr_col, int seg_buffer_height,
-    u32* texture,
-    int use_flat_color,
-    u32 flat_col) {
-    
+    u32* texture
+    //int use_flat_color,
+    //u32 flat_col
+) {
+    int use_flat_color = 0;
+    u32 flat_col = 0;
+
     if(texture == textures[SKYBOX_TEX_IDX]) {
         use_flat_color = 1;
         flat_col = 0xFFB7CEFA;
@@ -868,34 +875,78 @@ new_screen_bounds fill_raybuffer_column(
             }
         }
 
+            
+        u32 fog_r = (FOG_COL >> 16)&0xFF;
+        u32 fog_g = (FOG_COL >> 8)&0xFF;
+        u32 fog_b = (FOG_COL >> 0)&0xFF;
 
         // now draw visible portion of the chunk
         //pix_arr_col = pix_arr[col]
         //dy = len(pix_arr_col)-1
         int dy = seg_buffer_height-1;
+        float z = one_over_z_top;
+        if(use_flat_color) { 
+            goto exit;
+        }
         for (int y = ray_buffer_bounds_min; y < ray_buffer_bounds_max+1; y++) {
-            if (is_pixel_set(seen_pixel_cache, y) == 0) { //seen_pixel_cache[y] == 0:
+            //int dont_write = is_pixel_set(seen_pixel_cache, y);
+            //u32 old_texel = pix_arr_col[(dy-y)];
+            if (is_pixel_set(seen_pixel_cache, y) == 0) {
                 mark_pixel(seen_pixel_cache, y);
                 int dy_for_depth = y - original_ray_buffer_bounds_min;
                 float inv_z = one_over_z_top + one_over_z_per_pix * dy_for_depth;
                 float z = 1.0/inv_z;
+                float depth_scale = z*RECIP_DARK_DIST;
+                float inv_depth_scale = 1.0f - depth_scale;
+                const float mult = 1.0f;
+
+                float mult_by_inv_depth = mult * inv_depth_scale;
                 float u_over_z = u_over_z_top + (dy_for_depth * du_over_z_per_pix);
                 float v_over_z = v_over_z_top + (dy_for_depth * dv_over_z_per_pix);
 
-                int u = (int)(u_over_z * z * 32) & 31;
-                int v = (int)(v_over_z * z * 32) & 31;
+                float u = u_over_z * z * 32;
+                float v = v_over_z * z * 32;
+                int iu = (int)u & 31;
+                int iv = (int)v & 31;
+                
+                u32 scaled_fog_r = (depth_scale * fog_r);
+                u32 scaled_fog_g = (depth_scale * fog_g);
+                u32 scaled_fog_b = (depth_scale * fog_b);
 
 
-                u32 color = texture[u*32+v];
+                u32 lit_texel;
                 if (use_flat_color) {
-                    color = flat_col;
-                }
+                    lit_texel = flat_col;
+                } else {
 
-                pix_arr_col[(dy-y)] = color; //dy-y] = col
+                    u32 texel = texture[iu*32+iv];
+
+                    u32 texel_a = ((texel >> 24) & 0xFF);
+                    u32 texel_r = ((texel >> 16) & 0xFF);
+                    u32 texel_g = ((texel >> 8) & 0xFF);
+                    u32 texel_b = ((texel >> 0) & 0xFF);
+                    float r = texel_r;
+                    float g = texel_g;
+                    float b = texel_b;
+                    r = (r * mult_by_inv_depth);
+                    g = (g * mult_by_inv_depth);
+                    b = (b * mult_by_inv_depth);
+
+                    r += scaled_fog_r;
+                    g += scaled_fog_g;
+                    b += scaled_fog_b;
+                    u32 intr = CLAMP((int)r, 0, 0xFF);
+                    u32 intg = CLAMP((int)g, 0, 0xFF);
+                    u32 intb = CLAMP((int)b, 0, 0xFF);
+                    lit_texel = 0xFF000000|(intr<<16)|(intg<<8)|intb;
+
+                }
+                pix_arr_col[(dy-y)] = lit_texel;
             }
                     
         }
     }
+    exit:;
     return ((new_screen_bounds){.top = cur_next_free_pix_min, .bot = cur_next_free_pix_max});
 }
 
@@ -1003,6 +1054,10 @@ ray_step_t step_ray(ray_t ray, float2 cam_pos_xz, float2 norm_ray_direction, int
     });
 }
 
+
+int draw_only_first_element = 0;
+int draw_only_second_element = 0;
+
 void execute_rays_in_segment(
     u32* ray_buffer, u8* seen_pixel_cache,
     int ray_buffer_base_offset,
@@ -1022,7 +1077,9 @@ void execute_rays_in_segment(
     u8* cur_level_upper_floor = this_level->upper_floor;
     u8* cur_level_upper_ceil = this_level->upper_ceil;
 
-    int iteration_direction = cam.forward.y < 0.0 ? 1 : -1;
+    //int iteration_direction = cam.forward.y < 0.0 ? 1 : -1;
+    int top_down = cam.forward.y < 0.0f;
+
 
     float2 cam_pos_xz = mk_float2(cam.pos.x, cam.pos.z);
 
@@ -1060,17 +1117,20 @@ void execute_rays_in_segment(
         const int original_next_free_pix_min = seg.next_free_pixel_min;
         const int original_next_free_pix_max = seg.next_free_pixel_max;
 
-        int position_x = ray.pos.x;
-        int position_z = ray.pos.y;
+        int map_x = ray.pos.x;
+        int map_z = ray.pos.y;
         float cur_intersection_distance = ray.intersection_distances.x;
         float next_intersection_distance = ray.intersection_distances.y;
         float ray_origin_x = ray_start.x;
         float ray_origin_z = ray_start.y;
         float ray_dir_x = ray_dir.x;
         float ray_dir_z = ray_dir.y;
+        int step_x = ray.step.x;
+        int step_z = ray.step.y;
 
-        int x_steps = (ray.step.x == 1 ? (MAP_SIZE-position_x) : (1+position_x));
-        int y_steps = (ray.step.y == 1 ? (MAP_SIZE-position_z) : (1+position_z));//32;
+
+        int x_steps = (ray.step.x == 1 ? (MAP_SIZE-1-map_x) : (map_x));
+        int y_steps = (ray.step.y == 1 ? (MAP_SIZE-1-map_z) : (map_z));//32;
 
         int cur_next_free_pix_min = original_next_free_pix_min;
         int cur_next_free_pix_max = original_next_free_pix_max;
@@ -1104,16 +1164,25 @@ void execute_rays_in_segment(
                 break;
             }
 
-            int col_spans[2][2] = {
-                {MAX_WALL_HEIGHT,14}, {2, 0}
-                //{16,14}, {2, 0}
-            };
-            int map_idx = position_z*MAP_SIZE+position_x;
-            col_spans[0][1] = this_level->ceil[map_idx];
-            col_spans[1][0] = this_level->floor[map_idx];
+            int col_spans[2];
+            int alt_col_spans[2];     
+            int col_span_anchors[2];
+            
+            cell_types span_types[2];
+            int map_idx = map_z*MAP_SIZE+map_x;
+                col_spans[0] = this_level->ceil[map_idx];
+                col_span_anchors[0] = this_level->ceil_anchor[map_idx];
+                alt_col_spans[0] = this_level->upper_ceil[map_idx];
+                span_types[0] = this_level->upper_cell_types[map_idx];
 
-            int world_col_min = col_spans[1][1];
-            int world_col_max = col_spans[0][0];
+                col_spans[1] = this_level->floor[map_idx];
+                col_span_anchors[1] = this_level->floor_anchor[map_idx];
+                alt_col_spans[1] = this_level->upper_floor[map_idx];
+                span_types[1] = this_level->lower_cell_types[map_idx];
+
+
+            //int world_col_min = col_spans[1][1];
+            //int world_col_max = col_spans[0][0];
             int num_col_spans = 2;
 
             
@@ -1133,17 +1202,51 @@ void execute_rays_in_segment(
             float next_hit_z = ray_origin_z + ray_dir_z * next_intersection_distance;
 
             int break_ray_loop = 0;
-            int top_down = iteration_direction == 1;
+            //int top_down = iteration_direction == 1;
 
             int span_idx_start = top_down ? 0 : num_col_spans-1;
             int span_idx_end = top_down ? num_col_spans : -1;
+            int iteration_direction = top_down ? 1 : -1;
 
             float flat_u, flat_v;
+            u8 upper_wall_tex, lower_wall_tex;
+            editor_selected_thing upper_intersect_wall_side, lower_intersect_wall_side;
+            u8 lower_intersect_wall_light_level, upper_intersect_wall_light_level;
             if(side == VERTICAL_SIDE) {
                 wall_u = hit_z - my_floorf(hit_z);
                 flat_u = default_start_u;
                 flat_v = wall_u;
+                if(ray_dir_x > 0) {
+                    upper_intersect_wall_side = WALL_SIDE_UPPER_WEST;
+                    lower_intersect_wall_side = WALL_SIDE_LOWER_WEST;
+                    upper_wall_tex = this_level->uwtex[map_idx];
+                    lower_wall_tex = this_level->lwtex[map_idx];
+                    upper_intersect_wall_light_level = this_level->uw_light[map_idx];
+                    lower_intersect_wall_light_level = this_level->lw_light[map_idx];
+                } else {
+                    upper_intersect_wall_side = WALL_SIDE_UPPER_EAST;
+                    lower_intersect_wall_side = WALL_SIDE_LOWER_EAST;
+                    upper_wall_tex = this_level->uetex[map_idx];
+                    lower_wall_tex = this_level->letex[map_idx];
+                    upper_intersect_wall_light_level = this_level->ue_light[map_idx];
+                    lower_intersect_wall_light_level = this_level->le_light[map_idx];
+                }
             } else {
+                if(ray_dir_z < 0) {
+                    upper_intersect_wall_side = WALL_SIDE_UPPER_SOUTH;
+                    lower_intersect_wall_side = WALL_SIDE_LOWER_SOUTH;
+                    upper_wall_tex = this_level->ustex[map_idx];
+                    lower_wall_tex = this_level->lstex[map_idx];
+                    upper_intersect_wall_light_level = this_level->us_light[map_idx];
+                    lower_intersect_wall_light_level = this_level->ls_light[map_idx];
+                } else {
+                    upper_intersect_wall_side = WALL_SIDE_UPPER_NORTH;
+                    lower_intersect_wall_side = WALL_SIDE_LOWER_NORTH;
+                    upper_wall_tex = this_level->untex[map_idx];
+                    lower_wall_tex = this_level->lntex[map_idx];
+                    upper_intersect_wall_light_level = this_level->un_light[map_idx];
+                    lower_intersect_wall_light_level = this_level->ln_light[map_idx];
+                }
                 wall_u = hit_x - my_floorf(hit_x);
                 flat_u = wall_u;
                 flat_v = default_start_v;
@@ -1153,6 +1256,8 @@ void execute_rays_in_segment(
             wall_side next_side;
             int prev_x_steps = x_steps;
             ray_step_t next_step = step_ray(ray, cam_pos_xz, norm_ray_direction, x_steps, y_steps);
+            int next_map_x = next_step.next_ray.pos.x;
+            int next_map_z = next_step.next_ray.pos.y;
             if(next_step.rem_x_steps != prev_x_steps) {
                 next_side = VERTICAL_SIDE;
                 exit_flat_u = default_exit_u;
@@ -1164,17 +1269,49 @@ void execute_rays_in_segment(
             }
 
             for(int span_idx = span_idx_start; span_idx != span_idx_end; span_idx += iteration_direction) {
-                float element_bounds_max = col_spans[span_idx][0]/8.0f;
-                float element_bounds_min = col_spans[span_idx][1]/8.0f;
+                if(draw_only_first_element && span_idx != 0) {
+                    continue;
+                }
+                if(draw_only_second_element && span_idx != 0) {
+                    continue;
+                }
+                int is_ceil = span_idx == 0;
+                float element_bounds_max = is_ceil ? col_span_anchors[span_idx]/8.0f : col_spans[span_idx]/8.0f;
+                float alt_element_bounds = alt_col_spans[span_idx]/8.0f;
+                float element_bounds_min = (!is_ceil) ? col_span_anchors[span_idx]/8.0f : col_spans[span_idx]/8.0f;
 
+                // for ceiling
+                // max = anchor, min = ceil height
+                // for floor
+                // max = floor height, min = anchor
+
+                cell_types cell_type = span_types[span_idx];
+                int is_slope =  (cell_type == SLOPE_X || cell_type == SLOPE_Y);
+                slope_heights slope = get_slope_heights(
+                    in_start_cell, map_x, map_z, next_map_x, next_map_z, hit_x, hit_z, next_hit_x, next_hit_z,
+                    side, cell_type, step_x, step_z, ray_origin_x, ray_origin_x,
+                    is_ceil ? element_bounds_min : element_bounds_max,
+                    alt_element_bounds
+                );
 
                 float portion_top = element_bounds_max * one_over_world_max_y;
                 float portion_bot = element_bounds_min * one_over_world_max_y;
+                float slope_start_portion = slope.start_height * one_over_world_max_y;
+                float slope_end_portion = slope.end_height * one_over_world_max_y;
+
 
                 // lerp between the cam space positions of the top and bottom of the ray plane
                 // which are at the top and bottom of the world (min and max positions, eg 0 -> 64) in camera space
                 float3 cam_space_front_top = float3_lerp(cam_space_min_last, cam_space_max_last, portion_top);
                 float3 cam_space_front_bot = float3_lerp(cam_space_min_last, cam_space_max_last, portion_bot);
+
+                if(cell_type == SLOPE_X || cell_type == SLOPE_Y) {
+                    if(is_ceil) {
+                        cam_space_front_bot = float3_lerp(cam_space_min_last, cam_space_max_last, slope_start_portion);
+                    } else {
+                        cam_space_front_top = float3_lerp(cam_space_min_last, cam_space_max_last, slope_start_portion);
+                    }
+                }
 
                 float xt = cam_space_front_top.x;
                 float yt = cam_space_front_top.y;
@@ -1186,7 +1323,7 @@ void execute_rays_in_segment(
 
 
                 if(!in_start_cell) {
-                    u32* wall_tex = textures[this_level->lwtex[map_idx]];
+                    u32* wall_tex = is_ceil ? textures[upper_wall_tex] : textures[lower_wall_tex];
                     // draw front wall
                     float bot_u = (element_bounds_max-element_bounds_min)/1.0f;
                     float5 top = mk_float5(xt,yt,zt,wall_u, 0.0f);
@@ -1200,7 +1337,8 @@ void execute_rays_in_segment(
                             cur_next_free_pix_min, cur_next_free_pix_max,
                             original_next_free_pix_min, original_next_free_pix_max,
                             seen_pixel_cache, ray_column, seg_buffer_height, 
-                            wall_tex, 0, 0
+                            wall_tex
+                            //, 0, 0
                         );
 
                         cur_next_free_pix_min = bnds.top;
@@ -1217,12 +1355,23 @@ void execute_rays_in_segment(
                 float3 flat_exit_cam_space, flat_enter_cam_space;
 
                 // do we draw the top or bottom of this cell portion
-                if(portion_top < camera_pos_y_normalized) {
+
+                // really though, it's just a matter of whether it's the floor or ceiling..
+                if(!is_ceil) { // portion_top < camera_pos_y_normalized) {
                     flat_exit_cam_space = float3_lerp(cam_space_min_next, cam_space_max_next, portion_top);
                     flat_enter_cam_space = cam_space_front_top;
                 } else {
                     flat_exit_cam_space = float3_lerp(cam_space_min_next, cam_space_max_next, portion_bot);
                     flat_enter_cam_space = cam_space_front_bot;
+                }
+
+                if(cell_type == SLOPE_X || cell_type == SLOPE_Y) {
+                    if(!is_ceil) {
+                        flat_exit_cam_space = float3_lerp(cam_space_min_next, cam_space_max_next, slope_end_portion);
+                    } else {
+                        //flat_exit_cam_space
+                        flat_exit_cam_space = float3_lerp(cam_space_min_next, cam_space_max_next, slope_end_portion);
+                    }
                 }
 
                 float ax = flat_exit_cam_space.x;
@@ -1239,15 +1388,16 @@ void execute_rays_in_segment(
                 );
 
                 if(floor_clipped.on_screen) {
-                    u32* floor_tex = textures[this_level->ftex[map_idx]];
-                    u32* ceil_tex = textures[this_level->ctex[map_idx]];
+                    u32* floor_tex = is_slope ? textures[this_level->uftex[map_idx]] : textures[this_level->ftex[map_idx]];
+                    u32* ceil_tex = is_slope ? textures[this_level->uctex[map_idx]] : textures[this_level->ctex[map_idx]];
                     u32* flat_tex = (span_idx == 0) ? ceil_tex : floor_tex;
                     new_screen_bounds bnds = fill_raybuffer_column(
                         floor_clipped.top, floor_clipped.bot,
                         cur_next_free_pix_min, cur_next_free_pix_max,
                         original_next_free_pix_min, original_next_free_pix_max,
                         seen_pixel_cache, ray_column, seg_buffer_height, 
-                        flat_tex, 0, 0
+                        flat_tex
+                        //, 0, 0
                     );
 
                     cur_next_free_pix_min = bnds.top;
@@ -1274,8 +1424,8 @@ void execute_rays_in_segment(
             y_steps = next_step.rem_y_steps;
             cur_intersection_distance = ray.intersection_distances.x;
             next_intersection_distance = ray.intersection_distances.y;
-            position_x = ray.pos.x;
-            position_z = ray.pos.y;
+            map_x = ray.pos.x;
+            map_z = ray.pos.y;
             side = next_side;
             in_start_cell = 0;
         }
@@ -1290,7 +1440,7 @@ float3 adjust_screen_pixel_for_mesh(float2 screen_pixel, float2 screen_size) {
 }
 
 
-#define MIN_RAYS_PER_THREAD 256
+#define MIN_RAYS_PER_THREAD 16
 
 typedef struct {
     u32* ray_buffer; u8* seen_pixel_cache;
@@ -1316,9 +1466,9 @@ void execute_rays_in_segment_wrapper(void* p) {
 
 
 jobpool* raycast_6dof_pool = NULL;
-//static jobpool* raycast_manager_pool = NULL;
-thread_params raycast_6dof_parms[NUM_THREADS];
-//static thread_params frame_params;
+static jobpool* raycast_6dof_manager_pool = NULL;
+static thread_params raycast_6dof_parms[NUM_THREADS];
+static thread_params frame_params;
 
 void parallel_raycast_segment(
     //thread_params *tp
@@ -1331,9 +1481,14 @@ void parallel_raycast_segment(
     int axis_mapped_to_y,
     level* this_level, int seg_buffer_height    
 ) {
-    int rays_per_thread = seg.ray_count / NUM_THREADS;
+    int used_threads = NUM_THREADS;
+    int rays_per_thread = seg.ray_count / used_threads;
+    //if(rays_per_thread < MIN_RAYS_PER_THREAD) {
+    //    used_threads = seg.ray_count / MIN_RAYS_PER_THREAD;
+    //    rays_per_thread = seg.ray_count / used_threads;
+    //}
 
-    for(int i = 0; i < NUM_THREADS; i++) {
+    for(int i = 0; i < used_threads; i++) {
         raycast_6dof_parms[i].ray_buffer = ray_buffer;
         raycast_6dof_parms[i].seen_pixel_cache = per_thread_seen_pixel_cache[i];
         raycast_6dof_parms[i].ray_buffer_base_offset = ray_buffer_base_offset;
@@ -1347,9 +1502,9 @@ void parallel_raycast_segment(
         raycast_6dof_parms[i].start_ray = (rays_per_thread*i);
         raycast_6dof_parms[i].end_ray = MIN(seg.ray_count, (rays_per_thread*(i+1)));
     }
-    raycast_6dof_parms[NUM_THREADS-1].end_ray = seg.ray_count;
+    raycast_6dof_parms[used_threads-1].end_ray = seg.ray_count;
 
-    for(int i = 0; i < NUM_THREADS; i++) {
+    for(int i = 0; i < used_threads; i++) {
         platform_add_task(
             raycast_6dof_pool,
             execute_rays_in_segment_wrapper,
@@ -1359,12 +1514,26 @@ void parallel_raycast_segment(
     platform_join_threadpool(raycast_6dof_pool);
 }
 
-//void parallel_raycast_segment_wrapper(
-//    void* arg_var
-//    ) {
-//    thread_params* tp = (thread_params*)arg_var;
-//    parallel_raycast_segment(tp);
-//}
+void parallel_raycast_segment_wrapper(
+    void* arg_var
+    ) {
+    thread_params* tp = (thread_params*)arg_var;
+    parallel_raycast_segment(
+        tp->ray_buffer, tp->ray_buffer_base_offset,
+        tp->seg, tp->cam, tp->world_to_screen_mat, tp->axis_mapped_to_y,
+        tp->this_level, tp->seg_buffer_height    
+    );
+}
+
+
+typedef struct {
+    int seg_idx; int ray_in_seg_start; int ray_in_seg_end;
+} raycast_task;
+
+typedef struct {
+    int num_tasks;
+    raycast_task raycast_task[4];
+} thread_task_bundle;
 
 
 
@@ -1378,32 +1547,27 @@ void launch_parallel_raycast_segment(
     int axis_mapped_to_y,
     level* this_level, int seg_buffer_height
 ) {
-    parallel_raycast_segment(
-        ray_buffer, ray_buffer_base_offset,
-        seg, cam, world_to_screen_mat, axis_mapped_to_y,
-        this_level, seg_buffer_height
+    frame_params.ray_buffer = ray_buffer;
+    frame_params.ray_buffer_base_offset = ray_buffer_base_offset;
+    frame_params.seg = seg;
+    frame_params.cam = cam;
+    frame_params.world_to_screen_mat = world_to_screen_mat;
+    frame_params.axis_mapped_to_y = axis_mapped_to_y;
+    frame_params.this_level = this_level;
+    frame_params.seg_buffer_height = seg_buffer_height;
+    platform_add_task(
+        raycast_6dof_manager_pool,
+        parallel_raycast_segment_wrapper,
+        &frame_params
     );
-    //frame_params.ray_buffer = ray_buffer;
-    //frame_params.ray_buffer_base_offset = ray_buffer_base_offset;
-    //frame_params.seg = seg;
-    //frame_params.cam = cam;
-    //frame_params.world_to_screen_mat = world_to_screen_mat;
-    //frame_params.axis_mapped_to_y = axis_mapped_to_y;
-    //frame_params.this_level = this_level;
-    //frame_params.seg_buffer_height = seg_buffer_height;
-    //platform_add_task(
-    //    raycast_manager_pool,
-    //    parallel_raycast_segment_wrapper,
-    //    &frame_params
-    //);
 }
 
 
 void join_raycast_segment() {
-    //platform_join_threadpool(raycast_manager_pool);
+    platform_join_threadpool(raycast_6dof_manager_pool);
 }
 
 void init_6dof_module() {
     raycast_6dof_pool = platform_init_threadpool(NUM_THREADS);
-    //raycast_6dof_manager_pool = platform_init_threadpool(1);
+    raycast_6dof_manager_pool = platform_init_threadpool(1);
 }
