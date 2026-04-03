@@ -1095,13 +1095,13 @@ void raycast_column(
                         );
                     }
                 }
-
                 prev_drawn_bot = proj_floor_first_step_height;
+
             } else if (!in_start_cell && lower_step_slope) {
 
                 float slope_start_height =  floor_slope.start_height;
                 int proj_slope_start_height = project_to_screen(slope_start_height, perp_dist, pitch, ray_origin_z);
-        
+                
                 if(!in_start_cell && proj_slope_start_height < prev_drawn_bot) {      
                     if(floor_anchor_is_not_zero) {
                         draw_skybox_vline(
@@ -1741,7 +1741,7 @@ void raycast_column(
                     unclipped_y0, unclipped_y1, 
                     spr.v0*8.0f, spr.v1*8.0f, TOP_PEGGED,
                     spr.prev_drawn_top, spr.prev_drawn_bot,
-                    z, spr.light_factor, BRIGHT, FOG_COL, 1, DO_ALPHA_BLEND, NO_DEPTH_TEST
+                    z, spr.light_factor, BRIGHT, FOG_COL, REPEAT_TEX, DO_ALPHA_BLEND, NO_DEPTH_TEST
                 );
                 draw_alpha_edit_vline(
                     edit_id_buffer, tex_col, screen_x, 

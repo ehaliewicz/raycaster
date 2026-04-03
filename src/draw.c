@@ -356,9 +356,10 @@ void draw_lit_fogged_textured_z_buffered_blended_flat_sprite(
         fix_v += fix_v_per_pix;
         cur_depth_scale += depth_scale_per_pix;
     }
-
-
 }
+
+
+
 
 
 void draw_lit_fogged_textured_z_buffered_blended_sprite(
@@ -366,7 +367,7 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
     int draw_skybox, 
     u32 *tex_column, int top_skip, u32* skybox_col,
     int x,
-    float y0, float y1, 
+    float y0, float y1,
     float world_y0, float world_y1, 
     pegging_type peg_type,
     int prev_drawn_top, int prev_drawn_bot,
@@ -375,7 +376,6 @@ void draw_lit_fogged_textured_z_buffered_blended_sprite(
     u8 do_alpha_blend, 
     u8 do_depth_test) {
 
-    //return;
     int clipped_y0 = max_int32(y0, prev_drawn_top);
     int clipped_y1 = min_int32(y1, prev_drawn_bot);
     if(draw_skybox) {

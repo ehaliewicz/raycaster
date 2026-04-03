@@ -98,28 +98,19 @@ segment get_segment_parameters(
 
 float3 adjust_screen_pixel_for_mesh(float2 screen_pixel, float2 screen_size);
 
-void execute_rays_in_segment(
-    u32* ray_buffer, u8* seen_pixel_cache,
-    int ray_buffer_base_offset,
-    segment seg,
-    int start_ray, int end_ray,
+extern s64 segment_raycast_finished[4];
+
+void launch_parallel_raycast_segments(
+    u32* ray_buffers[2],
+    float* z_buffers[2],
+    segment segs[4],
     camera cam,
     mat4 world_to_screen_mat,
-    int axis_mapped_to_y,
-    level* this_level, int seg_buffer_height
+    level* this_level, 
+    int seg_buffer_heights[2]
 );
 
-void launch_parallel_raycast_segment(
-    u32* ray_buffer,
-    int ray_buffer_base_offset,
-    segment seg,
-    camera cam,
-    mat4 world_to_screen_mat,
-    int axis_mapped_to_y,
-    level* this_level, int seg_buffer_height
-);
-
-void join_raycast_segment();
+void join_6dof_raycast();
 void init_6dof_module();
 
 extern int draw_only_first_element, draw_only_second_element;

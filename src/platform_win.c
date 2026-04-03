@@ -165,6 +165,8 @@ typedef void   (APIENTRY *PFNGLUSEPROGRAMPROC)(GLuint);
 // Uniforms
 typedef GLint  (APIENTRY *PFNGLGETUNIFORMLOCATIONPROC)(GLuint, const char*);
 typedef void   (APIENTRY *PFNGLUNIFORM1IPROC)(GLint, GLint);
+typedef void   (APIENTRY *PFNGLUNIFORM1FPROC)(GLint, GLfloat);
+typedef void   (APIENTRY *PFNGLUNIFORM2FPROC)(GLint, GLfloat, GLfloat);
 typedef void   (APIENTRY *PFNGLUNIFORM4FPROC)(GLint, GLfloat, GLfloat, GLfloat, GLfloat);
 
 // VBO/VAO
@@ -181,6 +183,8 @@ typedef void (APIENTRY *PFNGLGETSHADERINFOLOGPROC)(GLuint, GLsizei, GLsizei*, ch
 typedef void (APIENTRY *PFNGLGETPROGRAMIVPROC)(GLuint, GLenum, GLint*);
 typedef void (APIENTRY *PFNGLGETPROGRAMINFOLOGPROC)(GLuint, GLsizei, GLsizei*, char*);
 
+typedef void (APIENTRY *PFNGLACTIVETEXTUREPROC)(GLenum texture);
+
 //static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
 
 #define GL_ROUTINES                                     \
@@ -194,6 +198,8 @@ typedef void (APIENTRY *PFNGLGETPROGRAMINFOLOGPROC)(GLuint, GLsizei, GLsizei*, c
     X(PFNGLUSEPROGRAMPROC,               glUseProgram)      \
     X(PFNGLGETUNIFORMLOCATIONPROC,       glGetUniformLocation)      \
     X(PFNGLUNIFORM1IPROC,               glUniform1i)      \
+    X(PFNGLUNIFORM1FPROC,               glUniform1f)      \
+    X(PFNGLUNIFORM2FPROC,               glUniform2f)      \
     X(PFNGLUNIFORM4FPROC,               glUniform4f)      \
     X(PFNGLGENBUFFERSPROC,              glGenBuffers)      \
     X(PFNGLBINDBUFFERPROC,              glBindBuffer)      \
@@ -202,10 +208,11 @@ typedef void (APIENTRY *PFNGLGETPROGRAMINFOLOGPROC)(GLuint, GLsizei, GLsizei*, c
     X(PFNGLBINDVERTEXARRAYPROC,         glBindVertexArray)      \
     X(PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray)      \
     X(PFNGLVERTEXATTRIBPOINTERPROC,     glVertexAttribPointer)  \
-    X(PFNGLGETSHADERIVPROC,      glGetShaderiv)           \
-    X(PFNGLGETSHADERINFOLOGPROC, glGetShaderInfoLog)          \
-    X(PFNGLGETPROGRAMIVPROC,     glGetProgramiv)              \
-    X(PFNGLGETPROGRAMINFOLOGPROC,glGetProgramInfoLog)
+    X(PFNGLGETSHADERIVPROC,       glGetShaderiv)           \
+    X(PFNGLGETSHADERINFOLOGPROC,  glGetShaderInfoLog)          \
+    X(PFNGLGETPROGRAMIVPROC,      glGetProgramiv)              \
+    X(PFNGLGETPROGRAMINFOLOGPROC, glGetProgramInfoLog)           \
+    X(PFNGLACTIVETEXTUREPROC, glActiveTexture)
 
 
 #define X(type, name) static type name;
@@ -233,6 +240,8 @@ GL_ROUTINES
 #define WGL_CONTEXT_DEBUG_BIT_ARB           0x00000001
 #define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x00000002
 
+#define GL_TEXTURE0 0x84C0
+
 GLuint compile_shader(GLenum type, const char* src) {
     GLuint s = glCreateShader(type);
     glShaderSource(s, 1, &src, NULL);
@@ -248,8 +257,8 @@ GLuint compile_shader(GLenum type, const char* src) {
 }
 
 GLuint vert;
-GLuint seg01_frag, seg23_frag;
-GLuint seg01_prog, seg23_prog;
+GLuint seg01_frag, seg23_frag, all_segs_frag;
+GLuint seg01_prog, seg23_prog, all_segs_prog;
 GLuint vbo;
 GLuint vao;
 
@@ -265,6 +274,7 @@ const char* vert_shader_src = "#version 330 core\n"
 "    gl_Position = vec4(vertexPos, 1.0);\n"
 "}\n";
 
+
 const char* seg01_frag_shader_src = "#version 330 core\n"
 "in vec3 vertex;\n"
 "in vec4 uv;\n"
@@ -278,6 +288,7 @@ const char* seg01_frag_shader_src = "#version 330 core\n"
 "    float ray_buffer_scale = rayScales[tri_idx];\n"
 "    float ray_buffer_offset = rayOffsets[tri_idx];\n"
 "    x = ray_buffer_offset + x * ray_buffer_scale;\n"
+"    x = clamp(x, ray_buffer_offset + 0.001, ray_buffer_offset + ray_buffer_scale - 0.001);\n"
 "    vec4 sample = texture2D(rayBuffer, vec2(y,x));\n"
 "    color = sample;\n"
 "}\n";
@@ -295,9 +306,121 @@ const char* seg23_frag_shader_src = "#version 330 core\n"
 "    float ray_buffer_scale = rayScales[tri_idx];\n"
 "    float ray_buffer_offset = rayOffsets[tri_idx];\n"
 "    x = ray_buffer_offset + x * ray_buffer_scale;\n"
+"    x = clamp(x, ray_buffer_offset + 0.001, ray_buffer_offset + ray_buffer_scale - 0.001);\n"
 "    vec4 sample = texture2D(rayBuffer, vec2(y,x));\n"
 "    color = sample;\n"
 "}\n";
+
+/*
+const char* all_segs_frag_shader_src = "#version 330 core\n"
+"in vec3 vertex;\n"
+"in vec4 uv;\n"
+"out vec4 color;\n"
+"uniform vec2 screen_vp;\n"
+"uniform float slope;\n"
+"uniform vec2 iResolution;\n"
+"uniform sampler2D rayBuffer01, rayBuffer23;\n"
+"uniform vec4 rayScales, rayOffsets;\n"
+"uniform vec2 seg0_v1, seg0_v2;\n"
+"uniform vec2 seg1_v1, seg1_v2;\n"
+"uniform vec2 seg2_v1, seg2_v2;\n"
+"uniform vec2 seg3_v1, seg3_v2;\n"
+"void main() {\n"
+"    float seg01_tl_dr_slope = slope;\n"
+"    float seg01_tr_dl_slope = -seg01_tl_dr_slope;\n"
+"    vec2 d_vp = gl_FragCoord.xy - screen_vp;\n"
+"    float cur_slope = (d_vp.y/d_vp.x);\n"
+"    bool in_seg01 = (cur_slope < seg01_tl_dr_slope || cur_slope > -seg01_tl_dr_slope);\n"
+"    bool in_seg1 = (in_seg01 && gl_FragCoord.y < screen_vp.y);\n"
+"    bool in_seg3 = (!in_seg01) && (gl_FragCoord.x < screen_vp.x);\n"
+"    int seg_idx = (in_seg01 ? (in_seg1 ? 1 : 0) : (in_seg3 ? 3 : 2));\n"
+"    float ray_buffer_scale = rayScales[seg_idx];\n"
+"    float ray_buffer_offset = (seg_idx == 1 || seg_idx == 3) ? rayOffsets[seg_idx] : 0.;\n"
+"    float u;\n"
+"    float v;\n"
+"    float tr_dl_x = screen_vp.x + d_vp.y * 1.0/seg01_tr_dl_slope; // the x position of the edge at this y\n"
+"    float tl_dr_x = screen_vp.x + d_vp.y * 1.0/seg01_tl_dr_slope; // the x position of the edge at this y\n"
+"    float tr_dl_y = screen_vp.y + d_vp.x * seg01_tr_dl_slope;    // the y position of the edge at this x\n"
+"    float tl_dr_y = screen_vp.y + d_vp.x * seg01_tl_dr_slope;    // tde y position of the edge at this x\n"
+//"    float tot_dx = abs(2.*(tr_dl_x-screen_vp.x));\n"
+//"    float tot_dy = abs(2.*(tl_dr_y-screen_vp.y));\n"
+"    float tot_dx = abs(tr_dl_x - tl_dr_x);\n"
+"    float tot_dy = abs(tr_dl_y - tl_dr_y);\n"
+"    if(in_seg01) {\n"
+"        v = gl_FragCoord.y/iResolution.y;\n"
+"        u = clamp((gl_FragCoord.x-(in_seg1 ? tr_dl_x : tl_dr_x))/tot_dx, 0., 1.);\n"
+"        u = ray_buffer_offset + u * ray_buffer_scale;\n"
+"        color = texture2D(rayBuffer01, vec2(1.0-v,u));\n"
+"        //color =  vec4(1.0,1.0,1.0,1.0);\n"
+"    } else {\n"
+"        v = gl_FragCoord.x/iResolution.x;\n"
+"        u = clamp((gl_FragCoord.y-(in_seg3 ? tr_dl_y : tl_dr_y))/tot_dy, 0., 1.);\n"
+//"        if(screen_vp.y > iResolution.y) { u *= 2.; }\n"
+"        if(screen_vp.y < 0.) { u /= 2.; }\n"
+"        u = ray_buffer_offset + u * ray_buffer_scale;\n"
+"        color = texture2D(rayBuffer23, vec2(1.0-v,u));\n"
+"    }\n"
+"    color = vec4(1.0-v,u,0.0,1.0);\n"
+"    if(abs(d_vp.x) < 1.0 && abs(d_vp.y) < 1.0) {\n"
+"        color = vec4(1.0,0.0,0.0,1.0);\n"
+"    }\n"
+"}\n";
+*/
+
+//Here's the full fragment shader:
+//c
+const char* all_segs_frag_shader_src = "#version 330 core\n"
+"in vec3 vertex;\n"
+"in vec4 uv;\n"
+"out vec4 color;\n"
+"uniform vec2 screen_vp;\n"
+"uniform float slope;\n"
+"uniform vec2 iResolution;\n"
+"uniform sampler2D rayBuffer01, rayBuffer23;\n"
+"uniform vec4 rayScales, rayOffsets;\n"
+"uniform vec2 seg0_v1, seg0_v2;\n"
+"uniform vec2 seg1_v1, seg1_v2;\n"
+"uniform vec2 seg2_v1, seg2_v2;\n"
+"uniform vec2 seg3_v1, seg3_v2;\n"
+"void main() {\n"
+"    float seg01_tl_dr_slope = slope;\n"
+"    float seg01_tr_dl_slope = -seg01_tl_dr_slope;\n"
+"    vec2 d_vp = gl_FragCoord.xy - screen_vp;\n"
+"    float frag_slope = d_vp.y / d_vp.x;\n"
+"    bool in_seg01 = (frag_slope < seg01_tl_dr_slope || frag_slope > -seg01_tl_dr_slope);\n"
+"    bool in_seg1 = (in_seg01 && gl_FragCoord.y < screen_vp.y);\n"
+"    bool in_seg3 = (!in_seg01) && (gl_FragCoord.x < screen_vp.x);\n"
+"    int seg_idx = (in_seg01 ? (in_seg1 ? 1 : 0) : (in_seg3 ? 3 : 2));\n"
+"    float ray_buffer_scale = rayScales[seg_idx];\n"
+"    float ray_buffer_offset = rayOffsets[seg_idx];\n"
+"    vec2 p = gl_FragCoord.xy;\n"
+"    vec2 p0 = screen_vp;\n"
+"    vec2 p1, p2;\n"
+"    if(seg_idx == 0) { p1 = seg0_v1; p2 = seg0_v2; }\n"
+"    else if(seg_idx == 1) { p1 = seg1_v1; p2 = seg1_v2; }\n"
+"    else if(seg_idx == 2) { p1 = seg2_v1; p2 = seg2_v2; }\n"
+"    else                  { p1 = seg3_v1; p2 = seg3_v2; }\n"
+"    float denom = (p1.y-p2.y)*(p0.x-p2.x) + (p2.x-p1.x)*(p0.y-p2.y);\n"
+"    float w1 = ((p2.y-p0.y)*(p.x-p2.x) + (p0.x-p2.x)*(p.y-p2.y)) / denom;\n"
+"    float w2 = 1.0 - (((p1.y-p2.y)*(p.x-p2.x) + (p2.x-p1.x)*(p.y-p2.y)) / denom) - w1;\n"
+"    float u = clamp(w1, 0.0, 1.0) / (w1 + w2);\n"
+"    u = ray_buffer_offset + u * ray_buffer_scale;\n"
+"    u = clamp(u, ray_buffer_offset + 0.001, ray_buffer_offset + ray_buffer_scale - 0.001);\n"
+"    float v;\n"
+"    if(in_seg01) {\n"
+"        v = gl_FragCoord.y / iResolution.y;\n"
+"        color = texture2D(rayBuffer01, vec2(1.0-v, u));\n"
+"    } else {\n"
+"        v = gl_FragCoord.x / iResolution.x;\n"
+"        color = texture2D(rayBuffer23, vec2(1.0-v, u));\n"
+"    }\n"
+//"    color = vec4(1.0-v, u, 0.0, 1.0);\n"
+//"    if(abs(d_vp.x) < 1.0 && abs(d_vp.y) < 1.0) {\n"
+//"        color = vec4(1.0, 0.0, 0.0, 1.0);\n"
+//"    }\n"
+"}\n";
+
+
 
 typedef HGLRC (WINAPI *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hDC, HGLRC hShareContext, const int *attribList);
 
@@ -369,7 +492,7 @@ void platform_init_window(int width, int height, const char *title) {
 
     vert = compile_shader(GL_VERTEX_SHADER, vert_shader_src);
     seg01_frag = compile_shader(GL_FRAGMENT_SHADER, seg01_frag_shader_src);
-    seg23_frag = compile_shader(GL_FRAGMENT_SHADER, seg23_frag_shader_src);
+
     seg01_prog = glCreateProgram();
     glAttachShader(seg01_prog, vert);
     glAttachShader(seg01_prog, seg01_frag);
@@ -380,8 +503,10 @@ void platform_init_window(int width, int height, const char *title) {
         char log[512];
         glGetProgramInfoLog(seg01_prog, 512, NULL, log);
         printf("link error: %s\n", log);
+        exit(1);
     }
 
+    seg23_frag = compile_shader(GL_FRAGMENT_SHADER, seg23_frag_shader_src);
     seg23_prog = glCreateProgram();
     glAttachShader(seg23_prog, vert);
     glAttachShader(seg23_prog, seg23_frag);
@@ -391,7 +516,23 @@ void platform_init_window(int width, int height, const char *title) {
         char log[512];
         glGetProgramInfoLog(seg23_prog, 512, NULL, log);
         printf("link error: %s\n", log);
+        exit(1);
     }
+
+    
+    all_segs_frag = compile_shader(GL_FRAGMENT_SHADER, all_segs_frag_shader_src);
+    all_segs_prog = glCreateProgram();
+    glAttachShader(all_segs_prog, vert);
+    glAttachShader(all_segs_prog, all_segs_frag);
+    glLinkProgram(all_segs_prog);
+    glGetProgramiv(all_segs_prog, GL_LINK_STATUS, &status);
+    if (!status) {
+        char log[512];
+        glGetProgramInfoLog(all_segs_prog, 512, NULL, log);
+        printf("link error: %s\n", log);
+        exit(1);
+    }
+    
 
     glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &vao);
@@ -502,6 +643,67 @@ void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float 
         glEnd();
     //glPopMatrix();
 }
+
+
+void platform_draw_full_quad(
+    int seg01_tex_handle, int seg23_tex_handle,
+    float screen_vp_x, float screen_vp_y,
+    float top_left_endpoint_x, float top_left_endpoint_y,
+    float bot_right_endpoint_x, float bot_right_endpoint_y,
+    float seg0_v1[2], float seg0_v2[2],
+    float seg1_v1[2], float seg1_v2[2],
+    float seg2_v1[2], float seg2_v2[2],
+    float seg3_v1[2], float seg3_v2[2],
+    float offsets[4],
+    float scales[4]
+) {
+
+    glUseProgram(all_segs_prog);
+    glUniform1i(glGetUniformLocation(all_segs_prog, "rayBuffer01"), 0);
+    glUniform1i(glGetUniformLocation(all_segs_prog, "rayBuffer23"), 1);
+    glUniform4f(glGetUniformLocation(all_segs_prog, "rayOffsets"), offsets[0], offsets[1], offsets[2], offsets[3]);
+    glUniform4f(glGetUniformLocation(all_segs_prog, "rayScales"), scales[0], scales[1], scales[2], scales[3]);
+
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg0_v1"), seg0_v1[0], seg0_v1[1]);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg0_v2"), seg0_v2[0], seg0_v2[1]);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg1_v1"), seg1_v1[0], seg1_v1[1]);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg1_v2"), seg1_v2[0], seg1_v2[1]);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg2_v1"), seg2_v1[0], seg2_v1[1]);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg2_v2"), seg2_v2[0], seg2_v2[1]);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg3_v1"), seg3_v1[0], seg3_v1[1]);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg3_v2"), seg3_v2[0], seg3_v2[1]);
+
+
+    glUniform2f(glGetUniformLocation(all_segs_prog, "screen_vp"), screen_vp_x, screen_vp_y);
+    float slope;
+    if(bot_right_endpoint_x == 0) {
+        slope = (top_left_endpoint_y-screen_vp_y)/(top_left_endpoint_x-screen_vp_x);
+    } else {
+        slope = (bot_right_endpoint_y-screen_vp_y)/(bot_right_endpoint_x-screen_vp_x);
+    }
+    glUniform1f(glGetUniformLocation(all_segs_prog, "slope"), slope);
+    
+    glUniform2f(glGetUniformLocation(all_segs_prog, "iResolution"), ((float)RENDER_WIDTH), ((float)RENDER_HEIGHT));
+
+    float attributes[3*3] = {
+        -1.0f,-1.0f,0.5f,
+        3.0f,-1.0f,0.5f,
+        -1.0f,3.0f,0.5f,
+    };
+    glActiveTexture(GL_TEXTURE0+0); // texture unit 0
+    glBindTexture(GL_TEXTURE_2D, seg01_tex_handle);
+    glActiveTexture(GL_TEXTURE0+1); // texture unit 0
+    glBindTexture(GL_TEXTURE_2D, seg23_tex_handle);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*(3*3), attributes, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), 0);
+    glEnableVertexAttribArray(0);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+}
+
 
 void platform_draw_segments(
     int num_segments,
@@ -618,7 +820,7 @@ static thread_pool* thread_pool_create_inner(int cpu_threads)
     InitializeThreadpoolEnvironment(&tp->callback_environ);
 
     tp->pool = CreateThreadpool(NULL);
-
+    printf("CREATING THREADPOOL %i threads\n", cpu_threads);
     SetThreadpoolThreadMinimum(tp->pool, cpu_threads);
     SetThreadpoolThreadMaximum(tp->pool, cpu_threads);
 

@@ -87,6 +87,18 @@ u8* platform_load_file_data(const char* file, int* out_loaded_bytes);
 void platform_release_texture(int tex);
 unsigned int platform_create_texture(int width, int height);
 void platform_update_texture(unsigned int tex, void *pixels, int xoff, int yoff, int width, int height);
+void platform_draw_full_quad(
+    int seg01_tex_handle, int seg23_tex_handle,
+    float screen_vp_x, float screen_vp_y,
+    float top_left_endpoint_x, float top_left_endpoint_y,
+    float bot_right_endpoint_x, float bot_right_endpoint_y,
+    float seg0_v1[2], float seg0_v2[2],
+    float seg1_v1[2], float seg1_v2[2],
+    float seg2_v1[2], float seg2_v2[2],
+    float seg3_v1[2], float seg3_v2[2],
+    float offsets[4],
+    float scales[4]
+);
 void platform_draw_segments(
     int num_segs,
     unsigned int tex,
@@ -103,7 +115,7 @@ void platform_play_sound(const char* sound_path);
 
 
 
-#define MAX_JOB_SLOTS 16
+#define MAX_JOB_SLOTS (4*NUM_THREADS)
 
 typedef struct {
     void (*fp)(void*);

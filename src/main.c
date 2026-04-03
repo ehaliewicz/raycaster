@@ -130,9 +130,11 @@ edit_wall_id* edit_id_buffer_pointers[2] = {NULL, NULL}; //[RENDER_WIDTH*FP_SCRE
 
 unsigned int draw_textures[2];
 unsigned int seg_tex_handles[2];
+unsigned int seg_tex_handles[2];
 int frame;
 
 u32* seg_draw_bufs[2] = { NULL, NULL };
+float* seg_z_bufs[2] = { NULL, NULL };
 u32* transpose_buf = NULL;
 u32* draw_pix_pointers[2] = {NULL, NULL};
 u16* zbuf_pointers[2] = {NULL, NULL};
@@ -1194,6 +1196,8 @@ void change_resolution() {
     if(draw_pix_pointers[0] != NULL) {
         free(seg_draw_bufs[0]);
         free(seg_draw_bufs[1]);
+        free(seg_z_bufs[0]);
+        free(seg_z_bufs[1]);
         free(draw_pix_pointers[0]);
         free(draw_pix_pointers[1]);
         free(zbuf_pointers[0]);
@@ -1229,6 +1233,8 @@ void change_resolution() {
     
     seg_draw_bufs[0] = my_malloc(top_down_ray_buffer_size, "seg01 buffer");
     seg_draw_bufs[1] = my_malloc(left_right_ray_buffer_size, "seg23 buffer");
+    seg_z_bufs[0] = my_malloc(top_down_ray_buffer_size, "seg01 z buffer");
+    seg_z_bufs[1] = my_malloc(left_right_ray_buffer_size, "seg23 z buffer");
     transpose_buf = my_malloc(max(max_left_right_rays, max_top_down_rays) * max(RENDER_HEIGHT, RENDER_WIDTH) * sizeof(u32), "transpose buffer");
     //seg_tex_handles[0] = platform_create_texture(max_top_down_rays, RENDER_HEIGHT);
     //seg_tex_handles[1] = platform_create_texture(max_left_right_rays, RENDER_WIDTH);
@@ -1236,17 +1242,8 @@ void change_resolution() {
     // no transpose necessary
     seg_tex_handles[0] = platform_create_texture(RENDER_HEIGHT, max_top_down_rays);
     seg_tex_handles[1] = platform_create_texture(RENDER_WIDTH, max_left_right_rays);
-    //for(int y = 0; y < RENDER_HEIGHT; y++) {
-    //    float cy = ((((float)y) / RENDER_HEIGHT))*255.0f;
-    //    int iy = cy;
-    //    iy &= 0xFF;
-    //    for(int x = 0; x < max_top_down_rays; x++) {
-    //        seg_draw_bufs[0][y*max_top_down_rays+x] = (0xFF<<24)|(iy<<16)|(iy<<8)|(iy);
-    //        seg_draw_bufs[1][y*max_top_down_rays+x] = (0xFF<<24)|(iy<<16)|(iy<<8)|(iy);
-    //    }
-    //}
-}
 
+}
 
 void* udp_conn = NULL;
 
@@ -1276,7 +1273,7 @@ int killed_all_the_foxs = 0;
 void initialize_segments(float2 screen_vp, camera cam, segment segments[4]) {
     
         if (screen_vp.y < cam.dims.y) {
-            // top segment
+            // seg0 is top segment
             segments[0] = get_segment_parameters(
                 0,
                 cam, screen_vp, cam.dims.y - screen_vp.y, 
@@ -1284,6 +1281,7 @@ void initialize_segments(float2 screen_vp, camera cam, segment segments[4]) {
         }
 
         if(screen_vp.y > 0) {
+            // seg1 is bottom
             segments[1] = get_segment_parameters(
                 1,
                 cam, screen_vp, screen_vp.y,
@@ -1292,6 +1290,7 @@ void initialize_segments(float2 screen_vp, camera cam, segment segments[4]) {
         }
 
         if(screen_vp.x < cam.dims.x) {
+            // seg2 is right
             segments[2] = get_segment_parameters(
                 2,
                 cam, screen_vp,  cam.dims.x - screen_vp.x, 
@@ -1299,6 +1298,7 @@ void initialize_segments(float2 screen_vp, camera cam, segment segments[4]) {
         }
 
         if (screen_vp.x > 0) {
+            // seg3 is left
             segments[3] = get_segment_parameters(
                 3,
                 cam, screen_vp, screen_vp.x, 
@@ -1306,10 +1306,11 @@ void initialize_segments(float2 screen_vp, camera cam, segment segments[4]) {
         }
 }
 
+
+
 void draw_segments(float2 screen_vp, camera cam, segment segments[4]) {
     
     float3 seg_v0 = adjust_screen_pixel_for_mesh(screen_vp, cam.dims);
-
 
     float scales[4] = {
         ((float)segments[0].ray_count) / max_top_down_rays,
@@ -1326,11 +1327,45 @@ void draw_segments(float2 screen_vp, camera cam, segment segments[4]) {
     float3 seg1_v1 = adjust_screen_pixel_for_mesh(segments[1].max_screen, cam.dims);
     float3 seg1_v2 = adjust_screen_pixel_for_mesh(segments[1].min_screen, cam.dims);
 
+    // seg2_v1 should match up with seg0_v1
     float3 seg2_v1 = adjust_screen_pixel_for_mesh(segments[2].max_screen, cam.dims);
+    // seg2_v2 should match up with seg1_v1
     float3 seg2_v2 = adjust_screen_pixel_for_mesh(segments[2].min_screen, cam.dims);
 
+    // seg3_v1 should match up with seg0_v2
     float3 seg3_v1 = adjust_screen_pixel_for_mesh(segments[3].max_screen, cam.dims);
+    // seg3_v2 should match up with seg1_v2
     float3 seg3_v2 = adjust_screen_pixel_for_mesh(segments[3].min_screen, cam.dims);
+
+    if(1) { //platform_is_key_down(KEY_M)) {
+        float seg0_v1_flts[2] = {segments[0].max_screen.x, segments[0].max_screen.y};
+        float seg0_v2_flts[2] = {segments[0].min_screen.x, segments[0].min_screen.y};
+        float seg1_v1_flts[2] = {segments[1].max_screen.x, segments[1].max_screen.y};
+        float seg1_v2_flts[2] = {segments[1].min_screen.x, segments[1].min_screen.y};
+        float seg2_v1_flts[2] = {segments[2].max_screen.x, segments[2].max_screen.y};
+        float seg2_v2_flts[2] = {segments[2].min_screen.x, segments[2].min_screen.y};
+        float seg3_v1_flts[2] = {segments[3].max_screen.x, segments[3].max_screen.y};
+        float seg3_v2_flts[2] = {segments[3].min_screen.x, segments[3].min_screen.y};
+
+        platform_draw_full_quad(
+            seg_tex_handles[0], seg_tex_handles[1],
+            screen_vp.x, screen_vp.y,
+            segments[1].max_screen.x, segments[1].max_screen.y, // fragCoord of bottom right
+            segments[0].min_screen.x, segments[0].min_screen.y,
+            seg0_v1_flts, seg0_v2_flts,
+            seg1_v1_flts, seg1_v2_flts,
+            seg2_v1_flts, seg2_v2_flts,
+            seg3_v1_flts, seg3_v2_flts,
+            offsets, scales
+        );
+        return;
+    }
+
+
+    float seg3_v1_slope = (segments[3].max_screen.y/segments[3].max_screen.x);
+    float seg0_v2_slope = (segments[0].min_screen.y/segments[0].min_screen.x);
+
+
 
     float seg01_attributes[7*6] = {
         seg_v0.x, seg_v0.y, seg_v0.z, 0.0f, 0.0f, 1.0f, 0,
@@ -1350,10 +1385,11 @@ void draw_segments(float2 screen_vp, camera cam, segment segments[4]) {
         seg3_v1.x, seg3_v1.y, seg3_v1.z, 1.0f, 0.0f, 0.0f, 3,
         seg3_v2.x, seg3_v2.y, seg3_v2.z, 0.0f, 1.0f, 0.0f, 3,
     };
+    
+    //platform_draw_texture(
+    //    seg_tex_handles[0]
+    //);
 
-
-   
-            
     platform_draw_segments(
         2,
         seg_tex_handles[0], 
@@ -1370,32 +1406,7 @@ void draw_segments(float2 screen_vp, camera cam, segment segments[4]) {
     );
 }
 
-
-void launch_seg_raycast(int seg_idx, segment segments[4], camera cam, mat4 world_to_screen_mat) {
-    
-    int ray_offset = 0;
-    if (seg_idx&1) {
-        // segments 1 and 3's offsets are segment 0 and 1 respectively
-        ray_offset = segments[seg_idx-1].ray_count;
-    }
-    u32* seg_draw_buf = seg_draw_bufs[seg_idx>>1];
-
-    int seg_buffer_height = (seg_idx < 2) ? RENDER_HEIGHT : RENDER_WIDTH;
-    for(int x = 0; x < segments[seg_idx].ray_count; x++) {
-        for(int y = 0; y < seg_buffer_height; y++) {
-            //seg_draw_buf[(x+ray_offset)*seg_buffer_height + (seg_buffer_height-1) - y] = 0xFFB7CEFA;
-        }
-    }
-    launch_parallel_raycast_segment(
-        seg_draw_buf, ray_offset,
-        segments[seg_idx], cam,
-        world_to_screen_mat, (seg_idx > 1) ? 0 : 1, 
-        &levels[cur_level_idx], seg_buffer_height
-    );
-}
-
-
-void transpose_and_upload_seg(int transpose_seg_idx, segment segments[4]) {
+void transpose_and_upload_seg(int transpose_seg_idx, segment segments[4], u32* seg_src_buf, int seg_upload_handle) {
     segment seg = segments[transpose_seg_idx];
     int src_height = (transpose_seg_idx < 2) ? RENDER_HEIGHT : RENDER_WIDTH;
     int seg_height = ((seg.next_free_pixel_max+1) - seg.next_free_pixel_min);
@@ -1403,21 +1414,44 @@ void transpose_and_upload_seg(int transpose_seg_idx, segment segments[4]) {
     int y_offset = src_height-1 - seg.next_free_pixel_max;
 
 
-    u32* src_pix_arr = seg_draw_bufs[transpose_seg_idx>>1];
-    u32* dst_pix_arr = transpose_buf;
     int x_offset = (transpose_seg_idx & 1) ? (segments[transpose_seg_idx-1].ray_count) : 0;
 
     int x1 = x_offset; int y1 = y_offset;
     int w = seg_width; int h = seg_height;
+
     for(int x = 0; x < w; x++) {
         for(int y = 0; y < h; y++) {
-            u32 rgba = src_pix_arr[(x1 + x) * src_height + (y + y1)];
-            dst_pix_arr[x*seg_height+y] = rgba;
+            u32 rgba = seg_src_buf[(x1 + x) * src_height + (y + y1)];
+            transpose_buf[x*seg_height+y] = rgba;
         }
     }
-
-    platform_update_texture(seg_tex_handles[transpose_seg_idx>>1], dst_pix_arr, y1, x1, h, w);
+    platform_update_texture(seg_upload_handle, transpose_buf, y1, x1, h, w);
 }
+
+void transpose_and_upload_z_buf(int transpose_seg_idx, segment segments[4], float* seg_src_buf, int seg_upload_handle) {
+    segment seg = segments[transpose_seg_idx];
+    int src_height = (transpose_seg_idx < 2) ? RENDER_HEIGHT : RENDER_WIDTH;
+    int seg_height = ((seg.next_free_pixel_max+1) - seg.next_free_pixel_min);
+    int seg_width = seg.ray_count;
+    int y_offset = src_height-1 - seg.next_free_pixel_max;
+
+
+    int x_offset = (transpose_seg_idx & 1) ? (segments[transpose_seg_idx-1].ray_count) : 0;
+
+    int x1 = x_offset; int y1 = y_offset;
+    int w = seg_width; int h = seg_height;
+    //memset(transpose_buf, 0xFF, (w*h*4));
+    for(int x = 0; x < w; x++) {
+        for(int y = 0; y < h; y++) {
+            float z = seg_src_buf[(x1 + x) * src_height + (y + y1)];
+            int gray_z = z*8.0;
+            u32 rgba = (0xFF<<24)|(gray_z<<16)|(gray_z<<8)|(gray_z<<0);
+            transpose_buf[x*seg_height+y] = rgba;
+        }
+    }
+    platform_update_texture(seg_upload_handle, transpose_buf, y1, x1, h, w);
+}
+
 
 
 void run_game() {
@@ -1442,14 +1476,13 @@ void run_game() {
     float2 screen_vp = project_vanishing_point_world_to_screen(
         cam, world_vp
     );
+    initialize_segments(screen_vp, cam, segments);
 
 
     int upload_tex = draw_textures[frame&0b1];
     int draw_tex = draw_textures[(frame+1)&0b1];
 
     int draw_6dof = !platform_is_key_down(KEY_Q);
-    draw_only_first_element = platform_is_key_down(KEY_N);
-    draw_only_second_element = platform_is_key_down(KEY_M);
 
     platform_begin_frame();
     if(!platform_is_window_focused()) {
@@ -1457,7 +1490,6 @@ void run_game() {
         // !platform_is_window_focused()) {
         platform_begin_drawing();
         if(draw_6dof) {
-            initialize_segments(screen_vp, cam, segments);
             draw_segments(screen_vp, cam, segments);
         } else {
             float scale = ((float)OUTPUT_WIDTH/((float)RENDER_WIDTH));
@@ -1587,9 +1619,12 @@ void run_game() {
     int flash_frame = iquarter_seconds&0b1;
     platform_begin_drawing(); {   
 
+
         float scale = ((float)OUTPUT_WIDTH/((float)RENDER_WIDTH));
         if(!draw_6dof) {
             platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, RENDER_HEIGHT, RENDER_WIDTH);
+        } else {
+            //draw_segments(screen_vp, cam, segments);
         }
 
         for(int i = 0; i < RENDER_HEIGHT*RENDER_WIDTH; i++) {
@@ -1707,56 +1742,53 @@ void run_game() {
                 int left_right_ray_buffer_size = max_left_right_rays*RENDER_WIDTH;
 
 
-                //for(int idx = 0; idx < top_down_ray_buffer_size; idx++) {
-                //    seg_draw_bufs[0][idx] = 0xFFB7CEFA;
-                //}
-                //for(int idx = 0; idx < left_right_ray_buffer_size; idx++) {
-                //    seg_draw_bufs[1][idx] = 0xFFB7CEFA;
-                //}
-
 
                 int raycasting_seg = -1;
                 int last_joined_seg = -1;
                 int last_uploaded_seg = -1;
 
+                segment_raycast_finished[0] = 0;
+                segment_raycast_finished[1] = 0;
+                segment_raycast_finished[2] = 0;
+                segment_raycast_finished[3] = 0;
 
                 
-                for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
-                    if(segments[seg_idx].ray_count > 0) {
-                        //printf("launch %i raycast\n", seg_idx);
-                        launch_seg_raycast(
-                            seg_idx, segments, cam, world_to_screen_mat 
-                        );
-                        transpose_and_upload_seg(seg_idx, segments);
-                        
-                        if(last_joined_seg == -1) {
-                            //printf("join seg %i\n", seg_idx);
-                            join_raycast_segment();
-                            last_joined_seg = seg_idx;
+                int seg_buffer_heights[2] = {RENDER_HEIGHT, RENDER_WIDTH};
+                launch_parallel_raycast_segments(
+                    seg_draw_bufs,
+                    seg_z_bufs,
+                    segments, cam, world_to_screen_mat,
+                    &levels[cur_level_idx], seg_buffer_heights
+                );
+                int draw_z_buf = (platform_is_key_down(KEY_M));
+                int cnt = 0;
+                int complete_segs = 0;
+                //int draw_z_b
+                while(complete_segs != 4) {
+                    //printf("Waiting on threads %i\n", cnt++);
+                    for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
+                        if (segment_raycast_finished[seg_idx] == 1) {
+                            //printf("transposing segment %i\n", i);
+                            // done raycasting, needs to be uploaded to gpu
+                            if(draw_z_buf) {
+                                transpose_and_upload_z_buf(seg_idx, segments, 
+                                    seg_z_bufs[seg_idx>>1], 
+                                    seg_tex_handles[seg_idx>>1]
+                                );
+                            } else {
+                                transpose_and_upload_seg(seg_idx, segments, 
+                                    seg_draw_bufs[seg_idx>>1], 
+                                    seg_tex_handles[seg_idx>>1]
+                                );
+                            }
+                            segment_raycast_finished[seg_idx] = 2;
+                            complete_segs++;
                         }
-
-                        if(last_joined_seg == seg_idx) {
-                            // do nothing
-                            //printf("last joined %i, cur seg %i, skipping\n", last_joined_seg, seg_idx);
-                            continue;
-                        } else {
-                            //printf("upload seg %i\n", last_joined_seg);
-                            transpose_and_upload_seg(last_joined_seg, segments);
-                            last_uploaded_seg = last_joined_seg;
-                            //printf("join seg %i\n", seg_idx);
-                            join_raycast_segment();
-                            last_joined_seg = seg_idx;
-                        }
-                        
                     }
                 }
-                if(last_uploaded_seg != last_joined_seg) {
-                    transpose_and_upload_seg(last_joined_seg, segments);
-                }
-                
-                
             }
         }
+        
         
         switch(render_mode) {
             case EDITOR_BUFFER:
@@ -1795,6 +1827,9 @@ void run_game() {
         }
         if(needs_join) {
             join_render_frame();
+        } else {
+            // let orchestrator thread finish up
+            join_6dof_raycast();
         }
 
 
@@ -1809,11 +1844,11 @@ void run_game() {
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
         //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
-        debug_printf("%ix%i\n", RENDER_WIDTH, RENDER_HEIGHT);
-        debug_printf("%4.0f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
-        debug_printf("rays %i yaw %f pitch %f\n",
-            segments[0].ray_count+segments[1].ray_count+segments[2].ray_count+segments[3].ray_count,
-            player_yaw, player_pitch);
+        //debug_printf("%ix%i\n", RENDER_WIDTH, RENDER_HEIGHT);
+        debug_printf("%4.1f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
+        //debug_printf("rays %i yaw %f pitch %f\n",
+        //    segments[0].ray_count+segments[1].ray_count+segments[2].ray_count+segments[3].ray_count,
+        //    player_yaw, player_pitch);
         //debug_printf("cp %f %f %f\n", cam.pos.x, cam.pos.y, cam.pos.z);
 
         //debug_printf("cf %f %f %f\n", cam.forward.x, cam.forward.z, cam.forward.y);
