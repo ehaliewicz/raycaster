@@ -1482,7 +1482,7 @@ void run_game() {
     int upload_tex = draw_textures[frame&0b1];
     int draw_tex = draw_textures[(frame+1)&0b1];
 
-    int draw_6dof = !platform_is_key_down(KEY_Q);
+    int draw_6dof = platform_is_key_down(KEY_Q);
 
     platform_begin_frame();
     if(!platform_is_window_focused()) {

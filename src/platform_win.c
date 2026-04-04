@@ -625,6 +625,9 @@ void platform_update_texture(unsigned int tex, void *pixels, int xoff, int yoff,
 
 void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float scale, int w, int h) {
     glUseProgram(0);
+    //glBindTexture(GL_TEXTURE_2D, tex);
+    
+    glActiveTexture(GL_TEXTURE0+0); // texture unit 0
     glBindTexture(GL_TEXTURE_2D, tex);
     glLoadIdentity();
     //glPushMatrix();
@@ -658,23 +661,25 @@ void platform_draw_full_quad(
     float scales[4]
 ) {
 
+    float scale_output = OUTPUT_WIDTH/RENDER_WIDTH;
+
     glUseProgram(all_segs_prog);
     glUniform1i(glGetUniformLocation(all_segs_prog, "rayBuffer01"), 0);
     glUniform1i(glGetUniformLocation(all_segs_prog, "rayBuffer23"), 1);
     glUniform4f(glGetUniformLocation(all_segs_prog, "rayOffsets"), offsets[0], offsets[1], offsets[2], offsets[3]);
     glUniform4f(glGetUniformLocation(all_segs_prog, "rayScales"), scales[0], scales[1], scales[2], scales[3]);
 
-    glUniform2f(glGetUniformLocation(all_segs_prog, "seg0_v1"), seg0_v1[0], seg0_v1[1]);
-    glUniform2f(glGetUniformLocation(all_segs_prog, "seg0_v2"), seg0_v2[0], seg0_v2[1]);
-    glUniform2f(glGetUniformLocation(all_segs_prog, "seg1_v1"), seg1_v1[0], seg1_v1[1]);
-    glUniform2f(glGetUniformLocation(all_segs_prog, "seg1_v2"), seg1_v2[0], seg1_v2[1]);
-    glUniform2f(glGetUniformLocation(all_segs_prog, "seg2_v1"), seg2_v1[0], seg2_v1[1]);
-    glUniform2f(glGetUniformLocation(all_segs_prog, "seg2_v2"), seg2_v2[0], seg2_v2[1]);
-    glUniform2f(glGetUniformLocation(all_segs_prog, "seg3_v1"), seg3_v1[0], seg3_v1[1]);
-    glUniform2f(glGetUniformLocation(all_segs_prog, "seg3_v2"), seg3_v2[0], seg3_v2[1]);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg0_v1"), seg0_v1[0]*scale_output, seg0_v1[1]*scale_output);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg0_v2"), seg0_v2[0]*scale_output, seg0_v2[1]*scale_output);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg1_v1"), seg1_v1[0]*scale_output, seg1_v1[1]*scale_output);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg1_v2"), seg1_v2[0]*scale_output, seg1_v2[1]*scale_output);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg2_v1"), seg2_v1[0]*scale_output, seg2_v1[1]*scale_output);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg2_v2"), seg2_v2[0]*scale_output, seg2_v2[1]*scale_output);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg3_v1"), seg3_v1[0]*scale_output, seg3_v1[1]*scale_output);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "seg3_v2"), seg3_v2[0]*scale_output, seg3_v2[1]*scale_output);
 
 
-    glUniform2f(glGetUniformLocation(all_segs_prog, "screen_vp"), screen_vp_x, screen_vp_y);
+    glUniform2f(glGetUniformLocation(all_segs_prog, "screen_vp"), screen_vp_x*scale_output, screen_vp_y*scale_output);
     float slope;
     if(bot_right_endpoint_x == 0) {
         slope = (top_left_endpoint_y-screen_vp_y)/(top_left_endpoint_x-screen_vp_x);
@@ -683,12 +688,12 @@ void platform_draw_full_quad(
     }
     glUniform1f(glGetUniformLocation(all_segs_prog, "slope"), slope);
     
-    glUniform2f(glGetUniformLocation(all_segs_prog, "iResolution"), ((float)RENDER_WIDTH), ((float)RENDER_HEIGHT));
+    glUniform2f(glGetUniformLocation(all_segs_prog, "iResolution"), ((float)OUTPUT_WIDTH), ((float)OUTPUT_HEIGHT));
 
     float attributes[3*3] = {
-        -1.0f,-1.0f,0.5f,
-        3.0f,-1.0f,0.5f,
-        -1.0f,3.0f,0.5f,
+        -1.0f*scale_output, -1.0f*scale_output, 0.5f,
+        3.0f*scale_output,  -1.0f*scale_output, 0.5f,
+        -1.0f*scale_output,  3.0f*scale_output, 0.5f,
     };
     glActiveTexture(GL_TEXTURE0+0); // texture unit 0
     glBindTexture(GL_TEXTURE_2D, seg01_tex_handle);

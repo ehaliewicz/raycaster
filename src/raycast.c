@@ -32,13 +32,6 @@ int project_to_screen(float height, float dist, float pitch, float player_z) {
 #define DEGREES_TO_RAD(deg) ((deg)*.0174f)
 
 
-typedef struct {
-    float diag_wall_u;
-    float diag_perp_dist;
-    float mid_flat_u;
-    float mid_flat_v;
-} diag_intersect;
-
 const float diag_dx[NUM_CELL_TYPES] = {
     0.0f, // dummy entry for normal walls
     1.0f, // NE_TO_SW_DIAG
@@ -1044,6 +1037,8 @@ void raycast_column(
                     second_ceil_side = WALL_SIDE_BOTTOM;
                 }
             }
+            
+            
             int lower_step_slope = (lower_cell_type == SLOPE_X) || (lower_cell_type == SLOPE_Y);
             int upper_step_slope = (upper_cell_type == SLOPE_X) || (upper_cell_type == SLOPE_Y);
 

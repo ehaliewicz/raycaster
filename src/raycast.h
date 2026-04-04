@@ -55,5 +55,15 @@ typedef struct {
 slope_heights get_slope_heights(int in_start_cell, int map_x, int map_z, int next_map_x, int next_map_z, 
     float hit_x, float hit_z, float next_hit_x, float next_hit_z,
     wall_side side, cell_types cell_type, int step_x, int step_z, float ray_origin_x, float ray_origin_z, float first_height, float second_height);
+
     
+
+typedef struct {
+    float diag_wall_u;
+    float diag_perp_dist;
+    float mid_flat_u;
+    float mid_flat_v;
+} diag_intersect;
+    
+int calc_diag_hit(diag_intersect *result, float ray_dir_x, float ray_dir_y, float player_x, float player_y, int map_x, int map_y, cell_types cell_type);
 #endif 
