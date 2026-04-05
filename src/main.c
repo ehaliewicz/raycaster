@@ -50,7 +50,7 @@ const int res_is_superwide[NUM_RESOLUTIONS] = {
 int cur_render_res_idx = -1;
 int requested_render_res = 3;
 int cur_render_scale = -1;
-int requested_render_scale = 1;
+int requested_render_scale = 2;
 int cur_output_width = 1280;
 int cur_output_height = 720;
 int cur_render_width;
@@ -1482,7 +1482,7 @@ void run_game() {
     int upload_tex = draw_textures[frame&0b1];
     int draw_tex = draw_textures[(frame+1)&0b1];
 
-    int draw_6dof = platform_is_key_down(KEY_Q);
+    int draw_6dof = !platform_is_key_down(KEY_Q);
 
     platform_begin_frame();
     if(!platform_is_window_focused()) {
@@ -1843,7 +1843,8 @@ void run_game() {
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 20}, 18, 1, RED);
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
-        //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
+        debug_printf("p %f %f %f\n", player_x, player_y, player_z);
+        debug_printf("ne %i nw %i\n", point_in_north_east(player_x, player_y), point_in_north_west(player_x, player_y));
         //debug_printf("%ix%i\n", RENDER_WIDTH, RENDER_HEIGHT);
         debug_printf("%4.1f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
         //debug_printf("rays %i yaw %f pitch %f\n",

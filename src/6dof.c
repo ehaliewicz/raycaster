@@ -1,12 +1,13 @@
-//#include <stdio.h>
+#include <stdio.h>
 #include "6dof.h"
 #include "common.h"
 #include "draw.h"
 #include "my_defs.h"
 #include "raycast.h"
 #include "resources.h"
-
 #include "platform.h"
+
+
 
 float2 float2_mul_float2(float2 a, float2 b) {
     return mk_float2((a.x*b.x), (a.y*b.y));
@@ -1135,8 +1136,8 @@ wall_v_coords calc_v_coords(float world_y0, float world_y1, pegging_type peg_typ
     float start_v = 0.0f;
     float end_v = 0.0f;
     if(peg_type == BOTTOM_PEGGED) {
-        start_v = units; 
-        end_v = 0.0f;
+        start_v = 1.0f - units;
+        end_v = 1.0f;
     } else {
         end_v = units;
     }
@@ -1149,6 +1150,17 @@ wall_v_coords calc_v_coords(float world_y0, float world_y1, pegging_type peg_typ
 int frustum_cull = 0;
 
 
+int point_in_north_east(float px, float pz) {
+    float subz = pz - my_floorf(pz);
+    float subx = px - my_floorf(px);
+    return subz >= (1.0f-subx);
+}
+
+int point_in_north_west(float px, float pz) {
+    float subz = pz - my_floorf(pz);
+    float subx = px - my_floorf(px);
+    return (subz >= subx);
+}
 
 
 void execute_rays_in_segment(
@@ -1249,29 +1261,16 @@ void execute_rays_in_segment(
 
         int needs_fill = 0;
 
-        //int col_spans[8];
-        //int alt_col_spans[8];
-        //int col_span_anchors[8];
-        //cell_types cell_types[8];
         while(1) {
             if(cur_intersection_distance >= far_clip) {
-                //int dy = seg_buffer_height-1;
-                //for(int y = cur_next_free_pix_min; y < cur_next_free_pix_max; y++) {
-                //    ray_column[dy-y] = 0xFFB7CEFA;
-                //}
                 needs_fill = 1;
                 break;
             }
             if(x_steps < 0 || y_steps < 0) {
-                //int dy = seg_buffer_height-1;
-                //for(int y = cur_next_free_pix_min; y < cur_next_free_pix_max; y++) {
-                //    ray_column[dy-y] = 0xFFB7CEFA;
-                //}
                 needs_fill = 1;
                 break;
             }
 
-            
             int map_idx = map_z*MAP_SIZE+map_x;
 
             float floor_height = cur_level_floor[map_idx]/8.0f;
@@ -1280,16 +1279,6 @@ void execute_rays_in_segment(
             float upper_ceil_height = cur_level_upper_ceil[map_idx]/8.0f;
             float floor_anchor = this_level->floor_anchor[map_idx]/8.0f;
             float ceil_anchor = this_level->ceil_anchor[map_idx]/8.0f;
-
-            // the spans we add depend on the wall type
-            // and also depend on whether something is a diagonal or not?
-
-
-            //int world_col_min = MIN(col_spans[0], MIN(col_spans[1], MIN(alt_col_spans[0], MIN(alt_col_spans[1], MIN(col_span_anchors[0], col_span_anchors[1])))));
-            //int world_col_max = MAX(col_spans[0], MAX(col_spans[1], MAX(alt_col_spans[0], MAX(alt_col_spans[1], MAX(col_span_anchors[0], col_span_anchors[1])))));
-            //int world_col_min = col_spans[1][1];
-            //int world_col_max = col_spans[0][0];
-
             
 
             float3 plane_ray_dir_times_cur_dist = float3_mul_float(plane_dir, cur_intersection_distance);
@@ -1399,7 +1388,7 @@ void execute_rays_in_segment(
             cell_types lower_cell_type = this_level->lower_cell_types[map_idx];
 
             int lower_step_slope =  (lower_cell_type == SLOPE_X || lower_cell_type == SLOPE_Y);
-            int lower_step_diag = (lower_cell_type == NE_TO_SW_DIAG || lower_cell_type == NW_TO_SE_DIAG);
+            int lower_step_diag = (lower_cell_type == NE_TO_SW_DIAG || lower_cell_type == NW_TO_SE_DIAG || lower_cell_type == THIN_WALL_X || lower_cell_type == THIN_WALL_Y);
             int upper_step_slope =  (upper_cell_type == SLOPE_X || upper_cell_type == SLOPE_Y);
 
             float first_floor_height = floor_height;
@@ -1421,39 +1410,99 @@ void execute_rays_in_segment(
             editor_selected_thing second_ceil_side = WALL_SIDE_UPPER_BOTTOM;
  
             // miscellaneous stuff for diagonal draw order sorting 
-            float ray_subx = ray_origin_x - my_floorf(ray_origin_x);
-            float ray_suby = ray_origin_z - my_floorf(ray_origin_z);
+            float ray_subx = ray_origin_x - my_floorf(ray_origin_x); 
+            float ray_subz = ray_origin_z - my_floorf(ray_origin_z);
             float hit_subx = hit_x - my_floorf(hit_x);
             float hit_subz = hit_z - my_floorf(hit_z);
-            int in_top = (ray_suby < 0.5f);
-            int in_right = (ray_subx >= 0.5f);
+            
+            // WEST->EAST
+            // -x -> +x
 
-            int in_top_right = (ray_subx >= ray_suby);
-            //int in_bottom_left = !in_top_right;
-            int in_top_left = (ray_subx < (1.0f - ray_suby));
-            //int in_bottom_right = !in_top_left;
+            // NORTH->SOUTH
+            // +z -> -z
+
+            int draw_second_floor = 0;
 
             int enters_right_side = (step_x == -1) && (side == VERTICAL_SIDE);
             int enters_left_side = (step_x == 1) && (side == VERTICAL_SIDE);
             int enters_bot_side = (step_z == -1) && (side == HORIZONTAL_SIDE);
             int enters_top_side = (step_z == 1) && (side == HORIZONTAL_SIDE);
+            int exits_right_side = (step_x == 1) && (side == VERTICAL_SIDE);
+            int exits_left_side = (step_x == -1) && (side == VERTICAL_SIDE);
+            int exits_bot_side = (step_z == 1) && (side == HORIZONTAL_SIDE);
+            int exits_top_side = (step_z == -1) && (side == HORIZONTAL_SIDE);
 
-            int enters_top_side_right_half = (enters_top_side && (hit_subx >= 0.5f));
-            int enters_bot_side_right_half = (enters_bot_side && (hit_subx >= 0.5f));
-            int enters_left_side_top_half = (enters_left_side && (hit_subz <= 0.5f));
-            int enters_right_side_top_half = (enters_right_side && (hit_subz <= 0.5f));
+
+            int hit_top_half = (hit_subz <= 0.5f);
+            int hit_bot_half = !hit_top_half;
+            int hit_right_half = (hit_subx >= 0.5f);
+            int hit_left_half = !hit_right_half;
+
+            float next_hit_subx = (next_hit_x - my_floorf(next_hit_x));
+            float next_hit_subz = (next_hit_z - my_floorf(next_hit_z));
+            int next_hit_right_half = (next_hit_subx >= 0.5f);
+            int next_hit_left_half = !next_hit_right_half;
+            int next_hit_top_half = (next_hit_subz <= 0.5f);
+            int next_hit_bot_half = !next_hit_top_half;
+
+            
+
+
+            int enters_top_side_right_half = (enters_top_side && hit_right_half);
+            int enters_bot_side_right_half = (enters_bot_side && hit_right_half);
+            int enters_left_side_top_half = (enters_left_side && hit_top_half);
+            int enters_right_side_top_half = (enters_right_side && hit_top_half);
+
+            int exits_top_side_right_half = (exits_top_side && next_hit_right_half);
+            int exits_bot_side_right_half = (exits_bot_side && next_hit_right_half);
+            int exits_top_side_left_half = (exits_top_side && next_hit_left_half);
+            int exits_bot_side_left_half = (exits_bot_side && next_hit_left_half);
+
+            
+            int exits_left_side_top_half = (exits_left_side && next_hit_top_half);
+            int exits_right_side_top_half = (exits_right_side && next_hit_top_half);
+            int exits_left_side_bot_half = (exits_left_side && next_hit_bot_half);
+            int exits_right_side_bot_half = (exits_right_side && next_hit_bot_half);
+
+
 
             if(lower_cell_type == NE_TO_SW_DIAG || lower_cell_type ==  NW_TO_SE_DIAG || 
                 lower_cell_type == THIN_WALL_X || lower_cell_type == THIN_WALL_Y) { //} || lower_cell_type == DOOR_Y) {
+                    
                 int draw_upper_first = 0;
                 if(lower_cell_type == NE_TO_SW_DIAG) {
-                    draw_upper_first = (in_start_cell ? in_top_left : (enters_left_side || enters_top_side));
+                    draw_upper_first = (enters_left_side || enters_top_side);
+                    
+                    if(draw_upper_first) {
+                        draw_second_floor = (exits_right_side || exits_bot_side);
+                    } else {
+                        draw_second_floor = (exits_left_side || exits_top_side);
+                    }
+
                 } else if (lower_cell_type == NW_TO_SE_DIAG) {
-                    draw_upper_first = (in_start_cell ? in_top_right : (enters_right_side || enters_top_side));
+                    // this seems to work perfectly
+                    // for whatever reason, this had to be flipped from NE enter..
+                    draw_upper_first = (enters_right_side || enters_top_side);
+                    if(draw_upper_first) {
+                        draw_second_floor = (exits_left_side || exits_bot_side);
+                    } else {
+                        draw_second_floor = (exits_right_side || exits_top_side);
+                    }
+
                 } else if (lower_cell_type == THIN_WALL_X) {
-                    draw_upper_first = (in_start_cell ? in_right : (enters_right_side || enters_top_side_right_half || enters_bot_side_right_half));
+                    draw_upper_first = (enters_right_side || enters_top_side_right_half || enters_bot_side_right_half);
+                    if(draw_upper_first) {
+                        draw_second_floor = (exits_left_side || exits_bot_side_left_half || exits_top_side_left_half);
+                    } else {
+                        draw_second_floor = (exits_right_side || exits_top_side_right_half || exits_bot_side_right_half);
+                    }
                 } else if (lower_cell_type == THIN_WALL_Y) {
-                    draw_upper_first = (in_start_cell ? in_top : (enters_top_side || enters_left_side_top_half || enters_right_side_top_half));
+                    draw_upper_first = (enters_top_side || enters_left_side_top_half || enters_right_side_top_half);
+                    if(draw_upper_first) {
+                        draw_second_floor = (exits_bot_side || exits_left_side_bot_half || exits_right_side_bot_half);
+                    } else {
+                        draw_second_floor = (exits_top_side || exits_left_side_top_half || exits_right_side_top_half);
+                    }
                 }
 
                 if(draw_upper_first) {
@@ -1472,16 +1521,41 @@ void execute_rays_in_segment(
 
             if(upper_cell_type == NE_TO_SW_DIAG || upper_cell_type ==  NW_TO_SE_DIAG || 
                 upper_cell_type == THIN_WALL_X || upper_cell_type == THIN_WALL_Y) {
-                // handle diagonal stuff
+                // handle diagonal stuff               
                 int draw_upper_first = 0;
-                if(upper_cell_type == NE_TO_SW_DIAG) {
-                    draw_upper_first = (in_start_cell ? in_top_left : (enters_left_side || enters_top_side));
-                } else if(upper_cell_type == NW_TO_SE_DIAG) { // NW_TO_SE_DIAG
-                    draw_upper_first = (in_start_cell ? in_top_right : (enters_right_side || enters_top_side));
-                } else if (upper_cell_type == THIN_WALL_X) {
-                    draw_upper_first = (in_start_cell ? in_right : (enters_right_side || enters_top_side_right_half || enters_bot_side_right_half));
-                } else if (upper_cell_type == THIN_WALL_Y) {
-                    draw_upper_first = (in_start_cell ? in_top : (enters_top_side || enters_left_side_top_half || enters_right_side_top_half));
+                if(lower_cell_type == NE_TO_SW_DIAG) {
+                    draw_upper_first = (enters_left_side || enters_top_side);
+                    
+                    if(draw_upper_first) {
+                        draw_second_floor = (exits_right_side || exits_bot_side);
+                    } else {
+                        draw_second_floor = (exits_left_side || exits_top_side);
+                    }
+
+                } else if (lower_cell_type == NW_TO_SE_DIAG) {
+                    // this seems to work perfectly
+                    // for whatever reason, this had to be flipped from NE enter..
+                    draw_upper_first = (enters_right_side || enters_top_side);
+                    if(draw_upper_first) {
+                        draw_second_floor = (exits_left_side || exits_bot_side);
+                    } else {
+                        draw_second_floor = (exits_right_side || exits_top_side);
+                    }
+
+                } else if (lower_cell_type == THIN_WALL_X) {
+                    draw_upper_first = (enters_right_side || enters_top_side_right_half || enters_bot_side_right_half);
+                    if(draw_upper_first) {
+                        draw_second_floor = (exits_left_side || exits_bot_side_left_half || exits_top_side_left_half);
+                    } else {
+                        draw_second_floor = (exits_right_side || exits_top_side_right_half || exits_bot_side_right_half);
+                    }
+                } else if (lower_cell_type == THIN_WALL_Y) {
+                    draw_upper_first = (enters_top_side || enters_left_side_top_half || enters_right_side_top_half);
+                    if(draw_upper_first) {
+                        draw_second_floor = (exits_bot_side || exits_left_side_bot_half || exits_right_side_bot_half);
+                    } else {
+                        draw_second_floor = (exits_top_side || exits_left_side_top_half || exits_right_side_top_half);
+                    }
                 }
 
 
@@ -1495,6 +1569,8 @@ void execute_rays_in_segment(
                     first_ceil_side = WALL_SIDE_UPPER_BOTTOM;
                     second_ceil_side = WALL_SIDE_BOTTOM;
                 }
+            } else if (upper_step_slope) {
+                first_ceil_texture = upper_ceil_texture;
             }
             
             slope_heights floor_slope = get_slope_heights(in_start_cell, map_x, map_z, next_map_x, next_map_z,
@@ -1704,6 +1780,9 @@ void execute_rays_in_segment(
 
             if(lower_hits_diag) {
                 // draw diag walls
+                // ASSUMES THAT IF WE HIT DIAGONAL, IT HAS TO DRAW THE SECOND FLOOR!
+                // BUT, THIS ENTIRELY DEPENDS ON THE EXIT SIDE!
+                
 
                 float portion_top = second_floor_height * one_over_world_max_y;
                 float portion_bot = first_floor_height * one_over_world_max_y;
@@ -1749,53 +1828,53 @@ void execute_rays_in_segment(
                 }
 
                 // draw upper floor
-                float exit_u = exit_flat_u;
-                float exit_v = exit_flat_v;
-                float enter_u = lower_diag_intersect.mid_flat_u;
-                float enter_v = lower_diag_intersect.mid_flat_v;
-                float3 flat_enter_cam_space = float3_lerp(cam_space_min_diag, cam_space_max_diag, portion_top);
-                float3 flat_exit_cam_space = float3_lerp(cam_space_min_next, cam_space_max_next, portion_top);
+                if(draw_second_floor) {
+                    float exit_u = exit_flat_u;
+                    float exit_v = exit_flat_v;
+                    float enter_u = lower_diag_intersect.mid_flat_u;
+                    float enter_v = lower_diag_intersect.mid_flat_v;
+                    float3 flat_enter_cam_space = float3_lerp(cam_space_min_diag, cam_space_max_diag, portion_top);
+                    float3 flat_exit_cam_space = float3_lerp(cam_space_min_next, cam_space_max_next, portion_top);
 
-                float ax = flat_exit_cam_space.x;
-                float ay = flat_exit_cam_space.y;
-                float az = flat_exit_cam_space.z;
+                    float ax = flat_exit_cam_space.x;
+                    float ay = flat_exit_cam_space.y;
+                    float az = flat_exit_cam_space.z;
 
-                float bx = flat_enter_cam_space.x;
-                float by = flat_enter_cam_space.y;
-                float bz = flat_enter_cam_space.z;
+                    float bx = flat_enter_cam_space.x;
+                    float by = flat_enter_cam_space.y;
+                    float bz = flat_enter_cam_space.z;
 
-                clip_res upper_floor_clipped = clip_homogeneous_camera_space_line(
-                    mk_float5(ax,ay,az, exit_u, exit_v),
-                    mk_float5(bx,by,bz, enter_u, enter_v)
-                );
-
-                if(upper_floor_clipped.on_screen) {
-                    
-                    new_screen_bounds bnds = fill_raybuffer_column(
-                        upper_floor_clipped.top, upper_floor_clipped.bot,
-                        cur_next_free_pix_min, cur_next_free_pix_max,
-                        original_next_free_pix_min, original_next_free_pix_max,
-                        seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
-                        textures[second_floor_texture]
+                    clip_res upper_floor_clipped = clip_homogeneous_camera_space_line(
+                        mk_float5(ax,ay,az, exit_u, exit_v),
+                        mk_float5(bx,by,bz, enter_u, enter_v)
                     );
 
-                    cur_next_free_pix_min = bnds.top;
-                    cur_next_free_pix_max = bnds.bot;
+                    if(upper_floor_clipped.on_screen) {
+                        
+                        new_screen_bounds bnds = fill_raybuffer_column(
+                            upper_floor_clipped.top, upper_floor_clipped.bot,
+                            cur_next_free_pix_min, cur_next_free_pix_max,
+                            original_next_free_pix_min, original_next_free_pix_max,
+                            seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
+                            textures[second_floor_texture]
+                        );
 
-                    if(cur_next_free_pix_min > cur_next_free_pix_max) {
-                        break_ray_loop = 1;
-                        break;
+                        cur_next_free_pix_min = bnds.top;
+                        cur_next_free_pix_max = bnds.bot;
+
+                        if(cur_next_free_pix_min > cur_next_free_pix_max) {
+                            break_ray_loop = 1;
+                            break;
+                        }
                     }
                 }
-
-
             }
 
             // draw ceiling
-            if(upper_cell_type == NORMAL_CELL || upper_step_slope) {
+            if (upper_cell_type == NORMAL_CELL || upper_step_slope) {
                 // TODO: handle doors, diags, half walls
                 float ceil_start_height = first_ceil_height;
-                float ceil_end_height = second_ceil_height;
+                float ceil_end_height = first_ceil_height;
                 if(upper_step_slope) {
                     ceil_end_height = ceil_slope.end_height;
                 }
@@ -1824,7 +1903,7 @@ void execute_rays_in_segment(
                 );
 
                 if(ceil_clipped.on_screen) {
-                    u32* ceil_tex = lower_step_slope ? textures[this_level->uctex[map_idx]] : textures[this_level->ctex[map_idx]];
+                    u32* ceil_tex = upper_step_slope ? textures[this_level->uctex[map_idx]] : textures[this_level->ctex[map_idx]];
                     new_screen_bounds bnds = fill_raybuffer_column(
                         ceil_clipped.top, ceil_clipped.bot,
                         cur_next_free_pix_min, cur_next_free_pix_max,
@@ -1997,9 +2076,6 @@ void parallel_raycast_segment_wrapper(
     int segs_complete = 0;
     //int cnt = 0;
     while(segs_complete != 4) {
-        //if((cnt++%1000000) == 0) { printf("currently %i segs complete\n", segs_complete); }
-        //printf("poll\n");
-        //if(cnt++ > 100000) { break; }
         for(int seg_idx = 0; seg_idx < 4; seg_idx++) {
             if(segment_thread_counters[seg_idx] == 0) {
                 //printf("orchestrator: segment %i is done\n", seg_idx);

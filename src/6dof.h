@@ -115,4 +115,7 @@ void init_6dof_module();
 
 extern int draw_only_first_element, draw_only_second_element;
 
+int point_in_north_east(float px, float pz);
+int point_in_north_west(float px, float pz);
+
 #endif
