@@ -107,7 +107,8 @@ void launch_parallel_raycast_segments(
     camera cam,
     mat4 world_to_screen_mat,
     level* this_level, 
-    int seg_buffer_heights[2]
+    int seg_buffer_heights[2],
+    int editor_mode_enabled
 );
 
 void join_6dof_raycast();

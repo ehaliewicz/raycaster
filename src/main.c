@@ -1758,7 +1758,8 @@ void run_game() {
                     seg_draw_bufs,
                     seg_z_bufs,
                     segments, cam, world_to_screen_mat,
-                    &levels[cur_level_idx], seg_buffer_heights
+                    &levels[cur_level_idx], seg_buffer_heights,
+                    editor_mode_enabled
                 );
                 int draw_z_buf = (platform_is_key_down(KEY_M));
                 int cnt = 0;

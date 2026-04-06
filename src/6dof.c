@@ -800,16 +800,20 @@ new_screen_bounds fill_raybuffer_column(
     int original_next_free_pix_max,
     u8* seen_pixel_cache,
     u32* pix_arr_col, float* z_buf_col, int seg_buffer_height,
-    u32* texture
-    //int use_flat_color,
-    //u32 flat_col
+    u32* texture,
+    int edit_mode_enabled,
+    edit_wall_id wall_id
 ) {
+    u32 flat_col;
     int use_flat_color = 0;
-    u32 flat_col = 0;
-
-    if(texture == textures[SKYBOX_TEX_IDX]) {
+    if(edit_mode_enabled) {
         use_flat_color = 1;
-        flat_col = 0xFFB7CEFA;
+        flat_col = (0xFF<<24)|wall_id.full_val;
+    } else {
+        if(texture == textures[SKYBOX_TEX_IDX]) {
+            use_flat_color = 1;
+            flat_col = 0xFFB7CEFA;
+        }
     }
 
 
@@ -1171,7 +1175,7 @@ void execute_rays_in_segment(
     camera cam,
     mat4 world_to_screen_mat,
     int axis_mapped_to_y,
-    level* this_level, int seg_buffer_height
+    level* this_level, int seg_buffer_height, int editor_mode_enabled
 ) { 
     float world_max_y = MAX_WALL_HEIGHT;
     float one_over_world_max_y = 1.0f / world_max_y;
@@ -1408,6 +1412,8 @@ void execute_rays_in_segment(
             u8 second_ceil_light_level = upper_ceil_light_level;
             editor_selected_thing first_ceil_side = WALL_SIDE_BOTTOM;
             editor_selected_thing second_ceil_side = WALL_SIDE_UPPER_BOTTOM;
+
+
  
             // miscellaneous stuff for diagonal draw order sorting 
             float ray_subx = ray_origin_x - my_floorf(ray_origin_x); 
@@ -1627,8 +1633,9 @@ void execute_rays_in_segment(
                         cur_next_free_pix_min, cur_next_free_pix_max,
                         original_next_free_pix_min, original_next_free_pix_max,
                         seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
-                        textures[lower_wall_tex]
-                        //, 0, 0
+                        textures[lower_wall_tex],
+                        editor_mode_enabled,
+                        MAP_CELL_EDIT_ID(map_idx, lower_intersect_wall_side) 
                     );
 
                     cur_next_free_pix_min = bnds.top;
@@ -1644,12 +1651,10 @@ void execute_rays_in_segment(
 
             // draw front wall for ceiling
             if(!in_start_cell && ceil_anchor != first_ceil_height) {
-                //float bot_u = (element_bounds_max-element_bounds_min)/1.0f;
                 float world_y0 = ceil_anchor;
                 float world_y1 = first_ceil_height;
                 float portion_top = world_y0 * one_over_world_max_y;
                 float portion_bot = world_y1 * one_over_world_max_y;
-                //int R (world_y1-world_y0)/8.0f; // texel repetition
 
 
                 float3 cam_space_front_top = float3_lerp(cam_space_min_last, cam_space_max_last, portion_top);
@@ -1677,8 +1682,9 @@ void execute_rays_in_segment(
                         cur_next_free_pix_min, cur_next_free_pix_max,
                         original_next_free_pix_min, original_next_free_pix_max,
                         seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
-                        textures[lower_wall_tex]
-                        //, 0, 0
+                        textures[lower_wall_tex],
+                        editor_mode_enabled,
+                        MAP_CELL_EDIT_ID(map_idx, upper_intersect_wall_side)
                     );
 
                     cur_next_free_pix_min = bnds.top;
@@ -1759,13 +1765,15 @@ void execute_rays_in_segment(
                 
                           
                 if(floor_clipped.on_screen) {
-                    u32* floor_tex = textures[first_floor_texture]; //lower_step_slope ? textures[this_level->uftex[map_idx]] : textures[first_floor_texture]; //textures[this_level->ftex[map_idx]];
-                    new_screen_bounds bnds = fill_raybuffer_column(
+                    u32* floor_tex = textures[first_floor_texture]; 
+                    new_screen_bounds bnds =  fill_raybuffer_column(
                         floor_clipped.top, floor_clipped.bot,
                         cur_next_free_pix_min, cur_next_free_pix_max,
                         original_next_free_pix_min, original_next_free_pix_max,
                         seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
-                        floor_tex
+                        floor_tex, 
+                        editor_mode_enabled,
+                        MAP_CELL_EDIT_ID(map_idx, first_floor_side)
                     );
 
                     cur_next_free_pix_min = bnds.top;
@@ -1780,8 +1788,6 @@ void execute_rays_in_segment(
 
             if(lower_hits_diag) {
                 // draw diag walls
-                // ASSUMES THAT IF WE HIT DIAGONAL, IT HAS TO DRAW THE SECOND FLOOR!
-                // BUT, THIS ENTIRELY DEPENDS ON THE EXIT SIDE!
                 
 
                 float portion_top = second_floor_height * one_over_world_max_y;
@@ -1814,7 +1820,9 @@ void execute_rays_in_segment(
                         cur_next_free_pix_min, cur_next_free_pix_max,
                         original_next_free_pix_min, original_next_free_pix_max,
                         seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
-                        textures[lower_diag_wall_tex]
+                        textures[lower_diag_wall_tex], 
+                        editor_mode_enabled,
+                        MAP_CELL_EDIT_ID(map_idx, WALL_SIDE_LOWER_DIAG)
                     );
 
                     cur_next_free_pix_min = bnds.top;
@@ -1856,7 +1864,9 @@ void execute_rays_in_segment(
                             cur_next_free_pix_min, cur_next_free_pix_max,
                             original_next_free_pix_min, original_next_free_pix_max,
                             seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
-                            textures[second_floor_texture]
+                            textures[second_floor_texture], 
+                            editor_mode_enabled,
+                            MAP_CELL_EDIT_ID(map_idx, second_floor_side)
                         );
 
                         cur_next_free_pix_min = bnds.top;
@@ -1909,7 +1919,9 @@ void execute_rays_in_segment(
                         cur_next_free_pix_min, cur_next_free_pix_max,
                         original_next_free_pix_min, original_next_free_pix_max,
                         seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
-                        ceil_tex
+                        ceil_tex, 
+                        editor_mode_enabled, 
+                        MAP_CELL_EDIT_ID(map_idx, first_ceil_side)
                     );
 
                     if(ceil_tex != textures[SKYBOX_TEX_IDX]) {
@@ -1976,6 +1988,7 @@ typedef struct {
     int axis_mapped_to_y;
     level* this_level;
     int seg_buffer_height;
+    int editor_mode_enabled;
 } thread_params;
 
 
@@ -1987,7 +2000,7 @@ void execute_rays_in_segment_wrapper(void* p) {
     execute_rays_in_segment(
         tp->ray_buffer, tp->z_buffer, tp->seen_pixel_cache, tp->ray_buffer_base_offset, tp->seg, 
         tp->start_ray, tp->end_ray, tp->cam, tp->world_to_screen_mat,
-        tp->axis_mapped_to_y, tp->this_level, tp->seg_buffer_height
+        tp->axis_mapped_to_y, tp->this_level, tp->seg_buffer_height, tp->editor_mode_enabled
     );
     // decrement counter
     //printf("woo, seg %i decrementing :)\n", tp->seg.index);
@@ -2003,6 +2016,7 @@ typedef struct {
     mat4 world_to_screen_mat;
     level* this_level;
     int seg_buffer_heights[2];
+    int editor_mode_enabled;
 } frame_params;
 
 jobpool* raycast_6dof_pool = NULL;
@@ -2036,6 +2050,7 @@ void parallel_raycast_segment_wrapper(
 
         int axis_mapped_to_y = (seg_idx > 1) ? 0 : 1;
         int seg_buffer_height = seg_buffer_heights[(seg_idx>>1)];
+        int editor_mode_enabled = tp->editor_mode_enabled;
 
 
         int used_threads = NUM_THREADS;
@@ -2058,6 +2073,7 @@ void parallel_raycast_segment_wrapper(
             raycast_6dof_parms[next_task_idx].axis_mapped_to_y = axis_mapped_to_y;
             raycast_6dof_parms[next_task_idx].this_level = this_level;
             raycast_6dof_parms[next_task_idx].seg_buffer_height = seg_buffer_height;
+            raycast_6dof_parms[next_task_idx].editor_mode_enabled = editor_mode_enabled;
 
             raycast_6dof_parms[next_task_idx].start_ray = (rays_per_thread*i);
             raycast_6dof_parms[next_task_idx].end_ray = (i == used_threads-1) ? seg.ray_count : MIN(seg.ray_count, (rays_per_thread*(i+1)));
@@ -2110,7 +2126,8 @@ void launch_parallel_raycast_segments(
     camera cam,
     mat4 world_to_screen_mat,
     level* this_level, 
-    int seg_buffer_heights[2]
+    int seg_buffer_heights[2],
+    int editor_mode_enabled
 ) {
     full_frame_params.ray_buffers[0] = ray_buffers[0];
     full_frame_params.ray_buffers[1] = ray_buffers[1];
@@ -2127,6 +2144,7 @@ void launch_parallel_raycast_segments(
     full_frame_params.this_level = this_level;
     full_frame_params.seg_buffer_heights[0] = seg_buffer_heights[0];
     full_frame_params.seg_buffer_heights[1] = seg_buffer_heights[1];
+    full_frame_params.editor_mode_enabled = editor_mode_enabled;
     platform_add_task(
         raycast_6dof_manager_pool,
         parallel_raycast_segment_wrapper,
