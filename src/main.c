@@ -71,11 +71,34 @@ void handle_click(edit_wall_id* prev_rendered_id_buffer, int render_x, int rende
     
     //editor_selected_idx = id&0b1111111111;
     //editor_selected_side = (id>>10)&0b11111;
+    printf("pix: %x\n", id.full_val);
     if(id.type == MAP_CELL_EDIT_ID_TYPE) {
         editor_selected_idx = id.idx>>5;
+        printf("4dof selected index %i\n", editor_selected_idx);
         editor_selected_side = id.idx&0b11111;
     } else {
         editor_selected_idx = id.idx;
+        editor_selected_side = ENTITY;
+    }
+}
+void handle_6dof_click(int output_x, int output_y) {
+    printf("%i, %i\n", output_x, OUTPUT_HEIGHT-output_y);
+
+    u32 pix = platform_read_pixel_at(output_x, OUTPUT_HEIGHT-output_y);
+    
+    u16 low_word = ((pix>>16)&0xFF) | (((pix>>8)&0xFF)<<8); //pix & 0xFFFF;
+    printf("pix: %x\n", pix);
+    edit_wall_id src = {.full_val = low_word};
+    edit_wall_id c_bullshit;
+    memcpy(&c_bullshit, &src, sizeof(edit_wall_id));
+
+    //edit_wall_id id = prev_rendered_id_buffer[(RENDER_WIDTH-1-render_x)*RENDER_HEIGHT+(render_y)];
+    if(c_bullshit.type == MAP_CELL_EDIT_ID_TYPE) {
+        editor_selected_idx = c_bullshit.idx>>5;
+        printf("6dof selected index %i\n", editor_selected_idx);
+        editor_selected_side = c_bullshit.idx&0b11111;
+    } else {
+        editor_selected_idx = c_bullshit.idx;
         editor_selected_side = ENTITY;
     }
 }
@@ -1538,10 +1561,10 @@ void run_game() {
     edit_wall_id* edit_draw_buf = edit_id_buffer_pointers[0];//frame&0b1];
 
 
-
-    if(platform_is_mouse_button_pressed(MOUSE_BUTTON_LEFT)) {
-        Vector2 mouse_pos = platform_get_mouse_position();
-        handle_click(edit_draw_buf, RENDER_WIDTH*mouse_pos.x/OUTPUT_WIDTH, RENDER_HEIGHT*mouse_pos.y/OUTPUT_HEIGHT);
+    Vector2 mouse_pos = platform_get_mouse_position();
+    if(platform_is_mouse_button_pressed(MOUSE_BUTTON_LEFT) && !draw_6dof && editor_mode_enabled) {
+        float scale = ((float)RENDER_WIDTH)/OUTPUT_WIDTH;
+        handle_click(edit_draw_buf, mouse_pos.x*scale, mouse_pos.y*scale);
     }
     if (launch_in_edit_mode && platform_is_key_pressed(KEY_E)) {
         editor_mode_enabled = !editor_mode_enabled;
@@ -1759,7 +1782,9 @@ void run_game() {
                     seg_z_bufs,
                     segments, cam, world_to_screen_mat,
                     &levels[cur_level_idx], seg_buffer_heights,
-                    editor_mode_enabled
+                    editor_mode_enabled && platform_is_mouse_button_pressed(MOUSE_BUTTON_LEFT),
+                    editor_mode_enabled,
+                    flash_frame, editor_selected_idx, editor_selected_side
                 );
                 int draw_z_buf = (platform_is_key_down(KEY_M));
                 int cnt = 0;
@@ -1810,7 +1835,17 @@ void run_game() {
                 if(!draw_6dof) {
                     platform_update_texture(upload_tex, (u32*)upload_draw_pix, 0, 0, RENDER_HEIGHT, RENDER_WIDTH);
                 } else {
+                    if(platform_is_mouse_button_pressed(MOUSE_BUTTON_LEFT)) {
+                        platform_bind_edit_framebuffer();
+                    }
+
                     draw_segments(screen_vp, cam, segments);
+
+                    if(platform_is_mouse_button_pressed(MOUSE_BUTTON_LEFT)) {   
+                        handle_6dof_click(mouse_pos.x, mouse_pos.y);    
+                        platform_unbind_edit_framebuffer();
+                    }
+                    // if we got a mouse click
                 }
                 break;
             case Z_BUFFER:
@@ -1844,10 +1879,13 @@ void run_game() {
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 20}, 18, 1, RED);
         //debug_printf(buf, "%.2f %.2f %.2f %.2f\n", player_x, player_y, player_z, player_ang*RAD2DEG);
         //platform_draw_text(buf, (Vector2){.x = 5, .y = 35}, 18, 1, RED);
-        debug_printf("p %f %f %f\n", player_x, player_y, player_z);
-        debug_printf("ne %i nw %i\n", point_in_north_east(player_x, player_y), point_in_north_west(player_x, player_y));
+
+        //debug_printf("p %f %f %f\n", player_x, player_y, player_z);
+        
+        //debug_printf("ne %i nw %i\n", point_in_north_east(player_x, player_y), point_in_north_west(player_x, player_y));
         //debug_printf("%ix%i\n", RENDER_WIDTH, RENDER_HEIGHT);
-        debug_printf("%4.1f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
+        //debug_printf("%4.1f ms %4.0f fps\n", avg_frame_time, 1000.0f/avg_frame_time);
+
         //debug_printf("rays %i yaw %f pitch %f\n",
         //    segments[0].ray_count+segments[1].ray_count+segments[2].ray_count+segments[3].ray_count,
         //    player_yaw, player_pitch);

@@ -56,6 +56,10 @@ slope_heights get_slope_heights(int in_start_cell, int map_x, int map_z, int nex
     float hit_x, float hit_z, float next_hit_x, float next_hit_z,
     wall_side side, cell_types cell_type, int step_x, int step_z, float ray_origin_x, float ray_origin_z, float first_height, float second_height);
 
+slope_heights get_slope_heights_6dof(int in_start_cell, int map_x, int map_z, int next_map_x, int next_map_z, 
+    float hit_x, float hit_z, float next_hit_x, float next_hit_z,
+    wall_side side, cell_types cell_type, int step_x, int step_z, float ray_origin_x, float ray_origin_z, float first_height, float second_height);
+
     
 
 typedef struct {

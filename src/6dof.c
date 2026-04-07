@@ -801,12 +801,12 @@ new_screen_bounds fill_raybuffer_column(
     u8* seen_pixel_cache,
     u32* pix_arr_col, float* z_buf_col, int seg_buffer_height,
     u32* texture,
-    int edit_mode_enabled,
+    int edit_id_render_enabled,
     edit_wall_id wall_id
 ) {
     u32 flat_col;
     int use_flat_color = 0;
-    if(edit_mode_enabled) {
+    if(edit_id_render_enabled) {
         use_flat_color = 1;
         flat_col = (0xFF<<24)|wall_id.full_val;
     } else {
@@ -817,7 +817,7 @@ new_screen_bounds fill_raybuffer_column(
     }
 
 
-    // calculate the position in the ray buffer
+    // calculate the position in the ray buffer  (y is depth in camera space)
     float one_over_z_top = 1.0f / cam_space_top.y;
     float one_over_z_bot = 1.0f / cam_space_bot.y;
     float u_top = cam_space_top.z;
@@ -896,7 +896,7 @@ new_screen_bounds fill_raybuffer_column(
 
         int clipped_y0 = ray_buffer_bounds_min;
         int clipped_y1 = ray_buffer_bounds_max;
-        float cur_z = 1.0f / (one_over_z_top + d_one_over_z * (clipped_y0-y0));
+        float cur_z = 1.0f / (one_over_z_top + d_one_over_z * (ray_buffer_bounds_min-y0));
 
         if(use_flat_color) {
             for (int y = ray_buffer_bounds_min; y < ray_buffer_bounds_max+1; y++) {
@@ -908,11 +908,11 @@ new_screen_bounds fill_raybuffer_column(
             }
         } else {
             for (int y = ray_buffer_bounds_min; y < ray_buffer_bounds_max+1; y++) {
+                int dy_for_depth = y - y0;
+                float next_inv_z = one_over_z_top + d_one_over_z * (1+dy_for_depth);
+                float next_z = 1.0/next_inv_z;
                 if (is_pixel_set(seen_pixel_cache, y) == 0) {
                     mark_pixel(seen_pixel_cache, y);
-                    int dy_for_depth = y - original_ray_buffer_bounds_min;
-                    float next_inv_z = one_over_z_top + d_one_over_z * (1+dy_for_depth);
-                    float next_z = 1.0/next_inv_z;
                     float depth_scale = cur_z*RECIP_DARK_DIST;
                     float inv_depth_scale = 1.0f - depth_scale;
                     const float mult = 1.0f;
@@ -953,9 +953,9 @@ new_screen_bounds fill_raybuffer_column(
 
                     pix_arr_col[(dy-y)] = lit_texel;
                     z_buf_col[(dy-y)] = cur_z;
-                    cur_z = next_z;
                 }
          
+                cur_z = next_z;
             }
         }
     }
@@ -1175,7 +1175,8 @@ void execute_rays_in_segment(
     camera cam,
     mat4 world_to_screen_mat,
     int axis_mapped_to_y,
-    level* this_level, int seg_buffer_height, int editor_mode_enabled
+    level* this_level, int seg_buffer_height, int edit_id_render_enabled,
+    int flash_frame, int editor_mode_enabled, int editor_selected_map_idx, editor_selected_thing editor_selected_side
 ) { 
     float world_max_y = MAX_WALL_HEIGHT;
     float one_over_world_max_y = 1.0f / world_max_y;
@@ -1414,6 +1415,7 @@ void execute_rays_in_segment(
             editor_selected_thing second_ceil_side = WALL_SIDE_UPPER_BOTTOM;
 
 
+            int selected_cur_map_idx = editor_selected_map_idx == map_idx;
  
             // miscellaneous stuff for diagonal draw order sorting 
             float ray_subx = ray_origin_x - my_floorf(ray_origin_x); 
@@ -1579,11 +1581,11 @@ void execute_rays_in_segment(
                 first_ceil_texture = upper_ceil_texture;
             }
             
-            slope_heights floor_slope = get_slope_heights(in_start_cell, map_x, map_z, next_map_x, next_map_z,
+            slope_heights floor_slope = get_slope_heights_6dof(in_start_cell, map_x, map_z, next_map_x, next_map_z,
                 hit_x, hit_z, next_hit_x, next_hit_z, side, lower_cell_type, step_x, step_z,
                 ray_origin_x, ray_origin_z, first_floor_height, second_floor_height
             );
-            slope_heights ceil_slope = get_slope_heights(in_start_cell, map_x, map_z, next_map_x, next_map_z,
+            slope_heights ceil_slope = get_slope_heights_6dof(in_start_cell, map_x, map_z, next_map_x, next_map_z,
                 hit_x, hit_z, next_hit_x, next_hit_z, side, upper_cell_type, step_x, step_z,
                 ray_origin_x, ray_origin_z, first_ceil_height, second_ceil_height
             );
@@ -1634,7 +1636,7 @@ void execute_rays_in_segment(
                         original_next_free_pix_min, original_next_free_pix_max,
                         seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
                         textures[lower_wall_tex],
-                        editor_mode_enabled,
+                        edit_id_render_enabled || (editor_mode_enabled && flash_frame && selected_cur_map_idx && editor_selected_side == lower_intersect_wall_side),
                         MAP_CELL_EDIT_ID(map_idx, lower_intersect_wall_side) 
                     );
 
@@ -1683,7 +1685,7 @@ void execute_rays_in_segment(
                         original_next_free_pix_min, original_next_free_pix_max,
                         seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
                         textures[lower_wall_tex],
-                        editor_mode_enabled,
+                        edit_id_render_enabled || (editor_mode_enabled && flash_frame && selected_cur_map_idx && editor_selected_side == upper_intersect_wall_side),
                         MAP_CELL_EDIT_ID(map_idx, upper_intersect_wall_side)
                     );
 
@@ -1772,7 +1774,7 @@ void execute_rays_in_segment(
                         original_next_free_pix_min, original_next_free_pix_max,
                         seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
                         floor_tex, 
-                        editor_mode_enabled,
+                        edit_id_render_enabled || (editor_mode_enabled && flash_frame && selected_cur_map_idx && editor_selected_side == first_floor_side),
                         MAP_CELL_EDIT_ID(map_idx, first_floor_side)
                     );
 
@@ -1821,7 +1823,7 @@ void execute_rays_in_segment(
                         original_next_free_pix_min, original_next_free_pix_max,
                         seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
                         textures[lower_diag_wall_tex], 
-                        editor_mode_enabled,
+                        edit_id_render_enabled || (editor_mode_enabled && flash_frame && selected_cur_map_idx && editor_selected_side == WALL_SIDE_LOWER_DIAG),
                         MAP_CELL_EDIT_ID(map_idx, WALL_SIDE_LOWER_DIAG)
                     );
 
@@ -1865,7 +1867,7 @@ void execute_rays_in_segment(
                             original_next_free_pix_min, original_next_free_pix_max,
                             seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
                             textures[second_floor_texture], 
-                            editor_mode_enabled,
+                            edit_id_render_enabled || (editor_mode_enabled && flash_frame && selected_cur_map_idx && editor_selected_side == second_floor_side),
                             MAP_CELL_EDIT_ID(map_idx, second_floor_side)
                         );
 
@@ -1920,7 +1922,7 @@ void execute_rays_in_segment(
                         original_next_free_pix_min, original_next_free_pix_max,
                         seen_pixel_cache, ray_column, z_buf_column, seg_buffer_height, 
                         ceil_tex, 
-                        editor_mode_enabled, 
+                        edit_id_render_enabled || (editor_mode_enabled && flash_frame && selected_cur_map_idx && editor_selected_side == first_ceil_side),
                         MAP_CELL_EDIT_ID(map_idx, first_ceil_side)
                     );
 
@@ -1988,6 +1990,10 @@ typedef struct {
     int axis_mapped_to_y;
     level* this_level;
     int seg_buffer_height;
+    int edit_id_render_enabled;
+    int flash_frame;
+    int editor_selected_map_idx;
+    editor_selected_thing editor_selected_side;
     int editor_mode_enabled;
 } thread_params;
 
@@ -2000,7 +2006,8 @@ void execute_rays_in_segment_wrapper(void* p) {
     execute_rays_in_segment(
         tp->ray_buffer, tp->z_buffer, tp->seen_pixel_cache, tp->ray_buffer_base_offset, tp->seg, 
         tp->start_ray, tp->end_ray, tp->cam, tp->world_to_screen_mat,
-        tp->axis_mapped_to_y, tp->this_level, tp->seg_buffer_height, tp->editor_mode_enabled
+        tp->axis_mapped_to_y, tp->this_level, tp->seg_buffer_height, tp->edit_id_render_enabled,
+        tp->flash_frame, tp->editor_mode_enabled, tp->editor_selected_map_idx, tp->editor_selected_side
     );
     // decrement counter
     //printf("woo, seg %i decrementing :)\n", tp->seg.index);
@@ -2016,7 +2023,11 @@ typedef struct {
     mat4 world_to_screen_mat;
     level* this_level;
     int seg_buffer_heights[2];
+    int edit_id_render_enabled;
+    int flash_frame;
+    int editor_selected_map_idx;
     int editor_mode_enabled;
+    editor_selected_thing editor_selected_side;
 } frame_params;
 
 jobpool* raycast_6dof_pool = NULL;
@@ -2050,7 +2061,11 @@ void parallel_raycast_segment_wrapper(
 
         int axis_mapped_to_y = (seg_idx > 1) ? 0 : 1;
         int seg_buffer_height = seg_buffer_heights[(seg_idx>>1)];
+        int edit_id_render_enabled = tp->edit_id_render_enabled;
+        int flash_frame = tp->flash_frame;
         int editor_mode_enabled = tp->editor_mode_enabled;
+        int editor_selected_map_idx = tp->editor_selected_map_idx;
+        editor_selected_thing editor_selected_side = tp->editor_selected_side;
 
 
         int used_threads = NUM_THREADS;
@@ -2073,7 +2088,13 @@ void parallel_raycast_segment_wrapper(
             raycast_6dof_parms[next_task_idx].axis_mapped_to_y = axis_mapped_to_y;
             raycast_6dof_parms[next_task_idx].this_level = this_level;
             raycast_6dof_parms[next_task_idx].seg_buffer_height = seg_buffer_height;
+            raycast_6dof_parms[next_task_idx].edit_id_render_enabled = edit_id_render_enabled;
+            raycast_6dof_parms[next_task_idx].flash_frame = flash_frame;
+            raycast_6dof_parms[next_task_idx].editor_selected_map_idx = editor_selected_map_idx;
+            raycast_6dof_parms[next_task_idx].editor_selected_side = editor_selected_side;
             raycast_6dof_parms[next_task_idx].editor_mode_enabled = editor_mode_enabled;
+
+
 
             raycast_6dof_parms[next_task_idx].start_ray = (rays_per_thread*i);
             raycast_6dof_parms[next_task_idx].end_ray = (i == used_threads-1) ? seg.ray_count : MIN(seg.ray_count, (rays_per_thread*(i+1)));
@@ -2127,7 +2148,11 @@ void launch_parallel_raycast_segments(
     mat4 world_to_screen_mat,
     level* this_level, 
     int seg_buffer_heights[2],
-    int editor_mode_enabled
+    int edit_id_render_enabled,
+    int editor_mode_enabled,
+    int flash_frame,
+    int editor_selected_map_idx,
+    editor_selected_thing editor_selected_side
 ) {
     full_frame_params.ray_buffers[0] = ray_buffers[0];
     full_frame_params.ray_buffers[1] = ray_buffers[1];
@@ -2144,7 +2169,11 @@ void launch_parallel_raycast_segments(
     full_frame_params.this_level = this_level;
     full_frame_params.seg_buffer_heights[0] = seg_buffer_heights[0];
     full_frame_params.seg_buffer_heights[1] = seg_buffer_heights[1];
+    full_frame_params.edit_id_render_enabled = edit_id_render_enabled;
+    full_frame_params.flash_frame = flash_frame;
     full_frame_params.editor_mode_enabled = editor_mode_enabled;
+    full_frame_params.editor_selected_map_idx = editor_selected_map_idx;
+    full_frame_params.editor_selected_side = editor_selected_side;
     platform_add_task(
         raycast_6dof_manager_pool,
         parallel_raycast_segment_wrapper,

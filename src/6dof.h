@@ -100,7 +100,7 @@ float3 adjust_screen_pixel_for_mesh(float2 screen_pixel, float2 screen_size);
 
 extern s64 segment_raycast_finished[4];
 
-void launch_parallel_raycast_segments(
+void launch_parallel_raycast_segments(    
     u32* ray_buffers[2],
     float* z_buffers[2],
     segment segs[4],
@@ -108,7 +108,11 @@ void launch_parallel_raycast_segments(
     mat4 world_to_screen_mat,
     level* this_level, 
     int seg_buffer_heights[2],
-    int editor_mode_enabled
+    int edit_id_render_enabled,
+    int editor_mode_enabled,
+    int flash_frame,
+    int editor_selected_map_idx,
+    editor_selected_thing editor_selected_side
 );
 
 void join_6dof_raycast();

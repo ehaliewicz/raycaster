@@ -499,6 +499,35 @@ float ease_out(float a, float b, float t) {
     return a + (1.0f - inv * inv) * (b - a);
 }
 
+slope_heights get_slope_heights_6dof(
+    int in_start_cell, int map_x, int map_z, int next_map_x, int next_map_z, 
+    float hit_x, float hit_z, float next_hit_x, float next_hit_z,
+    wall_side side, cell_types cell_type, int step_x, int step_z, 
+    float ray_origin_x, float ray_origin_z, float first_floor_height, float second_floor_height) {
+    float z_exit = next_map_z > map_z ? 1.0f : next_map_z < map_z ? 0.0f : next_hit_z-my_floorf(next_hit_z);
+    float z_start = hit_z - my_floorf(hit_z);
+    if(side == HORIZONTAL_SIDE) {
+        if(step_z == -1) {
+            z_start = 1.0f;
+        } else {
+            z_start = 0.0f;
+        }
+    }
+    float x_exit = next_map_x > map_x ? 1.0f : next_map_x < map_x ? 0.0f : next_hit_x-my_floorf(next_hit_x);
+    float x_start = hit_x - my_floorf(hit_x);
+    if(side == VERTICAL_SIDE) {
+        if(step_x == -1) {
+            x_start = 1.0f;
+        } else {
+            x_start = 0.0f;
+        }
+    }
+    float start = (cell_type == SLOPE_Y) ? z_start : x_start;
+    float exit = (cell_type == SLOPE_Y) ? z_exit : x_exit;
+    float slope_start_height = (float)first_floor_height + start*(float)((float)second_floor_height - (float)first_floor_height);
+    float slope_end_height = (float)first_floor_height + exit*(float)((float)second_floor_height - (float)first_floor_height);
+    return ((slope_heights){.start_height = slope_start_height, .end_height = slope_end_height});
+}
 
 slope_heights get_slope_heights(
     int in_start_cell, int map_x, int map_z, int next_map_x, int next_map_z, 

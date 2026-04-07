@@ -185,6 +185,14 @@ typedef void (APIENTRY *PFNGLGETPROGRAMINFOLOGPROC)(GLuint, GLsizei, GLsizei*, c
 
 typedef void (APIENTRY *PFNGLACTIVETEXTUREPROC)(GLenum texture);
 
+typedef void  (*PFNGLGENFRAMEBUFFERSPROC) (GLsizei n, GLuint *framebuffers);
+typedef void  (*PFNGLBINDFRAMEBUFFERPROC) (GLenum target, GLuint framebuffer);
+
+typedef void (*PFNGLGENRENDERBUFFERSPROC)      (GLsizei n, GLuint *renderbuffers);
+typedef void (*PFNGLBINDRENDERBUFFERPROC)       (GLenum target, GLuint renderbuffer);
+typedef void (*PFNGLRENDERBUFFERSTORAGEPROC)    (GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
+typedef void (*PFNGLFRAMEBUFFERRENDERBUFFERPROC)(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+
 //static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
 
 #define GL_ROUTINES                                     \
@@ -212,7 +220,14 @@ typedef void (APIENTRY *PFNGLACTIVETEXTUREPROC)(GLenum texture);
     X(PFNGLGETSHADERINFOLOGPROC,  glGetShaderInfoLog)          \
     X(PFNGLGETPROGRAMIVPROC,      glGetProgramiv)              \
     X(PFNGLGETPROGRAMINFOLOGPROC, glGetProgramInfoLog)           \
-    X(PFNGLACTIVETEXTUREPROC, glActiveTexture)
+    X(PFNGLACTIVETEXTUREPROC, glActiveTexture)                  \
+    X(PFNGLGENFRAMEBUFFERSPROC, glGenFramebuffers)               \
+    X(PFNGLBINDFRAMEBUFFERPROC, glBindFramebuffer)              \
+    X(PFNGLGENRENDERBUFFERSPROC,       glGenRenderbuffers)       \
+    X(PFNGLBINDRENDERBUFFERPROC,       glBindRenderbuffer)             \
+    X(PFNGLRENDERBUFFERSTORAGEPROC,    glRenderbufferStorage)          \
+    X(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glFramebufferRenderbuffer)
+
 
 
 #define X(type, name) static type name;
@@ -224,6 +239,7 @@ GL_ROUTINES
 #define GL_ARRAY_BUFFER    0x8892
 //#define GL_STATIC_DRAW     0x88B4
 //#define GL_DYNAMIC_DRAW     0x88B8
+#define GL_FRAMEBUFFER 0x8D40
 
 #define GL_STATIC_DRAW          0x88E4
 #define GL_DYNAMIC_DRAW         0x88E8
@@ -240,6 +256,9 @@ GL_ROUTINES
 #define WGL_CONTEXT_DEBUG_BIT_ARB           0x00000001
 #define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x00000002
 
+#define GL_COLOR_ATTACHMENT0  0x8CE0
+#define GL_RENDERBUFFER       0x8D41
+#define GL_RGBA8              0x8058
 #define GL_TEXTURE0 0x84C0
 
 GLuint compile_shader(GLenum type, const char* src) {
@@ -420,6 +439,34 @@ const char* all_segs_frag_shader_src = "#version 330 core\n"
 //"    }\n"
 "}\n";
 
+
+
+unsigned int edit_fbo = 0;
+unsigned int edit_rbo = 0;
+
+void platform_bind_edit_framebuffer() {
+    if(edit_fbo == 0) {
+        glGenFramebuffers(1, &edit_fbo);
+        glGenRenderbuffers(1, &edit_rbo);
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, edit_fbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, edit_rbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, edit_rbo);
+    
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, edit_fbo);
+}
+
+u32 platform_read_pixel_at(int x, int y) {
+    u32 pix;
+    glReadPixels(x, y, 1, 1,  GL_RGB, GL_UNSIGNED_BYTE, &pix);
+    return pix;
+}
+void platform_unbind_edit_framebuffer() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
 
 typedef HGLRC (WINAPI *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hDC, HGLRC hShareContext, const int *attribList);

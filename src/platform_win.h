@@ -107,6 +107,9 @@ void platform_draw_segments(
     float offsets[4],
     float scales[4]);
 void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float scale, int w, int h);
+u32 platform_read_pixel_at(int x, int y);
+void platform_bind_edit_framebuffer();
+void platform_unbind_edit_framebuffer();
 
 u8* platform_load_image(const char* file, int expected_width, int expected_height);
 void platform_unload_image(u8* img_data);
