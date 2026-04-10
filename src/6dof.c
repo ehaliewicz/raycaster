@@ -180,6 +180,39 @@ mat4 get_projection_matrix(camera cam) {
                    0.0f, 0.0f, qn,   0.0f);
 }
 
+float3 float3_rotate(float3 v, float3 axis, float angle) {
+    // v' = v*cos + (axis x v)*sin + axis*(axis . v)*(1 - cos)
+    float c = my_cosf(angle);
+    float s = my_sinf(angle);
+    return float3_add(
+        float3_add(
+            float3_mul_float(v, c),
+            float3_mul_float(float3_cross_float3(axis, v), s)
+        ),
+        float3_mul_float(axis, float3_dot_float3(axis, v) * (1.0f - c))
+    );
+}
+
+void rotate_camera_descent_style(camera *cam, float delta_yaw, float delta_pitch) {
+    // Yaw around local up (not world up)
+    cam->forward = float3_rotate(cam->forward, cam->up, delta_yaw);
+    cam->right   = float3_rotate(cam->right,   cam->up, delta_yaw);
+
+    // Pitch around local right
+    cam->forward = float3_rotate(cam->forward, cam->right, delta_pitch);
+    cam->up      = float3_rotate(cam->up,      cam->right, delta_pitch);
+
+    // Re-orthogonalize
+    cam->forward = float3_normalize(cam->forward);
+    cam->right   = float3_normalize(float3_cross_float3(cam->forward, cam->up));
+    cam->up      = float3_normalize(float3_cross_float3(cam->right, cam->forward));
+}
+
+void get_pitch_yaw(camera *cam, float *pitch, float *yaw) {
+    *yaw   = my_atan2f(cam->forward.x, cam->forward.z);  // rotation around Y in world space
+    *pitch = my_asinf(cam->forward.y);                    // up/down tilt
+}
+
 mat4 get_world_to_camera_matrix(camera cam) {
     return mk_mat4(
         cam.right.x, cam.up.x, -cam.forward.x, 0.0f,
@@ -188,7 +221,6 @@ mat4 get_world_to_camera_matrix(camera cam) {
         -float3_dot_float3(cam.right, cam.pos), 
         -float3_dot_float3(cam.up, cam.pos), 
         float3_dot_float3(cam.forward, cam.pos), 1.0f
-        //-cam.right.dot(cam.pos), -cam.up.dot(cam.pos), cam.forward.dot(cam.pos), 1
     );
 }
 

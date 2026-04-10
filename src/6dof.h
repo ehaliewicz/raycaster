@@ -127,4 +127,9 @@ void draw_segments(float2 screen_vp, camera cam, segment segments[4], unsigned i
 void transpose_and_upload_seg(u32* transpose_buf, int transpose_seg_idx, segment segments[4], u32* seg_src_buf, int seg_upload_handle);
 void transpose_and_upload_z_buf(u32* transpose_buf, int transpose_seg_idx, segment segments[4], float* seg_src_buf, int seg_upload_handle);
 void initialize_segments(float2 screen_vp, camera cam, segment segments[4]);
+
+void rotate_camera_descent_style(camera *cam, float delta_yaw, float delta_pitch);
+
+void get_pitch_yaw(camera *cam, float *pitch, float *yaw);
+
 #endif
