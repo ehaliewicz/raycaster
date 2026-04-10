@@ -110,6 +110,7 @@ void platform_draw_texture(unsigned int tex, Vector2 pos, float rotation, float 
 u32 platform_read_pixel_at(int x, int y);
 void platform_bind_edit_framebuffer();
 void platform_unbind_edit_framebuffer();
+void platform_release_edit_framebuffer();
 
 u8* platform_load_image(const char* file, int expected_width, int expected_height);
 void platform_unload_image(u8* img_data);

@@ -352,6 +352,11 @@ void update_player(float frame_time, Vector2 mouse_delta) {
     int moved = 0;
     float vel_x = 0.0f;
     float vel_y = 0.0f;
+    
+    //float y_component = my_cosf(player_pitch);
+    //float z_component = my_sinf(player_yaw);
+    //float x_component = my_cosf(player_yaw);
+
 
     if (platform_is_key_down(KEY_W)) {
         moved = 1;
@@ -505,6 +510,8 @@ void update_player(float frame_time, Vector2 mouse_delta) {
             player_yaw -= mouse_delta.x*.0017f;
         }
     }
+
+
 
     // cleanup angle
     if(player_yaw < 0.0f) {
@@ -1231,6 +1238,7 @@ void change_resolution() {
         platform_release_texture(draw_textures[1]);
         platform_release_texture(seg_tex_handles[0]);
         platform_release_texture(seg_tex_handles[1]);
+        platform_release_edit_framebuffer();
     }
     draw_pix_pointers[0] = my_malloc(sizeof(u32)*RENDER_HEIGHT*RENDER_WIDTH, "framebuffer");
     draw_pix_pointers[1] = my_malloc(sizeof(u32)*RENDER_HEIGHT*RENDER_WIDTH, "framebuffer");
@@ -1293,189 +1301,6 @@ void init_game();
 int launch_in_edit_mode = 0;
 int killed_all_the_foxs = 0;
 
-void initialize_segments(float2 screen_vp, camera cam, segment segments[4]) {
-    
-        if (screen_vp.y < cam.dims.y) {
-            // seg0 is top segment
-            segments[0] = get_segment_parameters(
-                0,
-                cam, screen_vp, cam.dims.y - screen_vp.y, 
-                ((float2){.x=0.0f, .y = 1.0f}), 1, MAX_WALL_HEIGHT, max_top_down_rays);
-        }
-
-        if(screen_vp.y > 0) {
-            // seg1 is bottom
-            segments[1] = get_segment_parameters(
-                1,
-                cam, screen_vp, screen_vp.y,
-                ((float2){.x=0.0f, .y=-1.0f}), 1, MAX_WALL_HEIGHT, max_top_down_rays
-            );
-        }
-
-        if(screen_vp.x < cam.dims.x) {
-            // seg2 is right
-            segments[2] = get_segment_parameters(
-                2,
-                cam, screen_vp,  cam.dims.x - screen_vp.x, 
-                ((float2){.x=1.0f, .y=0.0f}), 0, MAX_WALL_HEIGHT, max_left_right_rays);
-        }
-
-        if (screen_vp.x > 0) {
-            // seg3 is left
-            segments[3] = get_segment_parameters(
-                3,
-                cam, screen_vp, screen_vp.x, 
-                ((float2){.x=-1.0f, .y=0.0f}), 0, MAX_WALL_HEIGHT, max_left_right_rays);
-        }
-}
-
-
-
-void draw_segments(float2 screen_vp, camera cam, segment segments[4]) {
-    
-    float3 seg_v0 = adjust_screen_pixel_for_mesh(screen_vp, cam.dims);
-
-    float scales[4] = {
-        ((float)segments[0].ray_count) / max_top_down_rays,
-        ((float)segments[1].ray_count) / max_top_down_rays,
-        ((float)segments[2].ray_count) / max_left_right_rays,
-        ((float)segments[3].ray_count) / max_left_right_rays
-    };
-    float offsets[4] = {
-        0.0f, scales[0], 0.0f, scales[2],
-    };
-    float3 seg0_v1 = adjust_screen_pixel_for_mesh(segments[0].max_screen, cam.dims);
-    float3 seg0_v2 = adjust_screen_pixel_for_mesh(segments[0].min_screen, cam.dims);
-
-    float3 seg1_v1 = adjust_screen_pixel_for_mesh(segments[1].max_screen, cam.dims);
-    float3 seg1_v2 = adjust_screen_pixel_for_mesh(segments[1].min_screen, cam.dims);
-
-    // seg2_v1 should match up with seg0_v1
-    float3 seg2_v1 = adjust_screen_pixel_for_mesh(segments[2].max_screen, cam.dims);
-    // seg2_v2 should match up with seg1_v1
-    float3 seg2_v2 = adjust_screen_pixel_for_mesh(segments[2].min_screen, cam.dims);
-
-    // seg3_v1 should match up with seg0_v2
-    float3 seg3_v1 = adjust_screen_pixel_for_mesh(segments[3].max_screen, cam.dims);
-    // seg3_v2 should match up with seg1_v2
-    float3 seg3_v2 = adjust_screen_pixel_for_mesh(segments[3].min_screen, cam.dims);
-
-    if(1) { //platform_is_key_down(KEY_M)) {
-        float seg0_v1_flts[2] = {segments[0].max_screen.x, segments[0].max_screen.y};
-        float seg0_v2_flts[2] = {segments[0].min_screen.x, segments[0].min_screen.y};
-        float seg1_v1_flts[2] = {segments[1].max_screen.x, segments[1].max_screen.y};
-        float seg1_v2_flts[2] = {segments[1].min_screen.x, segments[1].min_screen.y};
-        float seg2_v1_flts[2] = {segments[2].max_screen.x, segments[2].max_screen.y};
-        float seg2_v2_flts[2] = {segments[2].min_screen.x, segments[2].min_screen.y};
-        float seg3_v1_flts[2] = {segments[3].max_screen.x, segments[3].max_screen.y};
-        float seg3_v2_flts[2] = {segments[3].min_screen.x, segments[3].min_screen.y};
-
-        platform_draw_full_quad(
-            seg_tex_handles[0], seg_tex_handles[1],
-            screen_vp.x, screen_vp.y,
-            segments[1].max_screen.x, segments[1].max_screen.y, // fragCoord of bottom right
-            segments[0].min_screen.x, segments[0].min_screen.y,
-            seg0_v1_flts, seg0_v2_flts,
-            seg1_v1_flts, seg1_v2_flts,
-            seg2_v1_flts, seg2_v2_flts,
-            seg3_v1_flts, seg3_v2_flts,
-            offsets, scales
-        );
-        return;
-    }
-
-
-    float seg3_v1_slope = (segments[3].max_screen.y/segments[3].max_screen.x);
-    float seg0_v2_slope = (segments[0].min_screen.y/segments[0].min_screen.x);
-
-
-
-    float seg01_attributes[7*6] = {
-        seg_v0.x, seg_v0.y, seg_v0.z, 0.0f, 0.0f, 1.0f, 0,
-        seg0_v1.x, seg0_v1.y, seg0_v1.z, 1.0f, 0.0f, 0.0f, 0,
-        seg0_v2.x, seg0_v2.y, seg0_v2.z, 0.0f, 1.0f, 0.0f, 0,
-
-        seg_v0.x, seg_v0.y, seg_v0.z, 0.0f, 0.0f, 1.0f, 1,
-        seg1_v1.x, seg1_v1.y, seg1_v1.z, 1.0f, 0.0f, 0.0f, 1,
-        seg1_v2.x, seg1_v2.y, seg1_v2.z, 0.0f, 1.0f, 0.0f, 1,
-    };    
-    float seg23_attributes[7*6] = {
-        seg_v0.x, seg_v0.y, seg_v0.z, 0.0f, 0.0f, 1.0f, 2,
-        seg2_v1.x, seg2_v1.y, seg2_v1.z, 1.0f, 0.0f, 0.0f, 2,
-        seg2_v2.x, seg2_v2.y, seg2_v2.z, 0.0f, 1.0f, 0.0f, 2,
-
-        seg_v0.x, seg_v0.y, seg_v0.z, 0.0f, 0.0f, 1.0f, 3,
-        seg3_v1.x, seg3_v1.y, seg3_v1.z, 1.0f, 0.0f, 0.0f, 3,
-        seg3_v2.x, seg3_v2.y, seg3_v2.z, 0.0f, 1.0f, 0.0f, 3,
-    };
-    
-    //platform_draw_texture(
-    //    seg_tex_handles[0]
-    //);
-
-    platform_draw_segments(
-        2,
-        seg_tex_handles[0], 
-        0,  // good enough for seg01 :)
-        seg01_attributes,
-        offsets, scales
-    );
-    platform_draw_segments(
-        2,
-        seg_tex_handles[1],
-        2, // good enough for seg23 :) 
-        seg23_attributes,
-        offsets, scales
-    );
-}
-
-void transpose_and_upload_seg(int transpose_seg_idx, segment segments[4], u32* seg_src_buf, int seg_upload_handle) {
-    segment seg = segments[transpose_seg_idx];
-    int src_height = (transpose_seg_idx < 2) ? RENDER_HEIGHT : RENDER_WIDTH;
-    int seg_height = ((seg.next_free_pixel_max+1) - seg.next_free_pixel_min);
-    int seg_width = seg.ray_count;
-    int y_offset = src_height-1 - seg.next_free_pixel_max;
-
-
-    int x_offset = (transpose_seg_idx & 1) ? (segments[transpose_seg_idx-1].ray_count) : 0;
-
-    int x1 = x_offset; int y1 = y_offset;
-    int w = seg_width; int h = seg_height;
-
-    for(int x = 0; x < w; x++) {
-        for(int y = 0; y < h; y++) {
-            u32 rgba = seg_src_buf[(x1 + x) * src_height + (y + y1)];
-            transpose_buf[x*seg_height+y] = rgba;
-        }
-    }
-    platform_update_texture(seg_upload_handle, transpose_buf, y1, x1, h, w);
-}
-
-void transpose_and_upload_z_buf(int transpose_seg_idx, segment segments[4], float* seg_src_buf, int seg_upload_handle) {
-    segment seg = segments[transpose_seg_idx];
-    int src_height = (transpose_seg_idx < 2) ? RENDER_HEIGHT : RENDER_WIDTH;
-    int seg_height = ((seg.next_free_pixel_max+1) - seg.next_free_pixel_min);
-    int seg_width = seg.ray_count;
-    int y_offset = src_height-1 - seg.next_free_pixel_max;
-
-
-    int x_offset = (transpose_seg_idx & 1) ? (segments[transpose_seg_idx-1].ray_count) : 0;
-
-    int x1 = x_offset; int y1 = y_offset;
-    int w = seg_width; int h = seg_height;
-    //memset(transpose_buf, 0xFF, (w*h*4));
-    for(int x = 0; x < w; x++) {
-        for(int y = 0; y < h; y++) {
-            float z = seg_src_buf[(x1 + x) * src_height + (y + y1)];
-            int gray_z = z*8.0;
-            u32 rgba = (0xFF<<24)|(gray_z<<16)|(gray_z<<8)|(gray_z<<0);
-            transpose_buf[x*seg_height+y] = rgba;
-        }
-    }
-    platform_update_texture(seg_upload_handle, transpose_buf, y1, x1, h, w);
-}
-
-
 
 void run_game() {
     
@@ -1513,7 +1338,7 @@ void run_game() {
         // !platform_is_window_focused()) {
         platform_begin_drawing();
         if(draw_6dof) {
-            draw_segments(screen_vp, cam, segments);
+            draw_segments(screen_vp, cam, segments, seg_tex_handles);
         } else {
             float scale = ((float)OUTPUT_WIDTH/((float)RENDER_WIDTH));
             platform_draw_texture(draw_tex, (Vector2){.x=OUTPUT_WIDTH/2,.y=OUTPUT_HEIGHT/2}, 90.0f, scale, RENDER_HEIGHT, RENDER_WIDTH);
@@ -1797,12 +1622,16 @@ void run_game() {
                             //printf("transposing segment %i\n", i);
                             // done raycasting, needs to be uploaded to gpu
                             if(draw_z_buf) {
-                                transpose_and_upload_z_buf(seg_idx, segments, 
+                                transpose_and_upload_z_buf(
+                                    transpose_buf, 
+                                    seg_idx, segments, 
                                     seg_z_bufs[seg_idx>>1], 
                                     seg_tex_handles[seg_idx>>1]
                                 );
                             } else {
-                                transpose_and_upload_seg(seg_idx, segments, 
+                                transpose_and_upload_seg(
+                                    transpose_buf, 
+                                    seg_idx, segments, 
                                     seg_draw_bufs[seg_idx>>1], 
                                     seg_tex_handles[seg_idx>>1]
                                 );
@@ -1839,7 +1668,7 @@ void run_game() {
                         platform_bind_edit_framebuffer();
                     }
 
-                    draw_segments(screen_vp, cam, segments);
+                    draw_segments(screen_vp, cam, segments, seg_tex_handles);
 
                     if(platform_is_mouse_button_pressed(MOUSE_BUTTON_LEFT)) {   
                         handle_6dof_click(mouse_pos.x, mouse_pos.y);    

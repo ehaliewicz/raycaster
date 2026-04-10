@@ -123,4 +123,8 @@ extern int draw_only_first_element, draw_only_second_element;
 int point_in_north_east(float px, float pz);
 int point_in_north_west(float px, float pz);
 
+void draw_segments(float2 screen_vp, camera cam, segment segments[4], unsigned int seg_tex_handles[2]);
+void transpose_and_upload_seg(u32* transpose_buf, int transpose_seg_idx, segment segments[4], u32* seg_src_buf, int seg_upload_handle);
+void transpose_and_upload_z_buf(u32* transpose_buf, int transpose_seg_idx, segment segments[4], float* seg_src_buf, int seg_upload_handle);
+void initialize_segments(float2 screen_vp, camera cam, segment segments[4]);
 #endif

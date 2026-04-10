@@ -186,9 +186,11 @@ typedef void (APIENTRY *PFNGLGETPROGRAMINFOLOGPROC)(GLuint, GLsizei, GLsizei*, c
 typedef void (APIENTRY *PFNGLACTIVETEXTUREPROC)(GLenum texture);
 
 typedef void  (*PFNGLGENFRAMEBUFFERSPROC) (GLsizei n, GLuint *framebuffers);
+typedef void  (*PFNGLDELETEFRAMEBUFFERSBUFFERSPROC) (GLsizei n, GLuint *framebuffers);
 typedef void  (*PFNGLBINDFRAMEBUFFERPROC) (GLenum target, GLuint framebuffer);
 
 typedef void (*PFNGLGENRENDERBUFFERSPROC)      (GLsizei n, GLuint *renderbuffers);
+typedef void  (*PFNGLDELETERENDERPFNGLGENRENDERBUFFERSPROCBUFFERSPROC) (GLsizei n, GLuint *renderbuffers);
 typedef void (*PFNGLBINDRENDERBUFFERPROC)       (GLenum target, GLuint renderbuffer);
 typedef void (*PFNGLRENDERBUFFERSTORAGEPROC)    (GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
 typedef void (*PFNGLFRAMEBUFFERRENDERBUFFERPROC)(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
@@ -222,8 +224,10 @@ typedef void (*PFNGLFRAMEBUFFERRENDERBUFFERPROC)(GLenum target, GLenum attachmen
     X(PFNGLGETPROGRAMINFOLOGPROC, glGetProgramInfoLog)           \
     X(PFNGLACTIVETEXTUREPROC, glActiveTexture)                  \
     X(PFNGLGENFRAMEBUFFERSPROC, glGenFramebuffers)               \
+    X(PFNGLGENFRAMEBUFFERSPROC, glDeleteFramebuffers)               \
     X(PFNGLBINDFRAMEBUFFERPROC, glBindFramebuffer)              \
     X(PFNGLGENRENDERBUFFERSPROC,       glGenRenderbuffers)       \
+    X(PFNGLGENFRAMEBUFFERSPROC, glDeleteRenderbuffers)               \
     X(PFNGLBINDRENDERBUFFERPROC,       glBindRenderbuffer)             \
     X(PFNGLRENDERBUFFERSTORAGEPROC,    glRenderbufferStorage)          \
     X(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glFramebufferRenderbuffer)
@@ -444,16 +448,23 @@ const char* all_segs_frag_shader_src = "#version 330 core\n"
 unsigned int edit_fbo = 0;
 unsigned int edit_rbo = 0;
 
+void platform_release_edit_framebuffer() {
+    glDeleteFramebuffers(1, &edit_fbo);
+    glDeleteRenderbuffers(1, &edit_rbo);
+    edit_fbo = 0;
+    edit_rbo = 0;
+
+}
+
 void platform_bind_edit_framebuffer() {
     if(edit_fbo == 0) {
         glGenFramebuffers(1, &edit_fbo);
         glGenRenderbuffers(1, &edit_rbo);
-        
+
         glBindFramebuffer(GL_FRAMEBUFFER, edit_fbo);
         glBindRenderbuffer(GL_RENDERBUFFER, edit_rbo);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, OUTPUT_WIDTH, OUTPUT_HEIGHT);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, edit_rbo);
-    
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, edit_fbo);
