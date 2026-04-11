@@ -247,8 +247,6 @@ typedef enum {
 game_state cur_game_state = FIGHTING;
 
 int entities_woke = 0;
-int camera_initialized = 0;
-camera cam;
 
 float adjust_position_for_door(float pos, int open_amount) {
     int map_pos = my_floorf(pos);
@@ -495,30 +493,24 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         player_yaw -= 0.0035f*frame_time;
     }
     if(platform_is_key_down(KEY_V)) {
-        player_roll += 0.0035f*frame_time;
+        //player_roll += 0.0035f*frame_time;
     }
     if(platform_is_key_down(KEY_B)) {
-        player_roll -= 0.0035f*frame_time;
+        //player_roll -= 0.0035f*frame_time;
     }
     
 //#define MOUSE_SENSITIVITY 0.00003f
 #define PIXELS_PER_RADIAN (RENDER_HEIGHT)
 
-    float dpitch = 0.0f;
-    float dyaw = 0.0f;
-
     if(!editor_mode_enabled) {
         if(mouse_delta.y != 0) {
-            //dpitch = (-mouse_delta.y) / PIXELS_PER_RADIAN;
-            //player_pitch += (-mouse_delta.y) / PIXELS_PER_RADIAN;
+            player_pitch += (-mouse_delta.y) / PIXELS_PER_RADIAN;
         }
         if(mouse_delta.x != 0) {
-            dyaw = -mouse_delta.x*0.0017f;
-            //player_yaw -= mouse_delta.x*.0017f;
+            player_yaw -= mouse_delta.x*.0017f;
         }
     }
 
-    get_pitch_yaw(&cam, &player_pitch, &player_yaw);
 
 
     // cleanup angle
@@ -528,10 +520,9 @@ void update_player(float frame_time, Vector2 mouse_delta) {
         player_yaw -= 6.28f;
     }
 
-    //float pitch_speed = 0.05f*frame_mult;
-    //float dy = (platform_is_key_down(KEY_I) ? 1.0f : (platform_is_key_down(KEY_K)) ? -1.0f : 0.0f);
-    //player_pitch += dy*pitch_speed;
-
+    float pitch_speed = 0.05f*frame_mult;
+    float dy = (platform_is_key_down(KEY_I) ? 1.0f : (platform_is_key_down(KEY_K)) ? -1.0f : 0.0f);
+    player_pitch += dy*pitch_speed;
 
     if (platform_is_key_pressed(KEY_SPACE)) {
         //pitch = 0;
@@ -576,6 +567,20 @@ void update_player(float frame_time, Vector2 mouse_delta) {
 }
 
 #define SCALE_FACTOR 32
+
+void draw_topdown_level() {
+    //level cur_level = levels[cur_level_idx];
+    for(int y = 0; y < MAP_SIZE; y++) {
+        for(int x = 0; x < MAP_SIZE; x++) {
+            //DrawRectangle(x*SCALE_FACTOR, y*SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR, color_lut[cur_level.ttex[y*MAP_SIZE+x]]);
+        }
+    }
+}
+
+
+void copy_32_map_to_64() {
+    //
+}
 
 
 void init_level(int fresh_map) {
@@ -1305,19 +1310,16 @@ void run_game() {
         change_resolution();
         player_pitch = prev_pitch;
     }
-    if(!camera_initialized) {
-        cam = mk_camera(
-            cur_fov,
-            player_x+0.01f, player_z, player_y+0.01f, 
-            player_pitch,
-            player_yaw, 
-            player_roll,
-            RENDER_WIDTH, RENDER_HEIGHT,
-            NEAR_PLANE_DIST, FAR_PLANE_DIST
-        );
-    }
-        
-    mat4 world_to_screen_mat = get_world_to_screen_matrix(cam);
+
+    camera cam = mk_camera(
+        cur_fov,
+        player_x+0.01f, player_z, player_y+0.01f, 
+        player_pitch,
+        player_yaw, 
+        player_roll,
+        RENDER_WIDTH, RENDER_HEIGHT,
+        NEAR_PLANE_DIST, FAR_PLANE_DIST
+    );
     float3 world_vp = calc_vanishing_point_world(cam);
     float2 screen_vp = project_vanishing_point_world_to_screen(
         cam, world_vp
@@ -1582,6 +1584,7 @@ void run_game() {
                     segments[seg_idx].next_free_pixel_max = next_free_pix_max;
                 }
 
+                mat4 world_to_screen_mat = get_world_to_screen_matrix(cam);
 
                 int top_down_ray_buffer_size = max_top_down_rays*RENDER_HEIGHT;
                 int left_right_ray_buffer_size = max_left_right_rays*RENDER_WIDTH;
