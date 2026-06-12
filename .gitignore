@@ -5,3 +5,4 @@ out/output.map
 out/*.pdb
 *.pdb
 *.map
+vscode/*
